@@ -204,16 +204,26 @@ async function createTables(db) {
   }
 
   // Create default SysOp user if it doesn't exist
-  const existingUser = await db.get('SELECT id FROM users WHERE handle = ?', ['SysOp']);
+  const existingUser = await db.get(
+    isPostgreSQL 
+      ? 'SELECT id FROM users WHERE handle = $1' 
+      : 'SELECT id FROM users WHERE handle = ?', 
+    ['SysOp']
+  );
   
   if (!existingUser) {
     const bcrypt = require('bcrypt');
     const defaultPassword = 'admin123';
     const hashedPassword = bcrypt.hashSync(defaultPassword, 10);
     
-    await db.run(`INSERT INTO users (handle, real_name, location, password_hash, access_level, credits, created_at) 
-                  VALUES (?, ?, ?, ?, ?, ?, ${isPostgreSQL ? 'CURRENT_TIMESTAMP' : 'CURRENT_TIMESTAMP'})`,
-      ['SysOp', 'System Operator', 'BBS Headquarters', hashedPassword, 100, 1000]);
+    await db.run(
+      isPostgreSQL
+        ? `INSERT INTO users (handle, real_name, location, password_hash, access_level, credits, created_at) 
+           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`
+        : `INSERT INTO users (handle, real_name, location, password_hash, access_level, credits, created_at) 
+           VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+      ['SysOp', 'System Operator', 'BBS Headquarters', hashedPassword, 100, 1000]
+    );
     
     console.log('Default SysOp user created with password: admin123');
   }
@@ -221,64 +231,123 @@ async function createTables(db) {
 
 // Database helper functions
 async function getUserById(db, userId) {
-  return await db.get('SELECT * FROM users WHERE id = ?', [userId]);
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  return await db.get(
+    isPostgreSQL 
+      ? 'SELECT * FROM users WHERE id = $1' 
+      : 'SELECT * FROM users WHERE id = ?', 
+    [userId]
+  );
 }
 
 async function getUserByHandle(db, handle) {
-  return await db.get('SELECT * FROM users WHERE handle = ?', [handle]);
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  return await db.get(
+    isPostgreSQL 
+      ? 'SELECT * FROM users WHERE handle = $1' 
+      : 'SELECT * FROM users WHERE handle = ?', 
+    [handle]
+  );
 }
 
 async function createUser(db, userData) {
   const bcrypt = require('bcrypt');
   const hashedPassword = bcrypt.hashSync(userData.password, 10);
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
   
-  const result = await db.run(`INSERT INTO users (handle, real_name, location, password_hash, access_level, credits) 
-                               VALUES (?, ?, ?, ?, ?, ?)`,
-    [userData.handle, userData.real_name, userData.location, hashedPassword, userData.access_level || 1, userData.credits || 100]);
+  const result = await db.run(
+    isPostgreSQL
+      ? `INSERT INTO users (handle, real_name, location, password_hash, access_level, credits) 
+         VALUES ($1, $2, $3, $4, $5, $6)`
+      : `INSERT INTO users (handle, real_name, location, password_hash, access_level, credits) 
+         VALUES (?, ?, ?, ?, ?, ?)`,
+    [userData.handle, userData.real_name, userData.location, hashedPassword, userData.access_level || 1, userData.credits || 100]
+  );
   
   return result.lastID;
 }
 
 async function getGameState(db, userId, gameName) {
-  return await db.get('SELECT * FROM game_states WHERE user_id = ? AND game_name = ?', [userId, gameName]);
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  return await db.get(
+    isPostgreSQL 
+      ? 'SELECT * FROM game_states WHERE user_id = $1 AND game_name = $2' 
+      : 'SELECT * FROM game_states WHERE user_id = ? AND game_name = ?', 
+    [userId, gameName]
+  );
 }
 
 async function saveGameState(db, userId, gameName, gameData) {
   const existing = await getGameState(db, userId, gameName);
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
   
   if (existing) {
-    await db.run('UPDATE game_states SET game_data = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND game_name = ?',
-      [gameData, userId, gameName]);
+    await db.run(
+      isPostgreSQL
+        ? 'UPDATE game_states SET game_data = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND game_name = $3'
+        : 'UPDATE game_states SET game_data = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND game_name = ?',
+      [gameData, userId, gameName]
+    );
   } else {
-    await db.run('INSERT INTO game_states (user_id, game_name, game_data) VALUES (?, ?, ?)',
-      [userId, gameName, gameData]);
+    await db.run(
+      isPostgreSQL
+        ? 'INSERT INTO game_states (user_id, game_name, game_data) VALUES ($1, $2, $3)'
+        : 'INSERT INTO game_states (user_id, game_name, game_data) VALUES (?, ?, ?)',
+      [userId, gameName, gameData]
+    );
   }
 }
 
 // SysOp chat functions
 async function saveSysopChatMessage(db, user_id, from_sysop, message) {
-  const result = await db.run('INSERT INTO sysop_chat_messages (user_id, from_sysop, message) VALUES (?, ?, ?)',
-    [user_id, from_sysop, message]);
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  const result = await db.run(
+    isPostgreSQL
+      ? 'INSERT INTO sysop_chat_messages (user_id, from_sysop, message) VALUES ($1, $2, $3)'
+      : 'INSERT INTO sysop_chat_messages (user_id, from_sysop, message) VALUES (?, ?, ?)',
+    [user_id, from_sysop, message]
+  );
   return result.lastID;
 }
 
 async function getSysopChatHistory(db, user_id, limit = 50) {
-  return await db.query('SELECT * FROM sysop_chat_messages WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?',
-    [user_id, limit]);
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  return await db.query(
+    isPostgreSQL
+      ? 'SELECT * FROM sysop_chat_messages WHERE user_id = $1 ORDER BY timestamp DESC LIMIT $2'
+      : 'SELECT * FROM sysop_chat_messages WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?',
+    [user_id, limit]
+  );
 }
 
 async function getUnreadSysopMessages(db, user_id) {
-  return await db.query('SELECT * FROM sysop_chat_messages WHERE user_id = ? AND from_sysop = true AND read_by_user = false ORDER BY timestamp DESC',
-    [user_id]);
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  return await db.query(
+    isPostgreSQL
+      ? 'SELECT * FROM sysop_chat_messages WHERE user_id = $1 AND from_sysop = true AND read_by_user = false ORDER BY timestamp DESC'
+      : 'SELECT * FROM sysop_chat_messages WHERE user_id = ? AND from_sysop = true AND read_by_user = false ORDER BY timestamp DESC',
+    [user_id]
+  );
 }
 
 async function markSysopMessagesAsRead(db, user_id) {
-  await db.run('UPDATE sysop_chat_messages SET read_by_user = true WHERE user_id = ? AND from_sysop = true',
-    [user_id]);
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  await db.run(
+    isPostgreSQL
+      ? 'UPDATE sysop_chat_messages SET read_by_user = true WHERE user_id = $1 AND from_sysop = true'
+      : 'UPDATE sysop_chat_messages SET read_by_user = true WHERE user_id = ? AND from_sysop = true',
+    [user_id]
+  );
 }
 
 async function getAllSysopChatMessages(db, limit = 100) {
-  return await db.query('SELECT * FROM sysop_chat_messages ORDER BY timestamp DESC LIMIT ?', [limit]);
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  return await db.query(
+    isPostgreSQL
+      ? 'SELECT * FROM sysop_chat_messages ORDER BY timestamp DESC LIMIT $1'
+      : 'SELECT * FROM sysop_chat_messages ORDER BY timestamp DESC LIMIT ?',
+    [limit]
+  );
 }
 
 module.exports = {
