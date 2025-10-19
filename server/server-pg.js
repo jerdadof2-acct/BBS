@@ -135,7 +135,7 @@ app.post('/api/game-state/:gameName', async (req, res) => {
 });
 
 // Fishing Hole specific endpoints
-app.get('/api/fishing-hole/player', async (req, res) => {
+app.post('/api/fishing-hole/player', async (req, res) => {
   try {
     if (!req.session.userId) {
       return res.status(401).json({ error: 'Not logged in' });
