@@ -7,6 +7,22 @@ const cors = require('cors');
 const path = require('path');
 const { initDatabase } = require('./db-new');
 
+// Helper function to get correct parameter placeholders
+function getParamPlaceholders(count) {
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  if (isPostgreSQL) {
+    return Array.from({length: count}, (_, i) => `$${i + 1}`).join(', ');
+  } else {
+    return Array.from({length: count}, () => '?').join(', ');
+  }
+}
+
+// Helper function to get single parameter placeholder
+function getSingleParam(index = 1) {
+  const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  return isPostgreSQL ? `$${index}` : '?';
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -182,7 +198,7 @@ io.on('connection', (socket) => {
     const user = onlineUsers.get(socket.id);
     if (user) {
       // Check if user is sysop
-      db.get('SELECT access_level FROM users WHERE id = ?', [user.userId], (err, row) => {
+      db.get(`SELECT access_level FROM users WHERE id = ${getSingleParam(1)}`, [user.userId], (err, row) => {
         if (row && row.access_level >= 100) {
           // Broadcast to all connected users
           io.emit('sysop-broadcast-message', {
@@ -200,7 +216,7 @@ io.on('connection', (socket) => {
     const user = onlineUsers.get(socket.id);
     if (user) {
       // Check if user is sysop
-      db.get('SELECT access_level FROM users WHERE id = ?', [user.userId], (err, row) => {
+      db.get(`SELECT access_level FROM users WHERE id = ${getSingleParam(1)}`, [user.userId], (err, row) => {
         if (row && row.access_level >= 100) {
           // Find target user's socket
           for (const [socketId, onlineUser] of onlineUsers.entries()) {
@@ -1938,7 +1954,7 @@ app.delete('/api/sysop/users/:id', async (req, res) => {
     }
 
     await new Promise((resolve, reject) => {
-      db.run('DELETE FROM users WHERE id = ?', [targetUserId], (err) => {
+      db.run(`DELETE FROM users WHERE id = ${getSingleParam(1)}`, [targetUserId], (err) => {
         if (err) reject(err);
         else resolve();
       });
@@ -1961,7 +1977,7 @@ app.post('/api/create-sysop', async (req, res) => {
     
     // Check if SysOp already exists
     const existingUser = await new Promise((resolve, reject) => {
-      db.get('SELECT id FROM users WHERE handle = ?', ['SysOp'], (err, row) => {
+      db.get(`SELECT id FROM users WHERE handle = ${getSingleParam(1)}`, ['SysOp'], (err, row) => {
         if (err) reject(err);
         else resolve(row);
       });
