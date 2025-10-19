@@ -1,25 +1,27 @@
-const DatabaseAdapter = require('./db-adapter');
-const bcrypt = require('bcrypt');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const { getDatabasePath } = require('./railway-persistence');
 
-let dbAdapter = null;
+const DB_PATH = getDatabasePath();
 
 // Initialize database
-async function initDatabase() {
-  try {
-    dbAdapter = new DatabaseAdapter();
-    await dbAdapter.connect();
-    await createTables(dbAdapter);
-    console.log('Database initialized successfully');
-    return dbAdapter;
-  } catch (error) {
-    console.error('Failed to initialize database:', error);
-    throw error;
-  }
+function initDatabase() {
+  return new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(DB_PATH, (err) => {
+      if (err) {
+        console.error('Error opening database:', err.message);
+        reject(err);
+        return;
+      }
+      console.log('Connected to SQLite database');
+      createTables(db).then(() => resolve(db)).catch(reject);
+    });
+  });
 }
 
-async function createTables(db) {
-  try {
-    const isPostgreSQL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+function createTables(db) {
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
       // Users table
       db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
