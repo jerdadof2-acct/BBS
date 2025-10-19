@@ -152,8 +152,13 @@ class MenuManager {
         
         const user = this.authManager.getCurrentUser();
         this.terminal.println(ANSIParser.fg('bright-cyan') + `  Session Statistics:` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + `     Total Calls: ${user.calls}` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + `     Time Online: 0:00:00` + ANSIParser.reset());
+        if (user) {
+            this.terminal.println(ANSIParser.fg('bright-white') + `     Total Calls: ${user.calls || 0}` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `     Time Online: 0:00:00` + ANSIParser.reset());
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-white') + `     Total Calls: 0` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `     Time Online: 0:00:00` + ANSIParser.reset());
+        }
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to disconnect...' + ANSIParser.reset());
         

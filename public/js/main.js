@@ -398,9 +398,9 @@ class BBSApplication {
     }
 
     async logout() {
+        await this.menuManager.showGoodbye();
         await this.authManager.logout();
         this.socketClient.logout();
-        await this.menuManager.showGoodbye();
         await this.showLogin();
     }
 
