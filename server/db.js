@@ -245,7 +245,36 @@ function createTables(db) {
       db.run(`CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON activity_logs(user_id)`);
       db.run(`CREATE INDEX IF NOT EXISTS idx_activity_logs_timestamp ON activity_logs(timestamp)`);
 
-      resolve();
+      // Create default SysOp user if it doesn't exist
+      db.get('SELECT id FROM users WHERE handle = ?', ['SysOp'], (err, row) => {
+        if (err) {
+          console.error('Error checking for SysOp user:', err);
+          resolve();
+          return;
+        }
+        
+        if (!row) {
+          // Create default SysOp user
+          const bcrypt = require('bcrypt');
+          const defaultPassword = 'admin123'; // Default password
+          const hashedPassword = bcrypt.hashSync(defaultPassword, 10);
+          
+          db.run(`INSERT INTO users (handle, real_name, location, password_hash, access_level, credits, created_at) 
+                  VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+            ['SysOp', 'System Operator', 'BBS Headquarters', hashedPassword, 100, 1000],
+            (err) => {
+              if (err) {
+                console.error('Error creating SysOp user:', err);
+              } else {
+                console.log('Default SysOp user created with password: admin123');
+              }
+              resolve();
+            }
+          );
+        } else {
+          resolve();
+        }
+      });
     });
   });
 }
