@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro-BBS - The Ultimate Bulletin Board System</title>
+    <link rel="stylesheet" href="/css/bbs.css">
+    <link rel="stylesheet" href="/css/ansi.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="bbs-container">
+        <div id="terminal-screen">
+            <div id="terminal-content"></div>
+            <div id="terminal-cursor">█</div>
+        </div>
+        <div id="status-bar">
+            <span id="status-text">Initializing...</span>
+            <span id="settings-toggle">⚙ Settings</span>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>BBS Settings</h2>
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="sound-toggle" checked>
+                    Enable Sound Effects
+                </label>
+            </div>
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="speed-toggle" checked>
+                    Simulate Modem Speed (slow typing)
+                </label>
+            </div>
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="blink-toggle" checked>
+                    Enable ANSI Blinking Text
+                </label>
+            </div>
+            <div class="setting-group">
+                <label>
+                    Color Scheme:
+                    <select id="color-scheme">
+                        <option value="green">Green on Black (Classic)</option>
+                        <option value="amber">Amber on Black</option>
+                        <option value="white">White on Black</option>
+                        <option value="blue">Blue on Black</option>
+                    </select>
+                </label>
+            </div>
+            <button id="settings-close">Close</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/ansi.js"></script>
+    <script src="/js/ansi-art.js"></script>
+    <script src="/js/terminal.js"></script>
+    <script src="/js/modem.js"></script>
+    <script src="/js/socket-client.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/menu.js"></script>
+    <script src="/js/messages.js"></script>
+    <script src="/js/files.js"></script>
+    <script src="/js/chat.js"></script>
+    <script src="/js/doors.js"></script>
+    <script src="/js/sysop.js"></script>
+    <script src="/js/sysop-chat.js"></script>
+    <script src="/js/email.js"></script>
+    <script src="/js/profiles.js"></script>
+    <script src="/js/bulletins.js"></script>
+    <script src="/js/games/galactic-trader.js"></script>
+    <script src="/js/games/the-pit.js"></script>
+    <script src="/js/games/lord.js"></script>
+    <script src="/js/games/high-noon-duel.js"></script>
+    <script src="/js/games/cyber-arena.js"></script>
+    <script src="/js/games/fishing-hole.js"></script>
+    <script src="/js/games/rock-star.js"></script>
+    <script src="/js/games/tradewars.js"></script>
+    <script src="/js/games/bre.js"></script>
+    <script src="/js/games/overkill.js"></script>
+    <script src="/js/games/usurper.js"></script>
+    <script src="/js/games/blackjack.js"></script>
+    <script src="/js/games/trivia.js"></script>
+    <script src="/js/games/hangman.js"></script>
+    <script src="/js/games/number-guess.js"></script>
+    <script src="/js/games/word-race.js"></script>
+    <script src="/js/games/trivia-battle.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
+
