@@ -11,12 +11,22 @@ class DatabaseAdapter {
 
   async connect() {
     if (this.isPostgreSQL) {
-      // Use PostgreSQL on Railway
-      this.pool = new Pool({
-        connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
-        ssl: { rejectUnauthorized: false }
-      });
-      console.log('Connected to PostgreSQL database');
+      try {
+        // Use PostgreSQL on Railway
+        this.pool = new Pool({
+          connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
+          ssl: { rejectUnauthorized: false }
+        });
+        // Test the connection
+        const client = await this.pool.connect();
+        client.release();
+        console.log('Connected to PostgreSQL database');
+      } catch (error) {
+        console.log('PostgreSQL not available, falling back to SQLite');
+        this.isPostgreSQL = false;
+        this.db = new sqlite3.Database('./data/bbs.db');
+        console.log('Connected to SQLite database');
+      }
     } else {
       // Use SQLite locally
       this.db = new sqlite3.Database('./data/bbs.db');

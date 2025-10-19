@@ -5,7 +5,7 @@ const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
 const cors = require('cors');
 const path = require('path');
-const { initDatabase } = require('./db-new');
+const { initDatabase } = require('./db');
 
 const app = express();
 const server = http.createServer(app);

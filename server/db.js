@@ -1,7 +1,8 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const { getDatabasePath } = require('./railway-persistence');
 
-const DB_PATH = path.join(__dirname, '../data/bbs.db');
+const DB_PATH = getDatabasePath();
 
 // Initialize database
 function initDatabase() {
