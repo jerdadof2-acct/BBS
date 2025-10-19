@@ -194,7 +194,7 @@ async function simulateModemConnection(terminal, modem) {
     terminal.println(ANSIParser.fg('bright-green') + 'ERROR CORRECTION ACTIVE' + ANSIParser.reset());
     await terminal.sleep(300);
     
-    terminal.println(ANSIParser.fg('bright-green') + 'CONNECTED TO RETRO-BBS' + ANSIParser.reset());
+    terminal.println(ANSIParser.fg('bright-green') + 'CONNECTED TO RETRO-BBS v1.1' + ANSIParser.reset());
     modem.connect();
     await terminal.sleep(400);
     terminal.println('');
