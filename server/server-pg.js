@@ -197,6 +197,95 @@ app.post('/api/fishing-hole/save', async (req, res) => {
   }
 });
 
+// Additional API endpoints for full BBS functionality
+
+// Bulletins endpoint
+app.get('/api/bulletins', async (req, res) => {
+  try {
+    // Simple bulletins for now - can be expanded later
+    res.json([
+      { id: 1, title: "Welcome to Retro-BBS", content: "Welcome to our BBS! Have fun exploring.", created_at: new Date() }
+    ]);
+  } catch (error) {
+    console.error('Get bulletins error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// SysOp check endpoint
+app.get('/api/sysop/check', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const user = await getUserById(req.session.userId);
+    const isSysOp = user && user.access_level >= 100;
+    
+    res.json({ isSysOp });
+  } catch (error) {
+    console.error('SysOp check error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// SysOp chat endpoints
+app.get('/api/sysop-chat/unread', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const result = await query(
+      'SELECT * FROM sysop_chat_messages WHERE user_id = $1 AND from_sysop = true AND read_by_user = false ORDER BY timestamp DESC',
+      [req.session.userId]
+    );
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get unread sysop messages error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/sysop-chat/mark-read', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    await query(
+      'UPDATE sysop_chat_messages SET read_by_user = true WHERE user_id = $1 AND from_sysop = true',
+      [req.session.userId]
+    );
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Mark sysop messages read error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/sysop-chat/send', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const { message } = req.body;
+    
+    await query(
+      'INSERT INTO sysop_chat_messages (user_id, from_sysop, message, timestamp) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
+      [req.session.userId, false, message]
+    );
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Send sysop message error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Socket.IO
 const onlineUsers = new Map();
 
