@@ -1952,6 +1952,44 @@ app.delete('/api/sysop/users/:id', async (req, res) => {
   }
 });
 
+// Emergency SysOp creation endpoint (remove after use)
+app.post('/api/create-sysop', async (req, res) => {
+  try {
+    const bcrypt = require('bcrypt');
+    const password = 'admin123';
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    
+    // Check if SysOp already exists
+    const existingUser = await new Promise((resolve, reject) => {
+      db.get('SELECT id FROM users WHERE handle = ?', ['SysOp'], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+    
+    if (existingUser) {
+      return res.json({ message: 'SysOp user already exists' });
+    }
+    
+    // Create SysOp user
+    await new Promise((resolve, reject) => {
+      db.run(`INSERT INTO users (handle, real_name, location, password_hash, access_level, credits, created_at) 
+              VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+        ['SysOp', 'System Operator', 'BBS Headquarters', hashedPassword, 100, 1000],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+    
+    res.json({ message: 'SysOp user created successfully', username: 'SysOp', password: 'admin123' });
+  } catch (error) {
+    console.error('Create SysOp error:', error);
+    res.status(500).json({ error: 'Failed to create SysOp user' });
+  }
+});
+
 // Start server
 server.listen(PORT, () => {
   console.log(`Retro-BBS Server running on port ${PORT}`);
