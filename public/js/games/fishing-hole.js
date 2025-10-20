@@ -1859,10 +1859,11 @@ class FishingHole {
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  🎣 FAIR PLAY SYSTEM 🎣' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • Everyone gets the same great equipment' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • 80% catch rate for all players' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • 40% catch rate for all players (realistic pace)' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • Special tournament fish with huge sizes!' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • 5% chance for MASSIVE fish (2x normal size)' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • 10% chance for big fish (1.5x normal size)' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • 2-second delay between casts (realistic timing)' + ANSIParser.reset());
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-white') + '  How to Play:' + ANSIParser.reset());
@@ -2118,7 +2119,7 @@ class FishingHole {
         
         // Tournament fishing - everyone gets same great equipment and chance for huge fish
         const fish = this.getTournamentFish();
-        const caught = Math.random() < 0.8; // 80% catch rate with tournament equipment
+        const caught = Math.random() < 0.4; // 40% catch rate - more realistic tournament pace
         
         if (caught) {
             // Update tournament participant
@@ -2162,7 +2163,8 @@ class FishingHole {
             this.terminal.println(ANSIParser.fg('bright-red') + '  No fish this time...' + ANSIParser.reset());
         }
         
-        await this.terminal.sleep(500);
+        // Longer delay between casts to slow down the pace
+        await this.terminal.sleep(2000); // 2 seconds between casts
     }
 
     getPlayerPosition() {
