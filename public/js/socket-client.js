@@ -14,6 +14,13 @@ class SocketClient {
             return;
         }
         
+        // Clean up existing socket if it exists but isn't connected
+        if (this.socket && !this.socket.connected) {
+            console.log('Cleaning up existing disconnected socket...');
+            this.socket.removeAllListeners();
+            this.socket = null;
+        }
+        
         console.log('Initializing socket connection...');
         
         this.socket = io({
@@ -42,9 +49,11 @@ class SocketClient {
                 // Client-side disconnect, try to reconnect
                 console.log('Attempting to reconnect in 3 seconds...');
                 setTimeout(() => {
-                    if (!this.connected) {
+                    if (!this.connected && !this.socket) {
                         console.log('Reconnecting...');
                         this.connect();
+                    } else if (this.socket) {
+                        console.log('Socket already exists, skipping reconnect');
                     }
                 }, 3000);
             }
