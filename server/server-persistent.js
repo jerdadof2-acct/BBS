@@ -197,14 +197,6 @@ const io = socketIo(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// Initialize database
-initDatabase().then(() => {
-  console.log('Database initialization completed');
-}).catch((error) => {
-  console.error('Database initialization failed:', error);
-  process.exit(1);
-});
-
 // Helper functions for database operations
 function query(text, params = []) {
   if (dbType === 'postgresql') {
@@ -250,32 +242,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Session middleware with proper storage
-let sessionStore;
-try {
-  if (dbType === 'postgresql') {
-    const PostgreSQLStore = require('connect-pg-simple')(session);
-    sessionStore = new PostgreSQLStore({
-      conString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
-    });
-    console.log('Using PostgreSQL session store');
-  } else {
-    // For SQLite fallback, use memory store
-    sessionStore = undefined;
-    console.log('Using memory session store');
-  }
-} catch (error) {
-  console.error('Failed to initialize session store:', error);
-  sessionStore = undefined;
-}
-
-app.use(session({
-  store: sessionStore,
-  secret: 'bbs-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
-}));
+// Session middleware will be set up after database initialization
 
 // Routes
 app.get('/', (req, res) => {
@@ -591,8 +558,48 @@ io.on('connection', (socket) => {
   });
 });
 
-// Start server
-server.listen(PORT, () => {
-  console.log(`Retro-BBS Server (${dbType || 'unknown'}) running on port ${PORT}`);
-  console.log(`Visit http://localhost:${PORT} to connect`);
-});
+// Initialize database and start server
+async function startServer() {
+  try {
+    await initDatabase();
+    console.log('Database initialization completed');
+    
+    // Set up session middleware now that we know the database type
+    let sessionStore;
+    try {
+      if (dbType === 'postgresql') {
+        const PostgreSQLStore = require('connect-pg-simple')(session);
+        sessionStore = new PostgreSQLStore({
+          conString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
+        });
+        console.log('Using PostgreSQL session store');
+      } else {
+        // For SQLite fallback, use memory store
+        sessionStore = undefined;
+        console.log('Using memory session store');
+      }
+    } catch (error) {
+      console.error('Failed to initialize session store:', error);
+      sessionStore = undefined;
+    }
+
+    app.use(session({
+      store: sessionStore,
+      secret: 'bbs-secret-key',
+      resave: false,
+      saveUninitialized: false,
+      cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
+    }));
+
+    // Start server
+    server.listen(PORT, () => {
+      console.log(`Retro-BBS Server (${dbType}) running on port ${PORT}`);
+      console.log(`Visit http://localhost:${PORT} to connect`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
