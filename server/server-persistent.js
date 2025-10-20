@@ -1070,7 +1070,12 @@ app.post('/api/register', async (req, res) => {
         : [handle, real_name, location, hashedPassword, 1, 100, 0, 0, 0, 0, 0, '', '', '', new Date().toISOString(), new Date().toISOString()]
     );
     
-    const newUser = dbType === 'postgresql' ? result.rows[0] : { id: result.lastID, handle, real_name, location, access_level: 1, credits: 100 };
+    console.log('Registration result:', result);
+    console.log('Result rows:', result.rows);
+    
+    const newUser = dbType === 'postgresql' 
+      ? (result.rows && result.rows[0] ? result.rows[0] : { id: result.insertId || 0, handle, real_name, location, access_level: 1, credits: 100 })
+      : { id: result.lastID, handle, real_name, location, access_level: 1, credits: 100 };
     
     res.json({ success: true, user: newUser });
   } catch (error) {
