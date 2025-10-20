@@ -519,7 +519,8 @@ class FishingHole {
                     const rank = (index + 1).toString().padStart(2);
                     const name = entry.playerName.padEnd(20);
                     const level = entry.level.toString().padStart(5);
-                    const catchInfo = `${entry.biggestCatchName} (${entry.biggestCatch.toFixed(2)} lbs)`;
+                    const biggestCatch = parseFloat(entry.biggestCatch) || 0;
+                    const catchInfo = `${entry.biggestCatchName} (${biggestCatch.toFixed(2)} lbs)`;
                     const color = index === 0 ? 'bright-yellow' : index < 3 ? 'bright-green' : 'bright-cyan';
                     console.log(`Displaying: ${rank}. ${name} ${level} ${catchInfo}`);
                     this.terminal.println(ANSIParser.fg(color) + `  ${rank}.  ${name}  ${level}  ${catchInfo}` + ANSIParser.reset());
@@ -545,7 +546,8 @@ class FishingHole {
                     const rank = (index + 1).toString().padStart(2);
                     const name = entry.playerName.padEnd(20);
                     const level = entry.level.toString().padStart(5);
-                    const weight = `${entry.totalWeight.toFixed(2)} lbs`;
+                    const totalWeight = parseFloat(entry.totalWeight) || 0;
+                    const weight = `${totalWeight.toFixed(2)} lbs`;
                     const color = index === 0 ? 'bright-yellow' : index < 3 ? 'bright-green' : 'bright-cyan';
                     this.terminal.println(ANSIParser.fg(color) + `  ${rank}.  ${name}  ${level}  ${weight}` + ANSIParser.reset());
                 });
