@@ -1375,25 +1375,25 @@ class FishingHole {
                 console.log('Raw response from server:', JSON.stringify(data, null, 2));
                 if (data.player) {
                     this.player = data.player;
-                    console.log('Data location exists:', !!data.location);
-                    console.log('Data location value:', data.location);
+                    console.log('Data location exists:', !!data.player.location);
+                    console.log('Data location value:', data.player.location);
                     // Set location from saved data
-                    if (data.location) {
-                        console.log('Loading location data:', data.location);
+                    if (data.player.location) {
+                        console.log('Loading location data:', data.player.location);
                         // If location is a string (name), find by name
-                        if (typeof data.location === 'string') {
-                            this.location = this.locations.find(loc => loc.name === data.location) || this.locations[0];
+                        if (typeof data.player.location === 'string') {
+                            this.location = this.locations.find(loc => loc.name === data.player.location) || this.locations[0];
                         } 
                         // If location is an object, find by name property
-                        else if (data.location.name) {
-                            console.log('Looking for location with name:', data.location.name);
-                            const foundLocation = this.locations.find(loc => loc.name === data.location.name);
+                        else if (data.player.location.name) {
+                            console.log('Looking for location with name:', data.player.location.name);
+                            const foundLocation = this.locations.find(loc => loc.name === data.player.location.name);
                             console.log('Found location:', foundLocation);
                             this.location = foundLocation || this.locations[0];
                         }
                         // If location is already a location object, use it directly
-                        else if (data.location.difficulty) {
-                            this.location = data.location;
+                        else if (data.player.location.difficulty) {
+                            this.location = data.player.location;
                         }
                         else {
                             this.location = this.locations[0];
