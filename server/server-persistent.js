@@ -1089,10 +1089,10 @@ app.get('/api/sysop/check', (req, res) => {
     const isSysop = user && user.access_level >= 100;
     console.log('SysOp check - isSysop:', isSysop);
     
-    res.json({ isSysop });
+    res.json({ isSysOp: isSysop });
   } catch (error) {
     console.error('SysOp check error:', error);
-    res.status(500).json({ isSysop: false });
+    res.status(500).json({ isSysOp: false });
   }
 });
 

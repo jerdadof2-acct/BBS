@@ -149,7 +149,7 @@ class SysopPanel {
             console.log('SysOp check response status:', response.status);
             const data = await response.json();
             console.log('SysOp check response data:', data);
-            return data.isSysop;
+            return data.isSysOp;
         } catch (error) {
             console.error('Error checking sysop status:', error);
             return false;
