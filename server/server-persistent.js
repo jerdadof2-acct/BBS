@@ -102,6 +102,9 @@ async function initDatabase() {
         await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS inventory TEXT DEFAULT '[]';`);
         await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS trophy_catches TEXT DEFAULT '[]';`);
         await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
+        
+        // Add unique constraint on user_id if it doesn't exist
+        await db.run(`ALTER TABLE fishing_hole_players ADD CONSTRAINT fishing_hole_players_user_id_unique UNIQUE (user_id);`);
       } catch (migrationError) {
         console.log('Migration completed or not needed:', migrationError.message);
       }
