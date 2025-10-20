@@ -133,7 +133,7 @@ class FishingHole {
         }
         
         // Listen for other fishers' catches
-        this.setupFishingListeners();
+        await this.setupFishingListeners();
         
         while (true) {
             const choice = await this.mainMenu();
@@ -175,14 +175,25 @@ class FishingHole {
 `;
     }
 
-    setupFishingListeners() {
+    async setupFishingListeners() {
         // Listen for other players fishing
         console.log('Setting up fishing listeners...');
         console.log('SocketClient available:', !!this.socketClient);
-        console.log('Socket available:', !!(this.socketClient && this.socketClient.socket));
-        console.log('Socket connected:', !!(this.socketClient && this.socketClient.socket && this.socketClient.socket.connected));
         
-        if (this.socketClient && this.socketClient.socket) {
+        if (!this.socketClient) {
+            console.error('Socket client not available for fishing listeners');
+            return;
+        }
+
+        try {
+            // Wait for socket connection to be ready
+            console.log('Waiting for socket connection...');
+            await this.socketClient.waitForConnection(5000);
+            console.log('Socket connection ready!');
+            
+            console.log('Socket available:', !!(this.socketClient && this.socketClient.socket));
+            console.log('Socket connected:', !!(this.socketClient && this.socketClient.socket && this.socketClient.socket.connected));
+            
             console.log('Registering fish-caught listener');
             
             // Remove any existing listeners first to prevent duplicates
@@ -204,11 +215,12 @@ class FishingHole {
             });
             
             console.log('Fish-caught listener registered successfully');
-        } else {
-            console.error('Socket client not available for fishing listeners');
+        } catch (error) {
+            console.error('Failed to set up fishing listeners:', error);
             console.error('SocketClient:', this.socketClient);
             if (this.socketClient) {
                 console.error('Socket:', this.socketClient.socket);
+                console.error('Socket connected:', this.socketClient.socket?.connected);
             }
         }
     }

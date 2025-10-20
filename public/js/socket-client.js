@@ -8,16 +8,50 @@ class SocketClient {
     }
 
     connect() {
-        this.socket = io();
+        // Prevent duplicate connections
+        if (this.socket && this.socket.connected) {
+            console.log('Socket already connected, skipping...');
+            return;
+        }
+        
+        console.log('Initializing socket connection...');
+        
+        this.socket = io({
+            transports: ['websocket', 'polling'],
+            upgrade: true,
+            rememberUpgrade: true,
+            timeout: 20000,
+            forceNew: false
+        });
         
         this.socket.on('connect', () => {
             this.connected = true;
-            console.log('Connected to server');
+            console.log('✅ Connected to server');
+            console.log('Socket ID:', this.socket.id);
         });
 
-        this.socket.on('disconnect', () => {
+        this.socket.on('disconnect', (reason) => {
             this.connected = false;
-            console.log('Disconnected from server');
+            console.log('❌ Disconnected from server. Reason:', reason);
+            
+            // Auto-reconnect after a short delay
+            if (reason === 'io server disconnect') {
+                // Server initiated disconnect, don't reconnect
+                console.log('Server initiated disconnect, not reconnecting');
+            } else {
+                // Client-side disconnect, try to reconnect
+                console.log('Attempting to reconnect in 3 seconds...');
+                setTimeout(() => {
+                    if (!this.connected) {
+                        console.log('Reconnecting...');
+                        this.connect();
+                    }
+                }, 3000);
+            }
+        });
+
+        this.socket.on('connect_error', (error) => {
+            console.error('Socket connection error:', error);
         });
 
         this.socket.on('error', (error) => {
@@ -172,7 +206,37 @@ class SocketClient {
     disconnect() {
         if (this.socket) {
             this.socket.disconnect();
+            this.socket = null;
+            this.connected = false;
         }
+    }
+
+    isReady() {
+        return this.socket && this.socket.connected;
+    }
+
+    waitForConnection(timeout = 10000) {
+        return new Promise((resolve, reject) => {
+            if (this.isReady()) {
+                resolve(true);
+                return;
+            }
+
+            const timeoutId = setTimeout(() => {
+                reject(new Error('Socket connection timeout'));
+            }, timeout);
+
+            const checkConnection = () => {
+                if (this.isReady()) {
+                    clearTimeout(timeoutId);
+                    resolve(true);
+                } else {
+                    setTimeout(checkConnection, 100);
+                }
+            };
+
+            checkConnection();
+        });
     }
 }
 
