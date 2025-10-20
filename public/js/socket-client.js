@@ -107,6 +107,9 @@ class SocketClient {
                 
                 if (data.type === 'tournament-start') {
                     window.app.terminal.println(ANSIParser.fg('bright-cyan') + '  Go to Door Games → Fishing Hole → Tournament Mode to join!' + ANSIParser.reset());
+                    if (data.joinPeriod) {
+                        window.app.terminal.println(ANSIParser.fg('bright-yellow') + `  You have ${data.joinPeriod} seconds to join!` + ANSIParser.reset());
+                    }
                 }
                 
                 window.app.terminal.println('  Press any key to continue...');

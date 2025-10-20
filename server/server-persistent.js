@@ -1736,15 +1736,17 @@ io.on('connection', (socket) => {
   socket.on('fishing-tournament-start', (data) => {
     const user = onlineUsers.get(socket.id);
     if (user) {
-      console.log('Fishing tournament started by:', user.handle);
+      console.log('Fishing tournament started by:', user.handle, 'Duration:', data.durationText);
       
       // Broadcast tournament start to ALL BBS users
       io.emit('fishing-tournament-announcement', {
         type: 'tournament-start',
         host: user.handle,
         duration: data.duration,
+        durationText: data.durationText,
         tournamentId: data.tournamentId,
-        message: `🎣 FISHING TOURNAMENT STARTED! ${user.handle} is hosting a ${data.duration}-minute tournament! Join now!`,
+        joinPeriod: data.joinPeriod,
+        message: `🎣 FISHING TOURNAMENT STARTED! ${user.handle} is hosting a ${data.durationText} tournament! Join now! (${data.joinPeriod}s to join)`,
         timestamp: new Date().toISOString()
       });
     }
