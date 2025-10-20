@@ -598,6 +598,21 @@ app.post('/api/change-password', async (req, res) => {
   }
 });
 
+// Users endpoint
+app.get('/api/users', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    // For now, return empty array since we don't have real-time online users tracking
+    res.json([]);
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Fishing hole leaderboard endpoint
 app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
   try {
