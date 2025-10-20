@@ -1076,13 +1076,18 @@ app.post('/api/logout', async (req, res) => {
 // SysOp check endpoint
 app.get('/api/sysop/check', (req, res) => {
   try {
+    console.log('SysOp check - Session data:', req.session);
+    
     if (!req.session.userId) {
+      console.log('SysOp check - No userId in session');
       return res.status(401).json({ isSysop: false });
     }
     
     // Check if user has SysOp privileges (access level >= 100)
     const user = req.session.user;
+    console.log('SysOp check - User object:', user);
     const isSysop = user && user.access_level >= 100;
+    console.log('SysOp check - isSysop:', isSysop);
     
     res.json({ isSysop });
   } catch (error) {
