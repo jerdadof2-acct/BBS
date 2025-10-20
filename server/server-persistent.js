@@ -35,7 +35,7 @@ async function initDatabase() {
         },
         run: async (text, params) => {
           const result = await pool.query(text, params);
-          return { lastID: result.rows[0]?.id || 0 };
+          return { lastID: result.insertId || result.rows?.[0]?.id || 0 };
         }
       };
       
@@ -96,23 +96,29 @@ async function initDatabase() {
       `);
       
       // Create sessions table for connect-pg-simple
-      await db.run(`
-        CREATE TABLE IF NOT EXISTS "session" (
-          "sid" varchar NOT NULL COLLATE "default",
-          "sess" json NOT NULL,
-          "expire" timestamp(6) NOT NULL
-        )
-        WITH (OIDS=FALSE);
-      `);
+      try {
+        await db.run(`
+          CREATE TABLE IF NOT EXISTS "session" (
+            "sid" varchar NOT NULL,
+            "sess" json NOT NULL,
+            "expire" timestamp NOT NULL
+          );
+        `);
 
-      await db.run(`
-        ALTER TABLE "session" DROP CONSTRAINT IF EXISTS "session_pkey";
-        ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
-      `);
+        await db.run(`
+          ALTER TABLE "session" DROP CONSTRAINT IF EXISTS "session_pkey";
+        `);
 
-      await db.run(`
-        CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
-      `);
+        await db.run(`
+          ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid");
+        `);
+
+        await db.run(`
+          CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
+        `);
+      } catch (sessionError) {
+        console.log('Sessions table creation failed, using memory store:', sessionError.message);
+      }
 
       // Create default SysOp user
       const existingUser = await db.get('SELECT id FROM users WHERE handle = $1', ['SysOp']);
@@ -131,6 +137,7 @@ async function initDatabase() {
     }
   } catch (error) {
     console.log('PostgreSQL not available, falling back to SQLite:', error.message);
+    console.log('PostgreSQL error details:', error);
   }
   
   // Fallback to SQLite
