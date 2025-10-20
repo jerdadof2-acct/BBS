@@ -177,13 +177,13 @@ class FishingHole {
 
     setupFishingListeners() {
         // Listen for other players fishing
-        if (window.socketClient && window.socketClient.socket) {
+        if (this.socketClient && this.socketClient.socket) {
             console.log('Registering fish-caught listener');
             
             // Remove any existing listeners first to prevent duplicates
-            window.socketClient.socket.off('fish-caught');
+            this.socketClient.socket.off('fish-caught');
             
-            window.socketClient.socket.on('fish-caught', (data) => {
+            this.socketClient.socket.on('fish-caught', (data) => {
                 console.log('fish-caught event received:', data);
                 console.log('Current user ID:', this.authManager.getCurrentUser().id);
                 console.log('Event user ID:', data.userId);
@@ -449,7 +449,7 @@ class FishingHole {
         }
         
         // Broadcast to other players
-        if (window.socketClient && window.socketClient.socket) {
+        if (this.socketClient && this.socketClient.socket) {
             const fishData = {
                 userId: this.authManager.getCurrentUser().id,
                 handle: this.player.name,
@@ -462,9 +462,9 @@ class FishingHole {
             };
             
             console.log('Emitting fish-caught event:', fishData);
-            console.log('Socket connected:', window.socketClient.socket.connected);
+            console.log('Socket connected:', this.socketClient.socket.connected);
             
-            window.socketClient.socket.emit('fish-caught', fishData);
+            this.socketClient.socket.emit('fish-caught', fishData);
         }
         
         this.checkLevelUp();
