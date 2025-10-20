@@ -19,7 +19,12 @@ const io = socketIo(server, {
 const PORT = process.env.PORT || 3000;
 
 // Initialize database
-initDatabase().catch(console.error);
+initDatabase().then(() => {
+  console.log('Database initialization completed successfully');
+}).catch((error) => {
+  console.error('Database initialization failed:', error);
+  process.exit(1);
+});
 
 // Middleware
 app.use(cors());
