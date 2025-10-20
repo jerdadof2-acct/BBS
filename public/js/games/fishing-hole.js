@@ -179,14 +179,27 @@ class FishingHole {
         // Listen for other players fishing
         if (window.socketClient && window.socketClient.socket) {
             console.log('Registering fish-caught listener');
+            
+            // Remove any existing listeners first to prevent duplicates
+            window.socketClient.socket.off('fish-caught');
+            
             window.socketClient.socket.on('fish-caught', (data) => {
                 console.log('fish-caught event received:', data);
+                console.log('Current user ID:', this.authManager.getCurrentUser().id);
+                console.log('Event user ID:', data.userId);
+                
                 if (data.userId !== this.authManager.getCurrentUser().id) {
                     this.terminal.println('');
                     this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎣 ${data.handle} caught a ${data.fishName} (${data.weight.toFixed(2)} lbs)!` + ANSIParser.reset());
                     this.terminal.println(ANSIParser.fg('bright-white') + `     Location: ${data.location} | Value: $${data.value} | XP: ${data.experience}` + ANSIParser.reset());
+                } else {
+                    console.log('Ignoring own fish catch notification');
                 }
             });
+            
+            console.log('Fish-caught listener registered successfully');
+        } else {
+            console.error('Socket client not available for fishing listeners');
         }
     }
 
@@ -437,7 +450,7 @@ class FishingHole {
         
         // Broadcast to other players
         if (window.socketClient && window.socketClient.socket) {
-            window.socketClient.socket.emit('fish-caught', {
+            const fishData = {
                 userId: this.authManager.getCurrentUser().id,
                 handle: this.player.name,
                 fishName: caughtFish.name,
@@ -446,7 +459,12 @@ class FishingHole {
                 value: value,
                 experience: experience,
                 rarity: caughtFish.rarity
-            });
+            };
+            
+            console.log('Emitting fish-caught event:', fishData);
+            console.log('Socket connected:', window.socketClient.socket.connected);
+            
+            window.socketClient.socket.emit('fish-caught', fishData);
         }
         
         this.checkLevelUp();
