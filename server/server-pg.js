@@ -172,6 +172,7 @@ app.post('/api/fishing-hole/save', async (req, res) => {
     }
     
     const { player, location, userId } = req.body;
+    console.log('Received fishing hole save request:', { player: player?.name, location: location?.name, userId });
     
     await query(
       `INSERT INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, updated_at)
@@ -195,7 +196,8 @@ app.post('/api/fishing-hole/save', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Save fishing player error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error details:', error.message, error.stack);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
