@@ -135,9 +135,6 @@ class FishingHole {
         // Register with socket system for multiplayer
         this.registerWithSocket();
         
-        // Register with socket system for multiplayer
-        this.registerWithSocket();
-        
         // Listen for other fishers' catches
         this.setupFishingListeners();
         
@@ -179,6 +176,18 @@ class FishingHole {
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 `;
+    }
+
+    registerWithSocket() {
+        // Register fishing player with socket system for multiplayer
+        if (window.socketClient && window.socketClient.socket) {
+            console.log('Registering fishing player with socket system');
+            window.socketClient.socket.emit('user-login', {
+                userId: `fishing_${this.player.name}_${Date.now()}`, // Unique ID tied to fishing name
+                handle: this.player.name, // Their chosen fishing name
+                accessLevel: 1
+            });
+        }
     }
 
     registerWithSocket() {
