@@ -291,6 +291,22 @@ app.get('/api/sysop/check', (req, res) => {
   });
 });
 
+// SysOp chat endpoints
+app.get('/api/sysop-chat/unread', (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+  res.json([]); // Return empty array for now
+});
+
+// Online users endpoint
+app.get('/api/users/online', (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+  res.json([]); // Return empty array for now
+});
+
 // Socket.IO
 const onlineUsers = new Map();
 
