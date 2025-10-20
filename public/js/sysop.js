@@ -144,8 +144,11 @@ class SysopPanel {
 
     async checkSysopStatus() {
         try {
+            console.log('Checking SysOp status...');
             const response = await fetch('/api/sysop/check');
+            console.log('SysOp check response status:', response.status);
             const data = await response.json();
+            console.log('SysOp check response data:', data);
             return data.isSysop;
         } catch (error) {
             console.error('Error checking sysop status:', error);
