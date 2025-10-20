@@ -17,7 +17,15 @@ class FishingHole {
             joinPeriod: 60 * 1000, // 60 seconds to join
             leaderboard: [],
             tournamentId: null,
-            phase: 'waiting' // waiting, joining, active, ended
+            phase: 'waiting', // waiting, joining, active, ended
+            stats: {
+                tournamentsPlayed: 0,
+                tournamentsWon: 0,
+                biggestTournamentFish: 0,
+                biggestTournamentBag: 0,
+                totalTournamentWeight: 0,
+                totalTournamentFish: 0
+            }
         };
         this.fish = [
             // Common Fish
@@ -1844,22 +1852,31 @@ class FishingHole {
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-white') + '  Tournament Format:' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Duration: 5 minutes' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Objective: Catch the heaviest fish' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Duration: 3-15 minutes (your choice)' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Objective: Catch the heaviest total weight' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • Winner: Highest total weight' + ANSIParser.reset());
         this.terminal.println('');
         
-        this.terminal.println(ANSIParser.fg('bright-white') + '  How to Play:' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Fish normally during tournament' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Watch live leaderboard updates' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • See other players\' catches in real-time' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Compete for the top spot!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🎣 FAIR PLAY SYSTEM 🎣' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Everyone gets the same great equipment' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • 80% catch rate for all players' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Special tournament fish with huge sizes!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • 5% chance for MASSIVE fish (2x normal size)' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • 10% chance for big fish (1.5x normal size)' + ANSIParser.reset());
         this.terminal.println('');
         
-        this.terminal.println(ANSIParser.fg('bright-white') + '  Prizes:' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  • 1st Place: $500 + Trophy' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • 2nd Place: $250' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-cyan') + '  • 3rd Place: $100' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  How to Play:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Press [F] to cast line during tournament' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Watch live leaderboard updates' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • See other players\' catches in real-time' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Track your tournament stats!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Tournament Stats Tracked:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  • Tournaments Played & Won' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  • Biggest Tournament Fish' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  • Biggest Tournament Bag' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  • Total Tournament Weight' + ANSIParser.reset());
         this.terminal.println('');
         
         this.terminal.println('  Press any key to continue...');
@@ -2008,6 +2025,19 @@ class FishingHole {
         this.tournament.active = false;
         this.tournament.phase = 'ended';
         
+        // Update tournament stats
+        this.tournament.stats.tournamentsPlayed++;
+        this.tournament.stats.totalTournamentWeight += this.tournament.participants[0].totalWeight;
+        this.tournament.stats.totalTournamentFish += this.tournament.participants[0].fishCount;
+        
+        if (this.tournament.participants[0].biggestCatch > this.tournament.stats.biggestTournamentFish) {
+            this.tournament.stats.biggestTournamentFish = this.tournament.participants[0].biggestCatch;
+        }
+        
+        if (this.tournament.participants[0].totalWeight > this.tournament.stats.biggestTournamentBag) {
+            this.tournament.stats.biggestTournamentBag = this.tournament.participants[0].totalWeight;
+        }
+        
         // Calculate final results
         const results = this.tournament.leaderboard.map((player, index) => ({
             position: index + 1,
@@ -2015,6 +2045,11 @@ class FishingHole {
             weight: player.totalWeight,
             fishCount: player.fishCount
         }));
+        
+        // Check if player won
+        if (results[0] && results[0].player === this.player.name) {
+            this.tournament.stats.tournamentsWon++;
+        }
         
         // Broadcast tournament end
         if (this.socketClient && this.socketClient.socket) {
@@ -2040,6 +2075,16 @@ class FishingHole {
             this.terminal.println(color + `  ${result.position}. ${result.player}: ${result.weight.toFixed(2)} lbs (${result.fishCount} fish)` + ANSIParser.reset());
         }
         
+        // Show tournament stats
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  📊 YOUR TOURNAMENT STATS 📊' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Tournaments Played: ${this.tournament.stats.tournamentsPlayed}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Tournaments Won: ${this.tournament.stats.tournamentsWon}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Biggest Tournament Fish: ${this.tournament.stats.biggestTournamentFish.toFixed(2)} lbs` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Biggest Tournament Bag: ${this.tournament.stats.biggestTournamentBag.toFixed(2)} lbs` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Total Tournament Weight: ${this.tournament.stats.totalTournamentWeight.toFixed(2)} lbs` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Total Tournament Fish: ${this.tournament.stats.totalTournamentFish}` + ANSIParser.reset());
+        
         this.terminal.println('');
         this.terminal.println('  Press any key to continue...');
         await this.terminal.input();
@@ -2050,9 +2095,9 @@ class FishingHole {
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  Casting line...' + ANSIParser.reset());
         await this.terminal.sleep(1000);
         
-        // Simulate fishing with shorter delay
-        const fish = this.getRandomFish();
-        const caught = Math.random() < 0.7; // 70% catch rate during tournament
+        // Tournament fishing - everyone gets same great equipment and chance for huge fish
+        const fish = this.getTournamentFish();
+        const caught = Math.random() < 0.8; // 80% catch rate with tournament equipment
         
         if (caught) {
             // Update tournament participant
@@ -2063,10 +2108,15 @@ class FishingHole {
                 participant.biggestCatch = fish.weight;
             }
             
-            // Add to tournament messages
-            this.tournament.tournamentMessages.push(
-                `🎣 ${this.player.name} caught a ${fish.name} (${fish.weight.toFixed(2)} lbs)!`
-            );
+            // Add to tournament messages with excitement for big fish
+            let message = `🎣 ${this.player.name} caught a ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
+            if (fish.weight > 10) {
+                message = `🐟 ${this.player.name} caught a HUGE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
+            } else if (fish.weight > 5) {
+                message = `🎣 ${this.player.name} caught a big ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
+            }
+            
+            this.tournament.tournamentMessages.push(message);
             
             // Broadcast tournament update
             if (this.socketClient && this.socketClient.socket) {
@@ -2075,11 +2125,18 @@ class FishingHole {
                     player: this.player.name,
                     totalWeight: participant.totalWeight,
                     position: this.getPlayerPosition(),
-                    message: `🎣 ${this.player.name} caught a ${fish.name} (${fish.weight.toFixed(2)} lbs)!`
+                    message: message
                 });
             }
             
-            this.terminal.println(ANSIParser.fg('bright-green') + `  🎣 Caught a ${fish.name}! (${fish.weight.toFixed(2)} lbs)` + ANSIParser.reset());
+            // Show excitement for big catches
+            if (fish.weight > 10) {
+                this.terminal.println(ANSIParser.fg('bright-yellow') + `  🐟 HUGE CATCH! ${fish.name} (${fish.weight.toFixed(2)} lbs)!` + ANSIParser.reset());
+            } else if (fish.weight > 5) {
+                this.terminal.println(ANSIParser.fg('bright-green') + `  🎣 Big ${fish.name}! (${fish.weight.toFixed(2)} lbs)` + ANSIParser.reset());
+            } else {
+                this.terminal.println(ANSIParser.fg('bright-green') + `  🎣 Caught a ${fish.name}! (${fish.weight.toFixed(2)} lbs)` + ANSIParser.reset());
+            }
         } else {
             this.terminal.println(ANSIParser.fg('bright-red') + '  No fish this time...' + ANSIParser.reset());
         }
@@ -2115,6 +2172,58 @@ class FishingHole {
             experience: experience,
             rarity: fishTemplate.rarity,
             location: this.location.name
+        };
+    }
+
+    getTournamentFish() {
+        // Tournament fish - everyone gets same great equipment and chance for huge fish
+        const tournamentFish = [
+            { name: 'Minnow', minWeight: 0.1, maxWeight: 1.0, value: 5, experience: 1, rarity: 'Common' },
+            { name: 'Sunfish', minWeight: 0.5, maxWeight: 2.0, value: 10, experience: 2, rarity: 'Common' },
+            { name: 'Bass', minWeight: 1.0, maxWeight: 8.0, value: 20, experience: 5, rarity: 'Common' },
+            { name: 'Trout', minWeight: 0.8, maxWeight: 6.0, value: 18, experience: 4, rarity: 'Common' },
+            { name: 'Pike', minWeight: 2.0, maxWeight: 15.0, value: 35, experience: 8, rarity: 'Uncommon' },
+            { name: 'Catfish', minWeight: 3.0, maxWeight: 20.0, value: 45, experience: 10, rarity: 'Uncommon' },
+            { name: 'Muskie', minWeight: 5.0, maxWeight: 25.0, value: 60, experience: 15, rarity: 'Rare' },
+            { name: 'Sturgeon', minWeight: 10.0, maxWeight: 50.0, value: 100, experience: 25, rarity: 'Epic' },
+            { name: 'Monster Bass', minWeight: 15.0, maxWeight: 40.0, value: 120, experience: 30, rarity: 'Legendary' },
+            { name: 'Trophy Pike', minWeight: 20.0, maxWeight: 60.0, value: 150, experience: 40, rarity: 'Legendary' }
+        ];
+        
+        // Select fish with weighted probability for bigger fish
+        const fishIndex = Math.floor(Math.random() * tournamentFish.length);
+        const fishTemplate = tournamentFish[fishIndex];
+        
+        // Calculate weight with chance for huge fish
+        let weight;
+        const random = Math.random();
+        
+        if (random < 0.05) {
+            // 5% chance for MASSIVE fish (2x max weight)
+            weight = fishTemplate.maxWeight + Math.random() * fishTemplate.maxWeight;
+        } else if (random < 0.15) {
+            // 10% chance for big fish (1.5x max weight)
+            weight = fishTemplate.maxWeight + Math.random() * (fishTemplate.maxWeight * 0.5);
+        } else if (random < 0.35) {
+            // 20% chance for above average fish
+            weight = fishTemplate.maxWeight * 0.8 + Math.random() * (fishTemplate.maxWeight * 0.4);
+        } else {
+            // 50% chance for normal fish
+            weight = fishTemplate.minWeight + Math.random() * (fishTemplate.maxWeight - fishTemplate.minWeight);
+        }
+        
+        // Calculate value and experience based on weight
+        const value = Math.floor(fishTemplate.value * (1 + weight / fishTemplate.maxWeight));
+        const experience = Math.floor(fishTemplate.experience * (1 + weight / fishTemplate.maxWeight));
+        
+        // Create fish object
+        return {
+            name: fishTemplate.name,
+            weight: weight,
+            value: value,
+            experience: experience,
+            rarity: fishTemplate.rarity,
+            location: 'Tournament Waters'
         };
     }
 }
