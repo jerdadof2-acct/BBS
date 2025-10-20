@@ -702,7 +702,9 @@ app.get('/api/user/profile', async (req, res) => {
       games_played: user.games_played || 0,
       avatar: user.avatar || '',
       created_at: user.created_at,
-      last_seen: user.last_seen
+      last_seen: user.last_seen,
+      // Add level for display
+      level: user.access_level
     });
   } catch (error) {
     console.error('Get user profile error:', error);
@@ -728,6 +730,81 @@ app.post('/api/user/profile', async (req, res) => {
     res.json({ success: true, message: 'Profile updated successfully' });
   } catch (error) {
     console.error('Update user profile error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// General leaderboard endpoint
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const result = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT handle, access_level, credits, calls, messages_posted, games_played FROM users ORDER BY access_level DESC, credits DESC LIMIT 10'
+        : 'SELECT handle, access_level, credits, calls, messages_posted, games_played FROM users ORDER BY access_level DESC, credits DESC LIMIT 10'
+    );
+    
+    const leaderboard = result.rows.map((user, index) => ({
+      rank: index + 1,
+      handle: user.handle,
+      level: user.access_level,
+      credits: user.credits,
+      calls: user.calls || 0,
+      messages: user.messages_posted || 0,
+      games: user.games_played || 0
+    }));
+    
+    res.json({ leaderboard });
+  } catch (error) {
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Activity feed endpoint
+app.get('/api/activity-feed', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    // For now, return empty activity feed
+    res.json({ activities: [] });
+  } catch (error) {
+    console.error('Activity feed error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Bulletins endpoint
+app.get('/api/bulletins', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    // For now, return sample bulletins
+    res.json([
+      { 
+        id: 1, 
+        title: "Welcome to Retro-BBS", 
+        content: "Welcome to our BBS! Have fun exploring all the features.", 
+        created_at: new Date().toISOString(),
+        author: "SysOp"
+      },
+      { 
+        id: 2, 
+        title: "Fishing Hole Game Available", 
+        content: "Try out our new fishing hole game! Catch fish, level up, and compete on the leaderboard.", 
+        created_at: new Date().toISOString(),
+        author: "SysOp"
+      }
+    ]);
+  } catch (error) {
+    console.error('Bulletins error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
