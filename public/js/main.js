@@ -59,7 +59,7 @@ class BBSApplication {
         
         if (session.success) {
             this.authManager.currentUser = session.user;
-            this.socketClient.login(session.user.userId, session.user.handle, session.user.access_level);
+            await this.socketClient.login(session.user.userId, session.user.handle, session.user.access_level);
             await this.showWelcome();
             await this.run();
         } else {
@@ -109,7 +109,7 @@ class BBSApplication {
         const result = await this.authManager.login(handle, password);
         
         if (result.success) {
-            this.socketClient.login(result.user.id, result.user.handle, result.user.access_level);
+            await this.socketClient.login(result.user.id, result.user.handle, result.user.access_level);
             await this.showWelcome();
             await this.showUnreadSysopMessages();
             await this.run();

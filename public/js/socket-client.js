@@ -24,17 +24,29 @@ class SocketClient {
         console.log('Initializing socket connection...');
         
         this.socket = io({
-            transports: ['websocket', 'polling'],
+            transports: ['polling', 'websocket'],
             upgrade: true,
-            rememberUpgrade: true,
+            rememberUpgrade: false,
             timeout: 20000,
-            forceNew: false
+            forceNew: true,
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionAttempts: 5,
+            maxReconnectionAttempts: 5
         });
         
         this.socket.on('connect', () => {
             this.connected = true;
             console.log('✅ Connected to server');
             console.log('Socket ID:', this.socket.id);
+            
+            // Process any pending login
+            if (this.pendingLogin) {
+                console.log('Processing pending login:', this.pendingLogin);
+                this.socket.emit('user-login', this.pendingLogin);
+                this.pendingLogin = null;
+                console.log('Pending login processed');
+            }
         });
 
         this.socket.on('disconnect', (reason) => {
@@ -160,7 +172,7 @@ class SocketClient {
         });
     }
 
-    login(userId, handle, accessLevel = 1) {
+    async login(userId, handle, accessLevel = 1) {
         this.userId = userId;
         this.handle = handle;
         
@@ -170,16 +182,19 @@ class SocketClient {
         if (this.socket && this.socket.connected) {
             this.socket.emit('user-login', { userId, handle, accessLevel });
             console.log('User-login event emitted');
-        } else {
-            console.error('Cannot login - socket not connected');
-            // Try to connect and then login
-            this.connect();
-            setTimeout(() => {
-                if (this.socket && this.socket.connected) {
-                    this.socket.emit('user-login', { userId, handle, accessLevel });
-                    console.log('User-login event emitted after reconnection');
-                }
-            }, 1000);
+            return;
+        }
+        
+        // Wait for connection with retries
+        console.log('Socket not connected, waiting for connection...');
+        try {
+            await this.waitForConnection(10000);
+            this.socket.emit('user-login', { userId, handle, accessLevel });
+            console.log('User-login event emitted after waiting for connection');
+        } catch (error) {
+            console.error('Failed to login via socket:', error);
+            // Store login data for when connection is ready
+            this.pendingLogin = { userId, handle, accessLevel };
         }
     }
 
