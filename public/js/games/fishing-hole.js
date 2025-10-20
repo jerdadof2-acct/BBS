@@ -177,6 +177,11 @@ class FishingHole {
 
     setupFishingListeners() {
         // Listen for other players fishing
+        console.log('Setting up fishing listeners...');
+        console.log('SocketClient available:', !!this.socketClient);
+        console.log('Socket available:', !!(this.socketClient && this.socketClient.socket));
+        console.log('Socket connected:', !!(this.socketClient && this.socketClient.socket && this.socketClient.socket.connected));
+        
         if (this.socketClient && this.socketClient.socket) {
             console.log('Registering fish-caught listener');
             
@@ -184,11 +189,12 @@ class FishingHole {
             this.socketClient.socket.off('fish-caught');
             
             this.socketClient.socket.on('fish-caught', (data) => {
-                console.log('fish-caught event received:', data);
+                console.log('🎣 FISH-CAUGHT EVENT RECEIVED:', data);
                 console.log('Current user ID:', this.authManager.getCurrentUser().id);
                 console.log('Event user ID:', data.userId);
                 
                 if (data.userId !== this.authManager.getCurrentUser().id) {
+                    console.log('Displaying notification for other player');
                     this.terminal.println('');
                     this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎣 ${data.handle} caught a ${data.fishName} (${data.weight.toFixed(2)} lbs)!` + ANSIParser.reset());
                     this.terminal.println(ANSIParser.fg('bright-white') + `     Location: ${data.location} | Value: $${data.value} | XP: ${data.experience}` + ANSIParser.reset());
@@ -200,6 +206,10 @@ class FishingHole {
             console.log('Fish-caught listener registered successfully');
         } else {
             console.error('Socket client not available for fishing listeners');
+            console.error('SocketClient:', this.socketClient);
+            if (this.socketClient) {
+                console.error('Socket:', this.socketClient.socket);
+            }
         }
     }
 
@@ -449,6 +459,11 @@ class FishingHole {
         }
         
         // Broadcast to other players
+        console.log('🐟 Attempting to broadcast fish catch...');
+        console.log('SocketClient available:', !!this.socketClient);
+        console.log('Socket available:', !!(this.socketClient && this.socketClient.socket));
+        console.log('Socket connected:', !!(this.socketClient && this.socketClient.socket && this.socketClient.socket.connected));
+        
         if (this.socketClient && this.socketClient.socket) {
             const fishData = {
                 userId: this.authManager.getCurrentUser().id,
@@ -461,10 +476,13 @@ class FishingHole {
                 rarity: caughtFish.rarity
             };
             
-            console.log('Emitting fish-caught event:', fishData);
+            console.log('🎣 EMITTING FISH-CAUGHT EVENT:', fishData);
             console.log('Socket connected:', this.socketClient.socket.connected);
             
             this.socketClient.socket.emit('fish-caught', fishData);
+            console.log('Fish-caught event emitted successfully');
+        } else {
+            console.error('Cannot emit fish-caught event - socket not available');
         }
         
         this.checkLevelUp();
