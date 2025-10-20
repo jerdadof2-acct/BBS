@@ -598,6 +598,36 @@ app.post('/api/change-password', async (req, res) => {
   }
 });
 
+// Fishing hole leaderboard endpoint
+app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const result = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT player_name, level, experience, credits, totalCaught, biggestCatch FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+        : 'SELECT player_name, level, experience, credits, totalCaught, biggestCatch FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+    );
+    
+    const leaderboard = result.rows.map((row, index) => ({
+      rank: index + 1,
+      name: row.player_name,
+      level: row.level,
+      experience: row.experience,
+      money: row.credits,
+      totalCaught: row.totalCaught || 0,
+      biggestCatch: row.biggestCatch || 0
+    }));
+    
+    res.json({ leaderboard });
+  } catch (error) {
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 } // End of setupRoutes function
 
 // Socket.IO
