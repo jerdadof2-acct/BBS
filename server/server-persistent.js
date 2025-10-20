@@ -1048,7 +1048,7 @@ app.post('/api/register', async (req, res) => {
     const { handle, real_name, location, password } = req.body;
     
     // Check if user already exists
-    const existingUser = await getOne(
+    const existingUser = await db.get(
       dbType === 'postgresql' 
         ? 'SELECT id FROM users WHERE handle = $1'
         : 'SELECT id FROM users WHERE handle = ?',
@@ -1061,7 +1061,16 @@ app.post('/api/register', async (req, res) => {
     
     // Create new user
     const hashedPassword = bcrypt.hashSync(password, 10);
-    const newUser = await createUser(handle, real_name, location, hashedPassword);
+    const result = await db.run(
+      dbType === 'postgresql'
+        ? 'INSERT INTO users (handle, real_name, location, password, access_level, credits, calls, messages_posted, files_uploaded, games_played, time_online, signature, tagline, avatar, created_at, last_seen) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *'
+        : 'INSERT INTO users (handle, real_name, location, password, access_level, credits, calls, messages_posted, files_uploaded, games_played, time_online, signature, tagline, avatar, created_at, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      dbType === 'postgresql'
+        ? [handle, real_name, location, hashedPassword, 1, 100, 0, 0, 0, 0, 0, '', '', '', new Date().toISOString(), new Date().toISOString()]
+        : [handle, real_name, location, hashedPassword, 1, 100, 0, 0, 0, 0, 0, '', '', '', new Date().toISOString(), new Date().toISOString()]
+    );
+    
+    const newUser = dbType === 'postgresql' ? result.rows[0] : { id: result.lastID, handle, real_name, location, access_level: 1, credits: 100 };
     
     res.json({ success: true, user: newUser });
   } catch (error) {
