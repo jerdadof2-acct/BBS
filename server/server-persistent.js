@@ -351,6 +351,13 @@ app.post('/api/login', async (req, res) => {
     
     req.session.userId = user.id;
     req.session.userHandle = user.handle;
+    req.session.user = {
+      id: user.id,
+      handle: user.handle,
+      real_name: user.real_name,
+      access_level: user.access_level,
+      credits: user.credits
+    };
     
     // Update last_seen timestamp
     await runQuery(
@@ -1063,6 +1070,24 @@ app.post('/api/logout', async (req, res) => {
   } catch (error) {
     console.error('Logout error:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// SysOp check endpoint
+app.get('/api/sysop/check', (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ isSysop: false });
+    }
+    
+    // Check if user has SysOp privileges (access level >= 100)
+    const user = req.session.user;
+    const isSysop = user && user.access_level >= 100;
+    
+    res.json({ isSysop });
+  } catch (error) {
+    console.error('SysOp check error:', error);
+    res.status(500).json({ isSysop: false });
   }
 });
 
