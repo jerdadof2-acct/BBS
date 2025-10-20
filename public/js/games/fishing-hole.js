@@ -1924,6 +1924,11 @@ class FishingHole {
             const minutes = Math.floor(timeRemaining / 60000);
             const seconds = Math.floor((timeRemaining % 60000) / 1000);
             
+            // Add warning when time is running low
+            if (timeRemaining <= 30000 && timeRemaining > 0) { // Last 30 seconds
+                this.terminal.println(ANSIParser.fg('bright-red') + '  ⚠️  TOURNAMENT ENDING SOON! ⚠️' + ANSIParser.reset());
+            }
+            
             // Draw split-screen layout
             this.drawTournamentHeader(minutes, seconds);
             this.drawTournamentLeftPanel();
@@ -1965,6 +1970,7 @@ class FishingHole {
         this.terminal.println(ANSIParser.fg('bright-white') + '  Biggest Catch: ' + this.tournament.participants[0].biggestCatch.toFixed(2) + ' lbs' + ANSIParser.reset());
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  [F] Cast Line  [Q] Quit Tournament' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-black') + '  (F = Fish, Q = Quit - be careful not to hit F after tournament ends!)' + ANSIParser.reset());
     }
 
     drawTournamentRightPanel() {
@@ -2085,9 +2091,24 @@ class FishingHole {
         this.terminal.println(ANSIParser.fg('bright-white') + `  Total Tournament Weight: ${this.tournament.stats.totalTournamentWeight.toFixed(2)} lbs` + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + `  Total Tournament Fish: ${this.tournament.stats.totalTournamentFish}` + ANSIParser.reset());
         
+        // Add pause to let players read the results
         this.terminal.println('');
-        this.terminal.println('  Press any key to continue...');
-        await this.terminal.input();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🎉 Tournament Complete! 🎉' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Take a moment to review your results...' + ANSIParser.reset());
+        await this.terminal.sleep(3000); // 3 second pause
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-red') + '  Press [Q] to return to Fishing Hole menu' + ANSIParser.reset());
+        
+        // Wait for Q key specifically
+        let input = '';
+        while (input.toUpperCase() !== 'Q') {
+            input = await this.terminal.input();
+            if (input.toUpperCase() !== 'Q') {
+                this.terminal.println(ANSIParser.fg('bright-red') + '  Please press [Q] to continue...' + ANSIParser.reset());
+            }
+        }
     }
 
     async castLineInTournament() {
