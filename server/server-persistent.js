@@ -103,6 +103,12 @@ async function initDatabase() {
         await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS trophy_catches TEXT DEFAULT '[]';`);
         await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
         
+        // Add fishing statistics columns
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS total_caught INTEGER DEFAULT 0;`);
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS total_weight REAL DEFAULT 0.0;`);
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS biggest_catch REAL DEFAULT 0.0;`);
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS biggest_catch_name TEXT DEFAULT 'None';`);
+        
         // Add unique constraint on user_id if it doesn't exist
         await db.run(`ALTER TABLE fishing_hole_players ADD CONSTRAINT fishing_hole_players_user_id_unique UNIQUE (user_id);`);
         
@@ -534,24 +540,26 @@ app.post('/api/fishing-hole/save', async (req, res) => {
     
     if (dbType === 'postgresql') {
       await runQuery(
-        `INSERT INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
+        `INSERT INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, total_caught, total_weight, biggest_catch, biggest_catch_name, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP)
          ON CONFLICT (user_id) 
-         DO UPDATE SET player_name = $2, level = $3, experience = $4, credits = $5, current_location = $6, inventory = $7, trophy_catches = $8, updated_at = CURRENT_TIMESTAMP`,
+         DO UPDATE SET player_name = $2, level = $3, experience = $4, credits = $5, current_location = $6, inventory = $7, trophy_catches = $8, total_caught = $9, total_weight = $10, biggest_catch = $11, biggest_catch_name = $12, updated_at = CURRENT_TIMESTAMP`,
         [
           req.session.userId, player.name, player.level, player.experience, player.money,
           location?.name || 'Lake Shore', JSON.stringify(player.inventory || []),
-          JSON.stringify(player.trophyCatches || [])
+          JSON.stringify(player.trophyCatches || []), player.totalCaught || 0, player.totalWeight || 0,
+          player.biggestCatch || 0, player.biggestCatchName || 'None'
         ]
       );
     } else {
       await runQuery(
-        `INSERT OR REPLACE INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+        `INSERT OR REPLACE INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, total_caught, total_weight, biggest_catch, biggest_catch_name, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
         [
           req.session.userId, player.name, player.level, player.experience, player.money,
           location?.name || 'Lake Shore', JSON.stringify(player.inventory || []),
-          JSON.stringify(player.trophyCatches || [])
+          JSON.stringify(player.trophyCatches || []), player.totalCaught || 0, player.totalWeight || 0,
+          player.biggestCatch || 0, player.biggestCatchName || 'None'
         ]
       );
     }
@@ -1368,22 +1376,22 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
     
     const result = await query(
       dbType === 'postgresql' 
-        ? 'SELECT player_name, level, experience, credits FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
-        : 'SELECT player_name, level, experience, credits FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+        ? 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+        : 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
     );
     
     // Create leaderboard data in the format expected by frontend
     const topCatches = result.rows.map((row, index) => ({
       playerName: row.player_name,
       level: row.level,
-      biggestCatch: 0, // Default since column doesn't exist yet
-      biggestCatchName: "None"
+      biggestCatch: row.biggest_catch || 0,
+      biggestCatchName: row.biggest_catch_name || "None"
     }));
     
     const topBags = result.rows.map((row, index) => ({
       playerName: row.player_name,
       level: row.level,
-      totalWeight: 0 // Default since column doesn't exist yet
+      totalWeight: row.total_weight || 0
     }));
     
     res.json({
