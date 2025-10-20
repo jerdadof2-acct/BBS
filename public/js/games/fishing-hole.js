@@ -496,13 +496,18 @@ class FishingHole {
             const response = await fetch('/api/game-state/fishing-hole/leaderboard', {
                 credentials: 'include'
             });
+            console.log('Leaderboard response status:', response.status);
             const data = await response.json();
+            console.log('Leaderboard response data:', data);
             
             // Show Biggest Catch Leaderboard
             this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 BIGGEST CATCH LEADERBOARD' + ANSIParser.reset());
             this.terminal.println('');
             
-            if (data.topCatches.length === 0) {
+            console.log('topCatches data:', data.topCatches);
+            console.log('topCatches length:', data.topCatches ? data.topCatches.length : 'undefined');
+            
+            if (!data.topCatches || data.topCatches.length === 0) {
                 this.terminal.println(ANSIParser.fg('bright-yellow') + '  No anglers yet!' + ANSIParser.reset());
             } else {
                 this.terminal.println(ANSIParser.fg('bright-cyan') + '  Rank  Angler Name         Level  Biggest Catch' + ANSIParser.reset());
@@ -524,7 +529,10 @@ class FishingHole {
             this.terminal.println(ANSIParser.fg('bright-yellow') + '  🎣 BIGGEST BAG LEADERBOARD (Top 10 Fish Total)' + ANSIParser.reset());
             this.terminal.println('');
             
-            if (data.topBags.length === 0) {
+            console.log('topBags data:', data.topBags);
+            console.log('topBags length:', data.topBags ? data.topBags.length : 'undefined');
+            
+            if (!data.topBags || data.topBags.length === 0) {
                 this.terminal.println(ANSIParser.fg('bright-yellow') + '  No anglers yet!' + ANSIParser.reset());
             } else {
                 this.terminal.println(ANSIParser.fg('bright-cyan') + '  Rank  Angler Name         Level  Total Weight' + ANSIParser.reset());
