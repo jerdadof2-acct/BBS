@@ -44,6 +44,24 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
+// Test endpoint to verify database connection
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const result = await query('SELECT NOW() as current_time');
+    res.json({ 
+      success: true, 
+      message: 'Database connected successfully',
+      time: result.rows[0].current_time
+    });
+  } catch (error) {
+    console.error('Database test error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // Login endpoint
 app.post('/api/login', async (req, res) => {
   try {
@@ -319,6 +337,7 @@ io.on('connection', (socket) => {
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`Retro-BBS Server running on port ${PORT}`);
+  console.log(`Retro-BBS Server (PostgreSQL) running on port ${PORT}`);
   console.log(`Visit http://localhost:${PORT} to connect`);
+  console.log('Database connection string:', process.env.DATABASE_URL ? 'Found' : 'Not found');
 });
