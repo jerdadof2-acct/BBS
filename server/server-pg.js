@@ -171,7 +171,7 @@ app.post('/api/fishing-hole/save', async (req, res) => {
       return res.status(401).json({ error: 'Not logged in' });
     }
     
-    const { player_name, level, experience, credits, inventory, trophy_catches, location } = req.body;
+    const { player, location, userId } = req.body;
     
     await query(
       `INSERT INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, updated_at)
@@ -182,13 +182,13 @@ app.post('/api/fishing-hole/save', async (req, res) => {
          current_location = $6, inventory = $7, trophy_catches = $8, updated_at = CURRENT_TIMESTAMP`,
       [
         req.session.userId, 
-        player_name, 
-        level, 
-        experience, 
-        credits, 
+        player.name, 
+        player.level, 
+        player.experience, 
+        player.money, 
         location?.name || 'Lake Shore',
-        JSON.stringify(inventory || []),
-        JSON.stringify(trophy_catches || [])
+        JSON.stringify(player.inventory || []),
+        JSON.stringify(player.trophyCatches || [])
       ]
     );
     
