@@ -325,6 +325,9 @@ app.post('/api/login', async (req, res) => {
     req.session.userId = user.id;
     req.session.userHandle = user.handle;
     
+    console.log('Login successful - Session set:', { userId: user.id, handle: user.handle });
+    console.log('Session data after login:', req.session);
+    
     res.json({
       success: true,
       user: {
@@ -344,7 +347,9 @@ app.post('/api/login', async (req, res) => {
 // Get current user
 app.get('/api/me', async (req, res) => {
   try {
+    console.log('GET /api/me - Session data:', req.session);
     if (!req.session.userId) {
+      console.log('GET /api/me - No userId in session');
       return res.status(401).json({ error: 'Not logged in' });
     }
     
