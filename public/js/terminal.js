@@ -82,6 +82,36 @@ class Terminal {
         });
     }
 
+    // Get user input with timeout
+    async inputWithTimeout(timeoutMs = 1000) {
+        this.isWaitingForInput = true;
+        this.updateCursor();
+        
+        return new Promise((resolve) => {
+            let resolved = false;
+            
+            // Set up timeout
+            const timeout = setTimeout(() => {
+                if (!resolved) {
+                    resolved = true;
+                    this.isWaitingForInput = false;
+                    resolve(null); // Return null on timeout
+                }
+            }, timeoutMs);
+            
+            // Set up input callback
+            this.inputCallback = (value) => {
+                if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timeout);
+                    this.isWaitingForInput = false;
+                    this.println(''); // Just add a newline
+                    resolve(value);
+                }
+            };
+        });
+    }
+
     // Handle keyboard input
     handleKeyPress(event) {
         if (!this.isWaitingForInput) return;

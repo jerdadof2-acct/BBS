@@ -1867,12 +1867,230 @@ class FishingHole {
     }
 
     async runTournament() {
-        // This will be implemented next with the split-screen interface
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Tournament interface coming soon!' + ANSIParser.reset());
+        // Set up tournament state
+        this.tournament.active = true;
+        this.tournament.phase = 'active';
+        this.tournament.startTime = Date.now();
+        this.tournament.participants = [{
+            name: this.player.name,
+            totalWeight: 0,
+            fishCount: 0,
+            biggestCatch: 0
+        }];
+        this.tournament.leaderboard = [...this.tournament.participants];
+        this.tournament.tournamentMessages = [];
+        
+        // Join the tournament
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.emit('fishing-tournament-join', {
+                tournamentId: this.tournament.tournamentId,
+                player: this.player.name
+            });
+        }
+        
+        // Start the split-screen tournament interface
+        await this.showTournamentInterface();
+    }
+
+    async showTournamentInterface() {
+        const tournamentEndTime = this.tournament.startTime + this.tournament.duration;
+        let tournamentRunning = true;
+        
+        // Set up tournament listeners
+        this.setupTournamentListeners();
+        
+        while (tournamentRunning && Date.now() < tournamentEndTime) {
+            this.terminal.clear();
+            
+            // Calculate time remaining
+            const timeRemaining = Math.max(0, tournamentEndTime - Date.now());
+            const minutes = Math.floor(timeRemaining / 60000);
+            const seconds = Math.floor((timeRemaining % 60000) / 1000);
+            
+            // Draw split-screen layout
+            this.drawTournamentHeader(minutes, seconds);
+            this.drawTournamentLeftPanel();
+            this.drawTournamentRightPanel();
+            
+            // Check for input (non-blocking)
+            const input = await this.terminal.inputWithTimeout(1000);
+            if (input) {
+                if (input.toUpperCase() === 'Q') {
+                    tournamentRunning = false;
+                    break;
+                } else if (input.toUpperCase() === 'F') {
+                    // Cast line during tournament
+                    await this.castLineInTournament();
+                }
+            }
+            
+            // Update leaderboard
+            this.updateTournamentLeaderboard();
+        }
+        
+        // Tournament ended
+        await this.endTournament();
+    }
+
+    drawTournamentHeader(minutes, seconds) {
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏆 FISHING TOURNAMENT - TIME: ' + 
+            String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0') + ' 🏆' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+    }
+
+    drawTournamentLeftPanel() {
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎣 YOUR FISHING AREA 🎣' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Location: ' + this.location.name + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Total Weight: ' + this.tournament.participants[0].totalWeight.toFixed(2) + ' lbs' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Fish Caught: ' + this.tournament.participants[0].fishCount + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Biggest Catch: ' + this.tournament.participants[0].biggestCatch.toFixed(2) + ' lbs' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [F] Cast Line  [Q] Quit Tournament' + ANSIParser.reset());
+    }
+
+    drawTournamentRightPanel() {
+        this.terminal.println(ANSIParser.fg('bright-blue') + '  📊 LIVE LEADERBOARD 📊' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Show top 5 players
+        for (let i = 0; i < Math.min(5, this.tournament.leaderboard.length); i++) {
+            const player = this.tournament.leaderboard[i];
+            const position = i + 1;
+            let color = ANSIParser.fg('bright-white');
+            if (position === 1) color = ANSIParser.fg('bright-yellow');
+            else if (position === 2) color = ANSIParser.fg('bright-white');
+            else if (position === 3) color = ANSIParser.fg('bright-cyan');
+            
+            this.terminal.println(color + `  ${position}. ${player.name}: ${player.totalWeight.toFixed(2)} lbs` + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-magenta') + '  📢 LIVE UPDATES 📢' + ANSIParser.reset());
+        
+        // Show recent tournament messages
+        const recentMessages = this.tournament.tournamentMessages.slice(-3);
+        for (const msg of recentMessages) {
+            this.terminal.println(ANSIParser.fg('bright-white') + '  ' + msg + ANSIParser.reset());
+        }
+    }
+
+    setupTournamentListeners() {
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.on('fishing-tournament-update', (data) => {
+                this.handleTournamentUpdate(data);
+            });
+        }
+    }
+
+    handleTournamentUpdate(data) {
+        // Update participant data
+        const participant = this.tournament.participants.find(p => p.name === data.player);
+        if (participant) {
+            participant.totalWeight = data.totalWeight;
+            participant.position = data.position;
+        }
+        
+        // Add to tournament messages
+        this.tournament.tournamentMessages.push(data.message);
+        
+        // Update leaderboard
+        this.updateTournamentLeaderboard();
+    }
+
+    updateTournamentLeaderboard() {
+        this.tournament.leaderboard = [...this.tournament.participants]
+            .sort((a, b) => b.totalWeight - a.totalWeight);
+    }
+
+    async endTournament() {
+        this.tournament.active = false;
+        this.tournament.phase = 'ended';
+        
+        // Calculate final results
+        const results = this.tournament.leaderboard.map((player, index) => ({
+            position: index + 1,
+            player: player.name,
+            weight: player.totalWeight,
+            fishCount: player.fishCount
+        }));
+        
+        // Broadcast tournament end
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.emit('fishing-tournament-end', {
+                tournamentId: this.tournament.tournamentId,
+                results: results
+            });
+        }
+        
+        // Show final results
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 TOURNAMENT RESULTS 🏆' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        for (const result of results.slice(0, 5)) {
+            let color = ANSIParser.fg('bright-white');
+            if (result.position === 1) color = ANSIParser.fg('bright-yellow');
+            else if (result.position === 2) color = ANSIParser.fg('bright-white');
+            else if (result.position === 3) color = ANSIParser.fg('bright-cyan');
+            
+            this.terminal.println(color + `  ${result.position}. ${result.player}: ${result.weight.toFixed(2)} lbs (${result.fishCount} fish)` + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
         this.terminal.println('  Press any key to continue...');
         await this.terminal.input();
     }
-}
+
+    async castLineInTournament() {
+        // Quick fishing during tournament
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Casting line...' + ANSIParser.reset());
+        await this.terminal.sleep(1000);
+        
+        // Simulate fishing with shorter delay
+        const fish = this.getRandomFish();
+        const caught = Math.random() < 0.7; // 70% catch rate during tournament
+        
+        if (caught) {
+            // Update tournament participant
+            const participant = this.tournament.participants[0];
+            participant.totalWeight += fish.weight;
+            participant.fishCount++;
+            if (fish.weight > participant.biggestCatch) {
+                participant.biggestCatch = fish.weight;
+            }
+            
+            // Add to tournament messages
+            this.tournament.tournamentMessages.push(
+                `🎣 ${this.player.name} caught a ${fish.name} (${fish.weight.toFixed(2)} lbs)!`
+            );
+            
+            // Broadcast tournament update
+            if (this.socketClient && this.socketClient.socket) {
+                this.socketClient.socket.emit('fishing-tournament-update', {
+                    tournamentId: this.tournament.tournamentId,
+                    player: this.player.name,
+                    totalWeight: participant.totalWeight,
+                    position: this.getPlayerPosition(),
+                    message: `🎣 ${this.player.name} caught a ${fish.name} (${fish.weight.toFixed(2)} lbs)!`
+                });
+            }
+            
+            this.terminal.println(ANSIParser.fg('bright-green') + `  🎣 Caught a ${fish.name}! (${fish.weight.toFixed(2)} lbs)` + ANSIParser.reset());
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  No fish this time...' + ANSIParser.reset());
+        }
+        
+        await this.terminal.sleep(500);
+    }
+
+    getPlayerPosition() {
+        const sorted = [...this.tournament.participants].sort((a, b) => b.totalWeight - a.totalWeight);
+        return sorted.findIndex(p => p.name === this.player.name) + 1;
+    }
 
 // Export for use in other modules
 window.FishingHole = FishingHole;
