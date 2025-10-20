@@ -405,7 +405,7 @@ app.post('/api/fishing-hole/player', async (req, res) => {
       return res.status(401).json({ error: 'Not logged in' });
     }
     
-    const row = await getOne(
+    const row = await db.get(
       dbType === 'postgresql' 
         ? 'SELECT * FROM fishing_hole_players WHERE user_id = $1'
         : 'SELECT * FROM fishing_hole_players WHERE user_id = ?',
@@ -457,7 +457,7 @@ app.post('/api/fishing-hole/save', async (req, res) => {
     const { player, location } = req.body;
     
     if (dbType === 'postgresql') {
-      await runQuery(
+      await db.run(
         `INSERT INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
          ON CONFLICT (user_id) 
@@ -469,7 +469,7 @@ app.post('/api/fishing-hole/save', async (req, res) => {
         ]
       );
     } else {
-      await runQuery(
+      await db.run(
         `INSERT OR REPLACE INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
         [
