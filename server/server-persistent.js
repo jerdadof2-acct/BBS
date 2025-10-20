@@ -1731,6 +1731,75 @@ io.on('connection', (socket) => {
       }
     }
   });
+
+  // Fishing Tournament Events
+  socket.on('fishing-tournament-start', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('Fishing tournament started by:', user.handle);
+      
+      // Broadcast tournament start to ALL BBS users
+      io.emit('fishing-tournament-announcement', {
+        type: 'tournament-start',
+        host: user.handle,
+        duration: data.duration,
+        tournamentId: data.tournamentId,
+        message: `🎣 FISHING TOURNAMENT STARTED! ${user.handle} is hosting a ${data.duration}-minute tournament! Join now!`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  socket.on('fishing-tournament-join', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('User joined fishing tournament:', user.handle);
+      
+      // Broadcast join notification to all users
+      io.emit('fishing-tournament-announcement', {
+        type: 'tournament-join',
+        player: user.handle,
+        tournamentId: data.tournamentId,
+        message: `🎣 ${user.handle} joined the fishing tournament!`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  socket.on('fishing-tournament-update', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('Tournament update from:', user.handle, 'Weight:', data.totalWeight);
+      
+      // Broadcast tournament update to all users
+      io.emit('fishing-tournament-announcement', {
+        type: 'tournament-update',
+        player: user.handle,
+        totalWeight: data.totalWeight,
+        position: data.position,
+        tournamentId: data.tournamentId,
+        message: `🏆 ${user.handle} is now in ${data.position} place with ${data.totalWeight.toFixed(2)} lbs!`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  socket.on('fishing-tournament-end', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('Tournament ended by:', user.handle);
+      
+      // Broadcast tournament results to all users
+      io.emit('fishing-tournament-announcement', {
+        type: 'tournament-end',
+        host: user.handle,
+        results: data.results,
+        tournamentId: data.tournamentId,
+        message: `🏆 TOURNAMENT OVER! Winner: ${data.results[0]?.player || 'Unknown'} with ${data.results[0]?.weight?.toFixed(2) || '0'} lbs!`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
 });
 
 // Initialize database and start server

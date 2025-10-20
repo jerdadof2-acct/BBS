@@ -8,6 +8,14 @@ class FishingHole {
         this.authManager = authManager;
         this.player = null;
         this.location = null;
+        this.tournament = {
+            active: false,
+            participants: [],
+            startTime: null,
+            duration: 5 * 60 * 1000, // 5 minutes in milliseconds
+            leaderboard: [],
+            tournamentId: null
+        };
         this.fish = [
             // Common Fish
             { name: 'Minnow', rarity: 'Common', minWeight: 0.1, maxWeight: 0.5, value: 5, experience: 1, season: 'All' },
@@ -157,6 +165,8 @@ class FishingHole {
                 await this.viewAchievements();
             } else if (choice === '8') {
                 await this.viewLeaderboard();
+            } else if (choice === 'T') {
+                await this.tournamentMode();
             }
         }
     }
@@ -266,6 +276,7 @@ class FishingHole {
         this.terminal.println(ANSIParser.fg('bright-white') + '  [6] Challenges' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  [7] Achievements' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  [8] Leaderboard' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [T] Tournament Mode' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-red') + '  [Q] Quit Game' + ANSIParser.reset());
         this.terminal.println('');
         
@@ -1608,6 +1619,144 @@ class FishingHole {
         } catch (error) {
             console.log('Error saving player data:', error);
         }
+    }
+
+    async tournamentMode() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 FISHING TOURNAMENT MODE 🏆' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        if (this.tournament.active) {
+            await this.joinActiveTournament();
+        } else {
+            await this.tournamentMenu();
+        }
+    }
+
+    async tournamentMenu() {
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Start New Tournament' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Join Active Tournament' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] View Tournament Rules' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-red') + '  [Q] Back to Main Menu' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        const choice = await this.terminal.input('  Your choice: ');
+        
+        switch (choice.toUpperCase()) {
+            case '1':
+                await this.startTournament();
+                break;
+            case '2':
+                await this.joinActiveTournament();
+                break;
+            case '3':
+                await this.showTournamentRules();
+                break;
+            case 'Q':
+                return;
+            default:
+                this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
+                await this.terminal.sleep(1000);
+                await this.tournamentMenu();
+        }
+    }
+
+    async startTournament() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🎣 STARTING FISHING TOURNAMENT 🎣' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Tournament Rules:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • 5 minutes to catch the biggest fish' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Winner is determined by total weight' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • All BBS users will be notified' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Tournament starts in 10 seconds' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        const confirm = await this.terminal.input(ANSIParser.fg('bright-yellow') + '  Start tournament? (Y/N): ' + ANSIParser.reset());
+        
+        if (confirm.toUpperCase() === 'Y') {
+            // Broadcast tournament start to all BBS users
+            if (this.socketClient && this.socketClient.socket) {
+                this.socketClient.socket.emit('fishing-tournament-start', {
+                    host: this.player.name,
+                    duration: 5,
+                    tournamentId: Date.now().toString()
+                });
+            }
+            
+            this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-green') + '  Tournament starting in 10 seconds...' + ANSIParser.reset());
+            
+            // Countdown
+            for (let i = 10; i > 0; i--) {
+                this.terminal.println(ANSIParser.fg('bright-yellow') + `  ${i}...` + ANSIParser.reset());
+                await this.terminal.sleep(1000);
+            }
+            
+            await this.runTournament();
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Tournament cancelled.' + ANSIParser.reset());
+            await this.terminal.sleep(2000);
+        }
+    }
+
+    async joinActiveTournament() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🎣 JOINING ACTIVE TOURNAMENT 🎣' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        if (this.tournament.active) {
+            this.terminal.println(ANSIParser.fg('bright-green') + '  Joining tournament...' + ANSIParser.reset());
+            await this.runTournament();
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  No active tournament found!' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  Start a new tournament or wait for one to begin.' + ANSIParser.reset());
+            await this.terminal.sleep(3000);
+        }
+    }
+
+    async showTournamentRules() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 TOURNAMENT RULES 🏆' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Tournament Format:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Duration: 5 minutes' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Objective: Catch the heaviest fish' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Winner: Highest total weight' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  How to Play:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Fish normally during tournament' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Watch live leaderboard updates' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • See other players\' catches in real-time' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Compete for the top spot!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Prizes:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  • 1st Place: $500 + Trophy' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • 2nd Place: $250' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  • 3rd Place: $100' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println('  Press any key to continue...');
+        await this.terminal.input();
+    }
+
+    async runTournament() {
+        // This will be implemented next with the split-screen interface
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Tournament interface coming soon!' + ANSIParser.reset());
+        this.terminal.println('  Press any key to continue...');
+        await this.terminal.input();
     }
 }
 

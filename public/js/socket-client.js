@@ -94,6 +94,25 @@ class SocketClient {
             }
         });
 
+        // Fishing tournament announcement handler
+        this.socket.on('fishing-tournament-announcement', (data) => {
+            if (window.app && window.app.terminal) {
+                window.app.terminal.println('');
+                window.app.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                window.app.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 FISHING TOURNAMENT ANNOUNCEMENT 🏆' + ANSIParser.reset());
+                window.app.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                window.app.terminal.println('');
+                window.app.terminal.println(ANSIParser.fg('bright-white') + `  ${data.message}` + ANSIParser.reset());
+                window.app.terminal.println('');
+                
+                if (data.type === 'tournament-start') {
+                    window.app.terminal.println(ANSIParser.fg('bright-cyan') + '  Go to Door Games → Fishing Hole → Tournament Mode to join!' + ANSIParser.reset());
+                }
+                
+                window.app.terminal.println('  Press any key to continue...');
+            }
+        });
+
         // SysOp direct message handler
         this.socket.on('sysop-direct-message', (data) => {
             if (window.app && window.app.terminal) {
