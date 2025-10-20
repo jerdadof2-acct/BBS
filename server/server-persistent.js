@@ -242,22 +242,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Session middleware will be set up after database initialization
-
-// Routes
+// Basic route that works without database
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// Test endpoint
-app.get('/api/test', (req, res) => {
-  res.json({ 
-    success: true, 
-    message: 'Server is working',
-    database: dbType,
-    timestamp: new Date().toISOString()
-  });
-});
+// Function to set up all database-dependent routes
+function setupRoutes() {
 
 // Login endpoint
 app.post('/api/login', async (req, res) => {
@@ -536,6 +527,8 @@ app.post('/api/change-password', async (req, res) => {
   }
 });
 
+} // End of setupRoutes function
+
 // Socket.IO
 const onlineUsers = new Map();
 
@@ -590,6 +583,9 @@ async function startServer() {
       saveUninitialized: false,
       cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
     }));
+
+    // Set up all routes now that database is initialized
+    setupRoutes();
 
     // Start server
     server.listen(PORT, () => {
