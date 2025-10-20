@@ -313,6 +313,42 @@ app.get('/api/users/online', (req, res) => {
   res.json([]); // Return empty array for now
 });
 
+// Change password endpoint
+app.post('/api/change-password', (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+  
+  const { currentPassword, newPassword } = req.body;
+  
+  // First verify current password
+  db.get('SELECT password_hash FROM users WHERE id = ?', [req.session.userId], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+    
+    if (!bcrypt.compareSync(currentPassword, user.password_hash)) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+    
+    // Hash new password and update
+    const newPasswordHash = bcrypt.hashSync(newPassword, 10);
+    
+    db.run('UPDATE users SET password_hash = ? WHERE id = ?', 
+      [newPasswordHash, req.session.userId], function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to update password' });
+      }
+      
+      res.json({ success: true, message: 'Password updated successfully' });
+    });
+  });
+});
+
 // Socket.IO
 const onlineUsers = new Map();
 
