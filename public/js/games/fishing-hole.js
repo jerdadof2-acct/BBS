@@ -135,6 +135,9 @@ class FishingHole {
         // Register with socket system for multiplayer
         this.registerWithSocket();
         
+        // Register with socket system for multiplayer
+        this.registerWithSocket();
+        
         // Listen for other fishers' catches
         this.setupFishingListeners();
         
@@ -1493,7 +1496,7 @@ class FishingHole {
     createDefaultPlayer(playerName) {
         this.player = {
             name: playerName,
-            userId: this.authManager.getCurrentUser().id,
+                userId: `fishing_${this.player.name}_${Date.now()}`,
             level: 1,
             experience: 0,
             money: 100,
