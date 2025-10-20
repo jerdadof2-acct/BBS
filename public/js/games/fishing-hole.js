@@ -132,6 +132,9 @@ class FishingHole {
             await this.createPlayer();
         }
         
+        // Register with socket system for multiplayer
+        this.registerWithSocket();
+        
         // Listen for other fishers' catches
         this.setupFishingListeners();
         
@@ -175,13 +178,25 @@ class FishingHole {
 `;
     }
 
+    registerWithSocket() {
+        // Register fishing player with socket system for multiplayer
+        if (window.socketClient && window.socketClient.socket) {
+            console.log('Registering fishing player with socket system');
+            window.socketClient.socket.emit('user-login', {
+                userId: `fishing_${this.player.name}_${Date.now()}`,
+                handle: this.player.name,
+                accessLevel: 1
+            });
+        }
+    }
+
     setupFishingListeners() {
         // Listen for other players fishing
         if (window.socketClient && window.socketClient.socket) {
             console.log('Registering fish-caught listener');
             window.socketClient.socket.on('fish-caught', (data) => {
                 console.log('fish-caught event received:', data);
-                if (data.userId !== this.authManager.getCurrentUser().id) {
+                if (data.handle !== this.player.name) {
                     this.terminal.println('');
                     this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎣 ${data.handle} caught a ${data.fishName} (${data.weight.toFixed(2)} lbs)!` + ANSIParser.reset());
                     this.terminal.println(ANSIParser.fg('bright-white') + `     Location: ${data.location} | Value: $${data.value} | XP: ${data.experience}` + ANSIParser.reset());
@@ -438,7 +453,7 @@ class FishingHole {
         // Broadcast to other players
         if (window.socketClient && window.socketClient.socket) {
             window.socketClient.socket.emit('fish-caught', {
-                userId: this.authManager.getCurrentUser().id,
+                userId: `fishing_${this.player.name}_${Date.now()}`,
                 handle: this.player.name,
                 fishName: caughtFish.name,
                 weight: weight,
