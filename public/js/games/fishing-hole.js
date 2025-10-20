@@ -178,7 +178,9 @@ class FishingHole {
     setupFishingListeners() {
         // Listen for other players fishing
         if (window.socketClient && window.socketClient.socket) {
+            console.log('Registering fish-caught listener');
             window.socketClient.socket.on('fish-caught', (data) => {
+                console.log('fish-caught event received:', data);
                 if (data.userId !== this.authManager.getCurrentUser().id) {
                     this.terminal.println('');
                     this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎣 ${data.handle} caught a ${data.fishName} (${data.weight.toFixed(2)} lbs)!` + ANSIParser.reset());

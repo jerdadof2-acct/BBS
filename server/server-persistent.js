@@ -1460,8 +1460,9 @@ io.on('connection', (socket) => {
   // Fishing Hole - Broadcast fish catches to all players
   socket.on('fish-caught', (data) => {
     const user = onlineUsers.get(socket.id);
+    console.log('fish-caught received from socket', socket.id, 'user:', user, 'data:', data);
     if (user) {
-      socket.broadcast.emit('fish-caught', {
+      const payload = {
         userId: user.userId,
         handle: user.handle,
         fishName: data.fishName,
@@ -1471,7 +1472,9 @@ io.on('connection', (socket) => {
         experience: data.experience,
         rarity: data.rarity,
         timestamp: new Date().toISOString()
-      });
+      };
+      console.log('Broadcasting fish-caught to others:', payload);
+      socket.broadcast.emit('fish-caught', payload);
     }
   });
 
