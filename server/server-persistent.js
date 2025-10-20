@@ -615,8 +615,8 @@ app.get('/api/users', async (req, res) => {
     
     const result = await query(
       dbType === 'postgresql' 
-        ? 'SELECT id, handle, real_name, location, access_level, credits, created_at, last_seen FROM users ORDER BY created_at DESC'
-        : 'SELECT id, handle, real_name, location, access_level, credits, created_at, last_seen FROM users ORDER BY created_at DESC'
+        ? 'SELECT id, handle, real_name, location, access_level, credits, calls, messages_posted, created_at, last_seen FROM users ORDER BY created_at DESC'
+        : 'SELECT id, handle, real_name, location, access_level, credits, calls, messages_posted, created_at, last_seen FROM users ORDER BY created_at DESC'
     );
     
     const users = result.rows.map(user => ({
@@ -626,6 +626,8 @@ app.get('/api/users', async (req, res) => {
       location: user.location,
       access_level: user.access_level,
       credits: user.credits,
+      calls: user.calls || 0,
+      messages_posted: user.messages_posted || 0,
       created_at: user.created_at,
       last_seen: user.last_seen
     }));
@@ -644,11 +646,11 @@ app.get('/api/users/online', async (req, res) => {
       return res.status(401).json({ error: 'Not logged in' });
     }
     
-    // Get users who have been active in the last 5 minutes
+    // Get users who have been active in the last 30 minutes
     const result = await query(
       dbType === 'postgresql' 
-        ? 'SELECT id, handle, real_name, access_level, last_seen FROM users WHERE last_seen > NOW() - INTERVAL \'5 minutes\' ORDER BY last_seen DESC'
-        : 'SELECT id, handle, real_name, access_level, last_seen FROM users WHERE last_seen > datetime(\'now\', \'-5 minutes\') ORDER BY last_seen DESC'
+        ? 'SELECT id, handle, real_name, access_level, last_seen FROM users WHERE last_seen > NOW() - INTERVAL \'30 minutes\' ORDER BY last_seen DESC'
+        : 'SELECT id, handle, real_name, access_level, last_seen FROM users WHERE last_seen > datetime(\'now\', \'-30 minutes\') ORDER BY last_seen DESC'
     );
     
     const onlineUsers = result.rows.map(user => ({
