@@ -506,6 +506,7 @@ class FishingHole {
             
             console.log('topCatches data:', data.topCatches);
             console.log('topCatches length:', data.topCatches ? data.topCatches.length : 'undefined');
+            console.log('First topCatch entry:', data.topCatches[0]);
             
             if (!data.topCatches || data.topCatches.length === 0) {
                 this.terminal.println(ANSIParser.fg('bright-yellow') + '  No anglers yet!' + ANSIParser.reset());
@@ -514,11 +515,13 @@ class FishingHole {
                 this.terminal.println(ANSIParser.fg('bright-white') + '  ───────────────────────────────────────────' + ANSIParser.reset());
                 
                 data.topCatches.forEach((entry, index) => {
+                    console.log(`Processing topCatch ${index}:`, entry);
                     const rank = (index + 1).toString().padStart(2);
                     const name = entry.playerName.padEnd(20);
                     const level = entry.level.toString().padStart(5);
                     const catchInfo = `${entry.biggestCatchName} (${entry.biggestCatch.toFixed(2)} lbs)`;
                     const color = index === 0 ? 'bright-yellow' : index < 3 ? 'bright-green' : 'bright-cyan';
+                    console.log(`Displaying: ${rank}. ${name} ${level} ${catchInfo}`);
                     this.terminal.println(ANSIParser.fg(color) + `  ${rank}.  ${name}  ${level}  ${catchInfo}` + ANSIParser.reset());
                 });
             }
