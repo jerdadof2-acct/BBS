@@ -1651,6 +1651,7 @@ class FishingHole {
         this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Join Active Tournament' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  [3] View Tournament Rules' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  [4] View Active Tournaments' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [5] Tournament History & Stats' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-red') + '  [Q] Back to Main Menu' + ANSIParser.reset());
         this.terminal.println('');
         
@@ -1668,6 +1669,9 @@ class FishingHole {
                 break;
             case '4':
                 await this.viewActiveTournaments();
+                break;
+            case '5':
+                await this.showTournamentHistory();
                 break;
             case 'Q':
                 return;
@@ -1880,6 +1884,67 @@ class FishingHole {
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  • Total Tournament Weight' + ANSIParser.reset());
         this.terminal.println('');
         
+        this.terminal.println('  Press any key to continue...');
+        await this.terminal.input();
+    }
+
+    async showTournamentHistory() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  📊 TOURNAMENT HISTORY & STATS 📊' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Show current tournament stats
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 YOUR TOURNAMENT RECORDS 🏆' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        if (this.tournament.stats.tournamentsPlayed > 0) {
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Tournaments Played: ${this.tournament.stats.tournamentsPlayed}` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Tournaments Won: ${this.tournament.stats.tournamentsWon}` + ANSIParser.reset());
+            
+            const winRate = this.tournament.stats.tournamentsPlayed > 0 ? 
+                (this.tournament.stats.tournamentsWon / this.tournament.stats.tournamentsPlayed * 100).toFixed(1) : 0;
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Win Rate: ${winRate}%` + ANSIParser.reset());
+            
+            this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-cyan') + '  🐟 FISHING RECORDS 🐟' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Biggest Tournament Fish: ${this.tournament.stats.biggestTournamentFish.toFixed(2)} lbs` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Biggest Tournament Bag: ${this.tournament.stats.biggestTournamentBag.toFixed(2)} lbs` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Total Tournament Weight: ${this.tournament.stats.totalTournamentWeight.toFixed(2)} lbs` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Total Tournament Fish: ${this.tournament.stats.totalTournamentFish}` + ANSIParser.reset());
+            
+            if (this.tournament.stats.totalTournamentFish > 0) {
+                const avgWeight = this.tournament.stats.totalTournamentWeight / this.tournament.stats.totalTournamentFish;
+                this.terminal.println(ANSIParser.fg('bright-white') + `  Average Fish Weight: ${avgWeight.toFixed(2)} lbs` + ANSIParser.reset());
+            }
+            
+            this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-magenta') + '  🎯 ACHIEVEMENTS 🎯' + ANSIParser.reset());
+            
+            // Achievement checks
+            if (this.tournament.stats.biggestTournamentFish >= 50) {
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 MONSTER HUNTER - Caught a 50+ lb fish!' + ANSIParser.reset());
+            }
+            if (this.tournament.stats.biggestTournamentBag >= 200) {
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 BAG MASTER - 200+ lb tournament bag!' + ANSIParser.reset());
+            }
+            if (this.tournament.stats.tournamentsWon >= 5) {
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 CHAMPION - Won 5+ tournaments!' + ANSIParser.reset());
+            }
+            if (this.tournament.stats.tournamentsPlayed >= 10) {
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 VETERAN - Played 10+ tournaments!' + ANSIParser.reset());
+            }
+            if (this.tournament.stats.totalTournamentWeight >= 1000) {
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 TON MASTER - 1000+ lbs total caught!' + ANSIParser.reset());
+            }
+            
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  No tournament history found.' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  Play some tournaments to build your stats!' + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
         this.terminal.println('  Press any key to continue...');
         await this.terminal.input();
     }
