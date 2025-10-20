@@ -819,6 +819,54 @@ app.get('/api/bulletins', async (req, res) => {
   }
 });
 
+// Messages endpoints
+app.get('/api/messages/general', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    // For now, return sample messages
+    res.json([
+      {
+        id: 1,
+        subject: "Welcome to Retro-BBS!",
+        author: "SysOp",
+        content: "Welcome to our BBS! Feel free to explore all the features and games available.",
+        created_at: new Date().toISOString(),
+        board: "general"
+      },
+      {
+        id: 2,
+        subject: "Fishing Hole Game Tips",
+        author: "SysOp", 
+        content: "Try different locations and upgrade your gear to catch better fish!",
+        created_at: new Date().toISOString(),
+        board: "general"
+      }
+    ]);
+  } catch (error) {
+    console.error('Get messages error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/messages/general', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const { subject, content } = req.body;
+    
+    // For now, just return success (would save to database in full implementation)
+    res.json({ success: true, message: 'Message posted successfully' });
+  } catch (error) {
+    console.error('Post message error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Fishing hole leaderboard endpoint
 app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
   try {
