@@ -223,21 +223,54 @@ app.post('/api/fishing-hole/player', (req, res) => {
     }
     
     if (row) {
+      const inventory = JSON.parse(row.inventory || '[]');
+      const trophyCatches = JSON.parse(row.trophy_catches || '[]');
+      
       res.json({
         player: {
           name: row.player_name,
           level: row.level,
           experience: row.experience,
           money: row.credits,
-          totalCaught: JSON.parse(row.inventory || '[]').length,
-          totalWeight: JSON.parse(row.inventory || '[]').reduce((sum, fish) => sum + (fish.weight || 0), 0),
-          biggestCatch: Math.max(...JSON.parse(row.inventory || '[]').map(f => f.weight || 0), 0),
-          biggestCatchName: JSON.parse(row.inventory || '[]').length > 0 ? 
-            JSON.parse(row.inventory || '[]').reduce((biggest, fish) => 
+          totalCaught: inventory.length,
+          totalWeight: inventory.reduce((sum, fish) => sum + (fish.weight || 0), 0),
+          biggestCatch: inventory.length > 0 ? Math.max(...inventory.map(f => f.weight || 0)) : 0,
+          biggestCatchName: inventory.length > 0 ? 
+            inventory.reduce((biggest, fish) => 
               (fish.weight || 0) > (biggest.weight || 0) ? fish : biggest, {weight: 0, name: 'None'}).name : 'None',
-          inventory: JSON.parse(row.inventory || '[]'),
-          trophyCatches: JSON.parse(row.trophy_catches || '[]'),
-          location: { name: row.current_location || 'Lake Shore' }
+          inventory: inventory,
+          trophyCatches: trophyCatches,
+          location: { name: row.current_location || 'Lake Shore' },
+          // Add default properties that might be missing
+          locationUnlocks: [0, 1], // Default unlocked locations
+          tackleUnlocks: {
+            rods: [0],
+            reels: [0], 
+            lines: [0],
+            hooks: [0],
+            bait: [0]
+          },
+          stats: {
+            accuracy: 50,
+            luck: 50,
+            patience: 50,
+            strength: 50
+          },
+          gear: {
+            rod: "Basic Rod",
+            reel: "Basic Reel",
+            line: "Monofilament",
+            hook: "Basic Hook",
+            bait: "Basic Bait"
+          },
+          achievements: [],
+          challenges: [],
+          seasonStats: {
+            spring: { caught: 0, biggest: 0 },
+            summer: { caught: 0, biggest: 0 },
+            fall: { caught: 0, biggest: 0 },
+            winter: { caught: 0, biggest: 0 }
+          }
         }
       });
     } else {
