@@ -163,7 +163,24 @@ class SocketClient {
     login(userId, handle, accessLevel = 1) {
         this.userId = userId;
         this.handle = handle;
-        this.socket.emit('user-login', { userId, handle, accessLevel });
+        
+        console.log('Attempting to login via socket:', { userId, handle, accessLevel });
+        console.log('Socket connected:', this.socket?.connected);
+        
+        if (this.socket && this.socket.connected) {
+            this.socket.emit('user-login', { userId, handle, accessLevel });
+            console.log('User-login event emitted');
+        } else {
+            console.error('Cannot login - socket not connected');
+            // Try to connect and then login
+            this.connect();
+            setTimeout(() => {
+                if (this.socket && this.socket.connected) {
+                    this.socket.emit('user-login', { userId, handle, accessLevel });
+                    console.log('User-login event emitted after reconnection');
+                }
+            }, 1000);
+        }
     }
 
     logout() {
