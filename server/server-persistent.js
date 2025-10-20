@@ -236,6 +236,9 @@ async function initDatabase() {
   });
 }
 
+// Track online users
+const onlineUsers = new Map(); // socketId -> { userId, handle, accessLevel, lastActivity }
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -1114,6 +1117,33 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     onlineUsers.delete(socket.id);
     console.log('User disconnected:', socket.id);
+  });
+
+  // SysOp chat handlers
+  socket.on('get-sysop-status', () => {
+    // Check if SysOp is online (any user with access level >= 100)
+    const sysopOnline = Array.from(onlineUsers.values()).some(user => user.accessLevel >= 100);
+    socket.emit('sysop-status', { online: sysopOnline });
+  });
+
+  socket.on('get-sysop-chat-history', async () => {
+    try {
+      // For now, return empty history - can be enhanced later
+      const messages = [];
+      socket.emit('sysop-chat-history', { messages });
+    } catch (error) {
+      console.error('Error getting SysOp chat history:', error);
+      socket.emit('sysop-chat-history', { messages: [] });
+    }
+  });
+
+  socket.on('sysop-chat-message', (data) => {
+    // Broadcast SysOp chat message to all users
+    io.emit('sysop-chat-message', {
+      sender: data.sender || 'SysOp',
+      message: data.message,
+      timestamp: new Date().toISOString()
+    });
   });
 });
 
