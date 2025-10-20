@@ -339,6 +339,14 @@ app.post('/api/login', async (req, res) => {
     req.session.userId = user.id;
     req.session.userHandle = user.handle;
     
+    // Update last_seen timestamp
+    await runQuery(
+      dbType === 'postgresql' 
+        ? 'UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = $1'
+        : 'UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = ?',
+      [user.id]
+    );
+    
     console.log('Login successful - Session set:', { userId: user.id, handle: user.handle });
     console.log('Session data after login:', req.session);
     
@@ -598,17 +606,62 @@ app.post('/api/change-password', async (req, res) => {
   }
 });
 
-// Users endpoint
+// Users endpoint - get all registered users
 app.get('/api/users', async (req, res) => {
   try {
     if (!req.session.userId) {
       return res.status(401).json({ error: 'Not logged in' });
     }
     
-    // For now, return empty array since we don't have real-time online users tracking
-    res.json([]);
+    const result = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT id, handle, real_name, location, access_level, credits, created_at, last_seen FROM users ORDER BY created_at DESC'
+        : 'SELECT id, handle, real_name, location, access_level, credits, created_at, last_seen FROM users ORDER BY created_at DESC'
+    );
+    
+    const users = result.rows.map(user => ({
+      id: user.id,
+      handle: user.handle,
+      real_name: user.real_name,
+      location: user.location,
+      access_level: user.access_level,
+      credits: user.credits,
+      created_at: user.created_at,
+      last_seen: user.last_seen
+    }));
+    
+    res.json(users);
   } catch (error) {
     console.error('Get users error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Online users endpoint
+app.get('/api/users/online', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    // Get users who have been active in the last 5 minutes
+    const result = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT id, handle, real_name, access_level, last_seen FROM users WHERE last_seen > NOW() - INTERVAL \'5 minutes\' ORDER BY last_seen DESC'
+        : 'SELECT id, handle, real_name, access_level, last_seen FROM users WHERE last_seen > datetime(\'now\', \'-5 minutes\') ORDER BY last_seen DESC'
+    );
+    
+    const onlineUsers = result.rows.map(user => ({
+      id: user.id,
+      handle: user.handle,
+      real_name: user.real_name,
+      access_level: user.access_level,
+      last_seen: user.last_seen
+    }));
+    
+    res.json(onlineUsers);
+  } catch (error) {
+    console.error('Get online users error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
