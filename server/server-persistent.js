@@ -105,6 +105,16 @@ async function initDatabase() {
         
         // Add unique constraint on user_id if it doesn't exist
         await db.run(`ALTER TABLE fishing_hole_players ADD CONSTRAINT fishing_hole_players_user_id_unique UNIQUE (user_id);`);
+        
+        // Add missing columns to users table
+        await db.run(`ALTER TABLE users ADD COLUMN IF NOT EXISTS calls INTEGER DEFAULT 0;`);
+        await db.run(`ALTER TABLE users ADD COLUMN IF NOT EXISTS messages_posted INTEGER DEFAULT 0;`);
+        await db.run(`ALTER TABLE users ADD COLUMN IF NOT EXISTS files_uploaded INTEGER DEFAULT 0;`);
+        await db.run(`ALTER TABLE users ADD COLUMN IF NOT EXISTS games_played INTEGER DEFAULT 0;`);
+        await db.run(`ALTER TABLE users ADD COLUMN IF NOT EXISTS time_online INTEGER DEFAULT 0;`);
+        await db.run(`ALTER TABLE users ADD COLUMN IF NOT EXISTS signature TEXT DEFAULT '';`);
+        await db.run(`ALTER TABLE users ADD COLUMN IF NOT EXISTS tagline VARCHAR(200) DEFAULT '';`);
+        await db.run(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT DEFAULT '';`);
       } catch (migrationError) {
         console.log('Migration completed or not needed:', migrationError.message);
       }
@@ -771,8 +781,8 @@ app.get('/api/activity-feed', async (req, res) => {
       return res.status(401).json({ error: 'Not logged in' });
     }
     
-    // For now, return empty activity feed
-    res.json({ activities: [] });
+    // Return empty array directly, not wrapped in object
+    res.json([]);
   } catch (error) {
     console.error('Activity feed error:', error);
     res.status(500).json({ error: 'Server error' });
