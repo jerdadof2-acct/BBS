@@ -668,6 +668,70 @@ app.get('/api/users/online', async (req, res) => {
   }
 });
 
+// User profile endpoints
+app.get('/api/user/profile', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const user = await getOne(
+      dbType === 'postgresql' 
+        ? 'SELECT * FROM users WHERE id = $1'
+        : 'SELECT * FROM users WHERE id = ?',
+      [req.session.userId]
+    );
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json({
+      id: user.id,
+      handle: user.handle,
+      real_name: user.real_name,
+      location: user.location,
+      signature: user.signature || '',
+      tagline: user.tagline || '',
+      access_level: user.access_level,
+      credits: user.credits,
+      calls: user.calls || 0,
+      time_online: user.time_online || 0,
+      messages_posted: user.messages_posted || 0,
+      files_uploaded: user.files_uploaded || 0,
+      games_played: user.games_played || 0,
+      avatar: user.avatar || '',
+      created_at: user.created_at,
+      last_seen: user.last_seen
+    });
+  } catch (error) {
+    console.error('Get user profile error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/user/profile', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const { real_name, location, signature, tagline, avatar } = req.body;
+    
+    await runQuery(
+      dbType === 'postgresql' 
+        ? 'UPDATE users SET real_name = $1, location = $2, signature = $3, tagline = $4, avatar = $5 WHERE id = $6'
+        : 'UPDATE users SET real_name = ?, location = ?, signature = ?, tagline = ?, avatar = ? WHERE id = ?',
+      [real_name, location, signature, tagline, avatar, req.session.userId]
+    );
+    
+    res.json({ success: true, message: 'Profile updated successfully' });
+  } catch (error) {
+    console.error('Update user profile error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Fishing hole leaderboard endpoint
 app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
   try {
