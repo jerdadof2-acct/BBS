@@ -95,6 +95,25 @@ async function initDatabase() {
         )
       `);
       
+      // Create sessions table for connect-pg-simple
+      await db.run(`
+        CREATE TABLE IF NOT EXISTS "session" (
+          "sid" varchar NOT NULL COLLATE "default",
+          "sess" json NOT NULL,
+          "expire" timestamp(6) NOT NULL
+        )
+        WITH (OIDS=FALSE);
+      `);
+
+      await db.run(`
+        ALTER TABLE "session" DROP CONSTRAINT IF EXISTS "session_pkey";
+        ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
+      `);
+
+      await db.run(`
+        CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
+      `);
+
       // Create default SysOp user
       const existingUser = await db.get('SELECT id FROM users WHERE handle = $1', ['SysOp']);
       if (!existingUser) {
