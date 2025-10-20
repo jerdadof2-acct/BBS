@@ -94,6 +94,17 @@ async function initDatabase() {
           UNIQUE(user_id)
         )
       `);
+
+      // Add missing columns if they don't exist (migration for existing tables)
+      try {
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS credits INTEGER DEFAULT 100;`);
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS current_location TEXT DEFAULT 'Lake Shore';`);
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS inventory TEXT DEFAULT '[]';`);
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS trophy_catches TEXT DEFAULT '[]';`);
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
+      } catch (migrationError) {
+        console.log('Migration completed or not needed:', migrationError.message);
+      }
       
       // Create sessions table for connect-pg-simple
       try {
