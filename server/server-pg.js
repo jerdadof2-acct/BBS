@@ -32,12 +32,21 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Session middleware with PostgreSQL store
-const PostgreSQLStore = require('connect-pg-simple')(session);
+let sessionStore;
+try {
+  const PostgreSQLStore = require('connect-pg-simple')(session);
+  sessionStore = new PostgreSQLStore({
+    conString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
+  });
+  console.log('PostgreSQL session store initialized');
+} catch (error) {
+  console.error('Failed to initialize PostgreSQL session store:', error);
+  console.log('Falling back to memory session store');
+  sessionStore = undefined;
+}
 
 app.use(session({
-  store: new PostgreSQLStore({
-    conString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
-  }),
+  store: sessionStore,
   secret: 'bbs-secret-key',
   resave: false,
   saveUninitialized: false,
@@ -104,6 +113,8 @@ app.post('/api/login', async (req, res) => {
 // Get current user
 app.get('/api/me', async (req, res) => {
   try {
+    console.log('GET /api/me - Session userId:', req.session.userId);
+    
     if (!req.session.userId) {
       return res.status(401).json({ error: 'Not logged in' });
     }
@@ -123,7 +134,8 @@ app.get('/api/me', async (req, res) => {
     });
   } catch (error) {
     console.error('Get user error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error details:', error.message, error.stack);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
