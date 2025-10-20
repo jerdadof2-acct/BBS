@@ -249,6 +249,32 @@ app.get('/', (req, res) => {
 
 // Function to set up all database-dependent routes
 function setupRoutes() {
+  // Test endpoint to verify database connection
+  app.get('/api/test-db', async (req, res) => {
+    try {
+      if (dbType === 'postgresql') {
+        const result = await db.query('SELECT NOW() as current_time');
+        res.json({
+          success: true,
+          message: 'PostgreSQL database connected successfully',
+          time: result.rows[0].current_time
+        });
+      } else {
+        const result = await db.query('SELECT datetime(\'now\') as current_time');
+        res.json({
+          success: true,
+          message: 'SQLite database connected successfully',
+          time: result.rows[0].current_time
+        });
+      }
+    } catch (error) {
+      console.error('Database test error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
 
 // Login endpoint
 app.post('/api/login', async (req, res) => {
