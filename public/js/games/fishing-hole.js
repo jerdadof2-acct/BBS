@@ -1377,7 +1377,23 @@ class FishingHole {
                     this.player = data.player;
                     // Set location from saved data
                     if (data.location) {
-                        this.location = this.locations.find(loc => loc.name === data.location.name) || this.locations[0];
+                        console.log('Loading location data:', data.location);
+                        // If location is a string (name), find by name
+                        if (typeof data.location === 'string') {
+                            this.location = this.locations.find(loc => loc.name === data.location) || this.locations[0];
+                        } 
+                        // If location is an object, find by name property
+                        else if (data.location.name) {
+                            this.location = this.locations.find(loc => loc.name === data.location.name) || this.locations[0];
+                        }
+                        // If location is already a location object, use it directly
+                        else if (data.location.difficulty) {
+                            this.location = data.location;
+                        }
+                        else {
+                            this.location = this.locations[0];
+                        }
+                        console.log('Set location to:', this.location.name);
                     }
                     // Ensure all required properties exist with defaults
                     this.player.name = this.player.name || playerName;
