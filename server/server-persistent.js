@@ -753,21 +753,21 @@ app.get('/api/leaderboard', async (req, res) => {
     
     const result = await query(
       dbType === 'postgresql' 
-        ? 'SELECT handle, access_level, credits, calls, messages_posted, games_played FROM users ORDER BY access_level DESC, credits DESC LIMIT 10'
-        : 'SELECT handle, access_level, credits, calls, messages_posted, games_played FROM users ORDER BY access_level DESC, credits DESC LIMIT 10'
+        ? 'SELECT id, handle, access_level, credits, calls, messages_posted, games_played FROM users ORDER BY access_level DESC, credits DESC LIMIT 10'
+        : 'SELECT id, handle, access_level, credits, calls, messages_posted, games_played FROM users ORDER BY access_level DESC, credits DESC LIMIT 10'
     );
     
     const leaderboard = result.rows.map((user, index) => ({
-      rank: index + 1,
+      id: user.id,
       handle: user.handle,
       level: user.access_level,
       credits: user.credits,
       calls: user.calls || 0,
-      messages: user.messages_posted || 0,
-      games: user.games_played || 0
+      messages_posted: user.messages_posted || 0,
+      games_played: user.games_played || 0
     }));
     
-    res.json({ leaderboard });
+    res.json(leaderboard);
   } catch (error) {
     console.error('Leaderboard error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -801,16 +801,16 @@ app.get('/api/bulletins', async (req, res) => {
       { 
         id: 1, 
         title: "Welcome to Retro-BBS", 
-        content: "Welcome to our BBS! Have fun exploring all the features.", 
+        message: "Welcome to our BBS! Have fun exploring all the features.", 
         created_at: new Date().toISOString(),
-        author: "SysOp"
+        author_handle: "SysOp"
       },
       { 
         id: 2, 
         title: "Fishing Hole Game Available", 
-        content: "Try out our new fishing hole game! Catch fish, level up, and compete on the leaderboard.", 
+        message: "Try out our new fishing hole game! Catch fish, level up, and compete on the leaderboard.", 
         created_at: new Date().toISOString(),
-        author: "SysOp"
+        author_handle: "SysOp"
       }
     ]);
   } catch (error) {
@@ -831,16 +831,16 @@ app.get('/api/messages/general', async (req, res) => {
       {
         id: 1,
         subject: "Welcome to Retro-BBS!",
-        author: "SysOp",
-        content: "Welcome to our BBS! Feel free to explore all the features and games available.",
+        author_handle: "SysOp",
+        body: "Welcome to our BBS! Feel free to explore all the features and games available.",
         created_at: new Date().toISOString(),
         board: "general"
       },
       {
         id: 2,
         subject: "Fishing Hole Game Tips",
-        author: "SysOp", 
-        content: "Try different locations and upgrade your gear to catch better fish!",
+        author_handle: "SysOp", 
+        body: "Try different locations and upgrade your gear to catch better fish!",
         created_at: new Date().toISOString(),
         board: "general"
       }
@@ -882,8 +882,8 @@ messageBoards.forEach(boardId => {
         {
           id: 1,
           subject: `Welcome to ${boardId.charAt(0).toUpperCase() + boardId.slice(1)} Board!`,
-          author: "SysOp",
-          content: `This is the ${boardId} message board. Feel free to post here!`,
+          author_handle: "SysOp",
+          body: `This is the ${boardId} message board. Feel free to post here!`,
           created_at: new Date().toISOString(),
           board: boardId
         }
