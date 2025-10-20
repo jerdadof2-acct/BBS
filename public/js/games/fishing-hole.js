@@ -2091,6 +2091,7 @@ class FishingHole {
         const sorted = [...this.tournament.participants].sort((a, b) => b.totalWeight - a.totalWeight);
         return sorted.findIndex(p => p.name === this.player.name) + 1;
     }
+}
 
 // Export for use in other modules
 window.FishingHole = FishingHole;
