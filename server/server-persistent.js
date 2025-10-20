@@ -867,6 +867,202 @@ app.post('/api/messages/general', async (req, res) => {
   }
 });
 
+// Message boards endpoints (all boards)
+const messageBoards = ['general', 'gaming', 'tech', 'trading', 'offtopic'];
+
+messageBoards.forEach(boardId => {
+  app.get(`/api/messages/${boardId}`, async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: 'Not logged in' });
+      }
+      
+      // Return sample messages for each board
+      const sampleMessages = [
+        {
+          id: 1,
+          subject: `Welcome to ${boardId.charAt(0).toUpperCase() + boardId.slice(1)} Board!`,
+          author: "SysOp",
+          content: `This is the ${boardId} message board. Feel free to post here!`,
+          created_at: new Date().toISOString(),
+          board: boardId
+        }
+      ];
+      
+      res.json(sampleMessages);
+    } catch (error) {
+      console.error(`Get ${boardId} messages error:`, error);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+});
+
+// General messages endpoint
+app.get('/api/messages', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    res.json({ message: 'Messages API working' });
+  } catch (error) {
+    console.error('Get messages error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Email endpoints
+app.get('/api/emails/inbox', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    res.json([]);
+  } catch (error) {
+    console.error('Get inbox error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/emails/sent', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    res.json([]);
+  } catch (error) {
+    console.error('Get sent emails error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/emails/unread/count', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    res.json({ count: 0 });
+  } catch (error) {
+    console.error('Get unread count error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/emails', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    res.json({ success: true, message: 'Email sent successfully' });
+  } catch (error) {
+    console.error('Send email error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Chat endpoints
+app.get('/api/chat', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    res.json({ messages: [] });
+  } catch (error) {
+    console.error('Get chat error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Files endpoints
+app.get('/api/files/:areaId', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    res.json({ files: [] });
+  } catch (error) {
+    console.error('Get files error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// One-liners endpoint
+app.get('/api/oneliners', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    res.json([]);
+  } catch (error) {
+    console.error('Get oneliners error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// High scores endpoints
+app.get('/api/high-scores/number-guess', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    res.json([]);
+  } catch (error) {
+    console.error('Get high scores error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/high-scores', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Save high score error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Registration endpoint
+app.post('/api/register', async (req, res) => {
+  try {
+    const { handle, real_name, location, password } = req.body;
+    
+    // Check if user already exists
+    const existingUser = await getOne(
+      dbType === 'postgresql' 
+        ? 'SELECT id FROM users WHERE handle = $1'
+        : 'SELECT id FROM users WHERE handle = ?',
+      [handle]
+    );
+    
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+    
+    // Create new user
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const newUser = await createUser(handle, real_name, location, hashedPassword);
+    
+    res.json({ success: true, user: newUser });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Logout endpoint
+app.post('/api/logout', async (req, res) => {
+  try {
+    req.session.destroy();
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Fishing hole leaderboard endpoint
 app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
   try {
