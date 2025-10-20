@@ -1099,8 +1099,6 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
 } // End of setupRoutes function
 
 // Socket.IO
-const onlineUsers = new Map();
-
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
   
