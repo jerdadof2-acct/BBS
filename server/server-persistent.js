@@ -1368,8 +1368,8 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
     
     const result = await query(
       dbType === 'postgresql' 
-        ? 'SELECT player_name, level, experience, credits, totalCaught, biggestCatch FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
-        : 'SELECT player_name, level, experience, credits, totalCaught, biggestCatch FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+        ? 'SELECT player_name, level, experience, credits FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+        : 'SELECT player_name, level, experience, credits FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
     );
     
     const leaderboard = result.rows.map((row, index) => ({
@@ -1378,11 +1378,11 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
       level: row.level,
       experience: row.experience,
       money: row.credits,
-      totalCaught: row.totalCaught || 0,
-      biggestCatch: row.biggestCatch || 0
+      totalCaught: 0, // Default values since columns don't exist yet
+      biggestCatch: 0
     }));
     
-    res.json({ leaderboard });
+    res.json(leaderboard);
   } catch (error) {
     console.error('Leaderboard error:', error);
     res.status(500).json({ error: 'Server error' });
