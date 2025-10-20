@@ -1457,6 +1457,24 @@ io.on('connection', (socket) => {
     console.log('User disconnected:', socket.id);
   });
 
+  // Fishing Hole - Broadcast fish catches to all players
+  socket.on('fish-caught', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      socket.broadcast.emit('fish-caught', {
+        userId: user.userId,
+        handle: user.handle,
+        fishName: data.fishName,
+        weight: data.weight,
+        location: data.location,
+        value: data.value,
+        experience: data.experience,
+        rarity: data.rarity,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // SysOp chat handlers
   socket.on('get-sysop-status', () => {
     // Check if SysOp is online (any user with access level >= 100)
