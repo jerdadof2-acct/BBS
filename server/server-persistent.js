@@ -1374,11 +1374,27 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
       return res.status(401).json({ error: 'Not logged in' });
     }
     
-    const result = await query(
-      dbType === 'postgresql' 
-        ? 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
-        : 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
-    );
+    console.log('Fetching fishing hole leaderboard...');
+    
+    // First try with the new columns, fall back to basic columns if they don't exist
+    let result;
+    try {
+      result = await query(
+        dbType === 'postgresql' 
+          ? 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+          : 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+      );
+    } catch (columnError) {
+      console.log('New columns not available, using basic query:', columnError.message);
+      // Fallback to basic columns if the new ones don't exist yet
+      result = await query(
+        dbType === 'postgresql' 
+          ? 'SELECT player_name, level, experience, credits FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+          : 'SELECT player_name, level, experience, credits FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+      );
+    }
+    
+    console.log('Leaderboard query result:', result.rows.length, 'players');
     
     // Create leaderboard data in the format expected by frontend
     const topCatches = result.rows.map((row, index) => ({
@@ -1393,6 +1409,8 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
       level: row.level,
       totalWeight: row.total_weight || 0
     }));
+    
+    console.log('Returning leaderboard data:', { topCatches: topCatches.length, topBags: topBags.length });
     
     res.json({
       topCatches: topCatches,
