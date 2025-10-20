@@ -31,8 +31,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Session middleware (in-memory for now, can be upgraded later)
+// Session middleware with PostgreSQL store
+const PostgreSQLStore = require('connect-pg-simple')(session);
+
 app.use(session({
+  store: new PostgreSQLStore({
+    conString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
+  }),
   secret: 'bbs-secret-key',
   resave: false,
   saveUninitialized: false,
