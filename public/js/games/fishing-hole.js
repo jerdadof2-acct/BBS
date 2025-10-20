@@ -1375,6 +1375,8 @@ class FishingHole {
                 console.log('Raw response from server:', JSON.stringify(data, null, 2));
                 if (data.player) {
                     this.player = data.player;
+                    console.log('Data location exists:', !!data.location);
+                    console.log('Data location value:', data.location);
                     // Set location from saved data
                     if (data.location) {
                         console.log('Loading location data:', data.location);
@@ -1384,7 +1386,10 @@ class FishingHole {
                         } 
                         // If location is an object, find by name property
                         else if (data.location.name) {
-                            this.location = this.locations.find(loc => loc.name === data.location.name) || this.locations[0];
+                            console.log('Looking for location with name:', data.location.name);
+                            const foundLocation = this.locations.find(loc => loc.name === data.location.name);
+                            console.log('Found location:', foundLocation);
+                            this.location = foundLocation || this.locations[0];
                         }
                         // If location is already a location object, use it directly
                         else if (data.location.difficulty) {
