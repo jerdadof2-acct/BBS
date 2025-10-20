@@ -1443,18 +1443,91 @@ io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
   
   socket.on('user-login', (data) => {
-    onlineUsers.set(socket.id, {
-      userId: data.userId,
-      handle: data.handle,
-      accessLevel: data.accessLevel,
-      lastActivity: Date.now()
-    });
-    console.log('User logged in:', data.handle);
+    const { userId, handle, accessLevel } = data;
+    console.log('🔍 DEBUG: User login - userId:', userId, 'handle:', handle, 'accessLevel:', accessLevel);
+    onlineUsers.set(socket.id, { userId, handle, accessLevel: accessLevel || 1, lastActivity: Date.now() });
+    console.log('🔍 DEBUG: Online users after login:', Array.from(onlineUsers.values()));
+    socket.broadcast.emit('user-online', { userId, handle });
+    io.emit('online-users-update', Array.from(onlineUsers.values()));
   });
-  
+
+  socket.on('user-logout', () => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      onlineUsers.delete(socket.id);
+      socket.broadcast.emit('user-offline', { userId: user.userId, handle: user.handle });
+      io.emit('online-users-update', Array.from(onlineUsers.values()));
+    }
+  });
+
+  socket.on('get-online-users', () => {
+    socket.emit('online-users-update', Array.from(onlineUsers.values()));
+  });
+
+  socket.on('chat-message', async (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user && data.message) {
+      try {
+        const { createChatMessage } = require('./db');
+        await createChatMessage(db, {
+          sender_id: user.userId,
+          recipient_id: data.recipientId || null,
+          message: data.message,
+          is_private: data.isPrivate || false
+        });
+        
+        if (data.isPrivate && data.recipientId) {
+          // Send to specific recipient
+          socket.to(data.recipientSocketId).emit('chat-message', {
+            sender: user.handle,
+            message: data.message,
+            isPrivate: true
+          });
+        } else {
+          // Broadcast to all
+          io.emit('chat-message', {
+            sender: user.handle,
+            message: data.message,
+            isPrivate: false
+          });
+        }
+      } catch (error) {
+        console.error('Chat message error:', error);
+      }
+    }
+  });
+
+  socket.on('game-action', (data) => {
+    // Broadcast game actions to other players
+    socket.broadcast.to(data.room).emit('game-update', data);
+  });
+
+  socket.on('join-game-room', (room) => {
+    socket.join(room);
+    socket.to(room).emit('player-joined', { socketId: socket.id });
+  });
+
+  socket.on('leave-game-room', (room) => {
+    socket.leave(room);
+    socket.to(room).emit('player-left', { socketId: socket.id });
+  });
+
   socket.on('disconnect', () => {
-    onlineUsers.delete(socket.id);
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      onlineUsers.delete(socket.id);
+      socket.broadcast.emit('user-offline', { userId: user.userId, handle: user.handle });
+      io.emit('online-users-update', Array.from(onlineUsers.values()));
+    }
     console.log('User disconnected:', socket.id);
+  });
+
+  // Update last activity
+  socket.on('activity', () => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      user.lastActivity = Date.now();
+    }
   });
 
   // Fishing Hole - Broadcast fish catches to all players
@@ -1480,29 +1553,183 @@ io.on('connection', (socket) => {
 
   // SysOp chat handlers
   socket.on('get-sysop-status', () => {
-    // Check if SysOp is online (any user with access level >= 100)
-    const sysopOnline = Array.from(onlineUsers.values()).some(user => user.accessLevel >= 100);
+    // Check if any sysop is online (access_level >= 10)
+    const onlineUsersList = Array.from(onlineUsers.values());
+    console.log('🔍 DEBUG: Checking SysOp status - online users:', onlineUsersList);
+    const sysopOnline = onlineUsersList.some(u => u.accessLevel >= 10);
+    console.log('🔍 DEBUG: SysOp online status:', sysopOnline);
     socket.emit('sysop-status', { online: sysopOnline });
   });
 
   socket.on('get-sysop-chat-history', async () => {
-    try {
-      // For now, return empty history - can be enhanced later
-      const messages = [];
-      socket.emit('sysop-chat-history', { messages });
-    } catch (error) {
-      console.error('Error getting SysOp chat history:', error);
-      socket.emit('sysop-chat-history', { messages: [] });
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      try {
+        const { getSysopChatHistory } = require('./db');
+        const messages = await getSysopChatHistory(db, user.userId);
+        socket.emit('sysop-chat-history', { messages });
+      } catch (error) {
+        console.error('Get SysOp chat history error:', error);
+        socket.emit('sysop-chat-history', { messages: [] });
+      }
     }
   });
 
-  socket.on('sysop-chat-message', (data) => {
-    // Broadcast SysOp chat message to all users
-    io.emit('sysop-chat-message', {
-      sender: data.sender || 'SysOp',
-      message: data.message,
-      timestamp: new Date().toISOString()
-    });
+  socket.on('send-sysop-message', async (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user && data.message) {
+      try {
+        const { saveSysopChatMessage } = require('./db');
+        await saveSysopChatMessage(db, user.userId, false, data.message);
+        
+        // Emit to all connected clients
+        io.emit('sysop-chat-message', {
+          from_sysop: false,
+          message: data.message,
+          timestamp: data.timestamp || new Date().toISOString(),
+          user_handle: user.handle,
+          user_id: user.userId
+        });
+      } catch (error) {
+        console.error('Send SysOp message error:', error);
+      }
+    }
+  });
+
+  // SysOp broadcast message to all users
+  socket.on('sysop-broadcast', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      // Check if user is sysop
+      db.get('SELECT access_level FROM users WHERE id = ?', [user.userId], (err, row) => {
+        if (row && row.access_level >= 100) {
+          // Broadcast to all connected users
+          io.emit('sysop-broadcast-message', {
+            from: user.handle,
+            message: data.message,
+            timestamp: new Date().toISOString()
+          });
+        }
+      });
+    }
+  });
+
+  // SysOp direct message to specific user
+  socket.on('sysop-direct-message', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      // Check if user is sysop
+      db.get('SELECT access_level FROM users WHERE id = ?', [user.userId], (err, row) => {
+        if (row && row.access_level >= 100) {
+          // Find target user's socket
+          for (const [socketId, onlineUser] of onlineUsers.entries()) {
+            if (onlineUser.userId === data.targetUserId) {
+              io.to(socketId).emit('sysop-direct-message', {
+                from: user.handle,
+                message: data.message,
+                timestamp: new Date().toISOString()
+              });
+              break;
+            }
+          }
+        }
+      });
+    }
+  });
+
+  // User-to-user direct message
+  socket.on('user-direct-message', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      // Find target user's socket
+      for (const [socketId, onlineUser] of onlineUsers.entries()) {
+        if (onlineUser.userId === data.targetUserId) {
+          io.to(socketId).emit('user-direct-message', {
+            from: user.handle,
+            fromId: user.userId,
+            message: data.message,
+            timestamp: new Date().toISOString()
+          });
+          break;
+        }
+      }
+    }
+  });
+
+  // Pit PvP Challenge
+  socket.on('pit-challenge', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      // Find target user's socket
+      for (const [socketId, onlineUser] of onlineUsers.entries()) {
+        if (onlineUser.userId === data.targetUserId) {
+          io.to(socketId).emit('pit-challenge-received', {
+            from: data.challengerHandle,
+            fromId: user.userId,
+            message: data.message,
+            timestamp: new Date().toISOString()
+          });
+          break;
+        }
+      }
+    }
+  });
+
+  socket.on('pit-challenge-response', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      // Find challenger's socket
+      for (const [socketId, onlineUser] of onlineUsers.entries()) {
+        if (onlineUser.userId === data.challengerId) {
+          io.to(socketId).emit('pit-challenge-response', {
+            from: user.handle,
+            fromId: user.userId,
+            accepted: data.accepted,
+            message: data.message,
+            timestamp: new Date().toISOString()
+          });
+          break;
+        }
+      }
+    }
+  });
+
+  // Cyber Arena Challenge
+  socket.on('arena-challenge', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      // Find target user's socket
+      for (const [socketId, onlineUser] of onlineUsers.entries()) {
+        if (onlineUser.userId === data.targetUserId) {
+          io.to(socketId).emit('arena-challenge-received', {
+            from: data.challengerHandle,
+            fromId: user.userId,
+            message: data.message,
+            timestamp: new Date().toISOString()
+          });
+          break;
+        }
+      }
+    }
+  });
+
+  socket.on('arena-challenge-response', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      // Find challenger's socket
+      for (const [socketId, onlineUser] of onlineUsers.entries()) {
+        if (onlineUser.userId === data.challengerId) {
+          io.to(socketId).emit('arena-challenge-response', {
+            from: user.handle,
+            fromId: user.userId,
+            accepted: data.accepted,
+            message: data.message,
+            timestamp: new Date().toISOString()
+          });
+          break;
+        }
+      }
+    }
   });
 });
 
