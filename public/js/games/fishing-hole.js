@@ -2091,6 +2091,32 @@ class FishingHole {
         const sorted = [...this.tournament.participants].sort((a, b) => b.totalWeight - a.totalWeight);
         return sorted.findIndex(p => p.name === this.player.name) + 1;
     }
+
+    getRandomFish() {
+        // Select fish based on location
+        const availableFish = this.location.fish;
+        const fishIndex = availableFish[Math.floor(Math.random() * availableFish.length)];
+        const fishTemplate = this.fish[fishIndex];
+        
+        // Calculate weight
+        const weight = fishTemplate.minWeight + Math.random() * (fishTemplate.maxWeight - fishTemplate.minWeight);
+        
+        // Calculate value (based on weight)
+        const value = Math.floor(fishTemplate.value * (1 + weight / fishTemplate.maxWeight));
+        
+        // Calculate experience
+        const experience = Math.floor(fishTemplate.experience * (1 + weight / fishTemplate.maxWeight));
+        
+        // Create fish object
+        return {
+            name: fishTemplate.name,
+            weight: weight,
+            value: value,
+            experience: experience,
+            rarity: fishTemplate.rarity,
+            location: this.location.name
+        };
+    }
 }
 
 // Export for use in other modules
