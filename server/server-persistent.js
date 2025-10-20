@@ -1063,8 +1063,8 @@ app.post('/api/register', async (req, res) => {
     const hashedPassword = bcrypt.hashSync(password, 10);
     const result = await db.run(
       dbType === 'postgresql'
-        ? 'INSERT INTO users (handle, real_name, location, password, access_level, credits, calls, messages_posted, files_uploaded, games_played, time_online, signature, tagline, avatar, created_at, last_seen) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *'
-        : 'INSERT INTO users (handle, real_name, location, password, access_level, credits, calls, messages_posted, files_uploaded, games_played, time_online, signature, tagline, avatar, created_at, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        ? 'INSERT INTO users (handle, real_name, location, password_hash, access_level, credits, calls, messages_posted, files_uploaded, games_played, time_online, signature, tagline, avatar, created_at, last_seen) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *'
+        : 'INSERT INTO users (handle, real_name, location, password_hash, access_level, credits, calls, messages_posted, files_uploaded, games_played, time_online, signature, tagline, avatar, created_at, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       dbType === 'postgresql'
         ? [handle, real_name, location, hashedPassword, 1, 100, 0, 0, 0, 0, 0, '', '', '', new Date().toISOString(), new Date().toISOString()]
         : [handle, real_name, location, hashedPassword, 1, 100, 0, 0, 0, 0, 0, '', '', '', new Date().toISOString(), new Date().toISOString()]
