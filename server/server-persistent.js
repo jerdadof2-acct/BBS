@@ -1372,17 +1372,24 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
         : 'SELECT player_name, level, experience, credits FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
     );
     
-    const leaderboard = result.rows.map((row, index) => ({
-      rank: index + 1,
-      name: row.player_name,
+    // Create leaderboard data in the format expected by frontend
+    const topCatches = result.rows.map((row, index) => ({
+      playerName: row.player_name,
       level: row.level,
-      experience: row.experience,
-      money: row.credits,
-      totalCaught: 0, // Default values since columns don't exist yet
-      biggestCatch: 0
+      biggestCatch: 0, // Default since column doesn't exist yet
+      biggestCatchName: "None"
     }));
     
-    res.json(leaderboard);
+    const topBags = result.rows.map((row, index) => ({
+      playerName: row.player_name,
+      level: row.level,
+      totalWeight: 0 // Default since column doesn't exist yet
+    }));
+    
+    res.json({
+      topCatches: topCatches,
+      topBags: topBags
+    });
   } catch (error) {
     console.error('Leaderboard error:', error);
     res.status(500).json({ error: 'Server error' });
