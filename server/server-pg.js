@@ -146,16 +146,18 @@ app.post('/api/fishing-hole/player', async (req, res) => {
     if (result.rows.length > 0) {
       const player = result.rows[0];
       res.json({
-        player_name: player.player_name,
-        level: player.level,
-        experience: player.experience,
-        credits: player.credits,
-        inventory: player.inventory ? JSON.parse(player.inventory) : [],
-        trophy_catches: player.trophy_catches ? JSON.parse(player.trophy_catches) : [],
-        location: { name: player.current_location || 'Lake Shore' }
+        player: {
+          player_name: player.player_name,
+          level: player.level,
+          experience: player.experience,
+          credits: player.credits,
+          inventory: player.inventory ? JSON.parse(player.inventory) : [],
+          trophy_catches: player.trophy_catches ? JSON.parse(player.trophy_catches) : [],
+          location: { name: player.current_location || 'Lake Shore' }
+        }
       });
     } else {
-      res.json(null);
+      res.json({ player: null });
     }
   } catch (error) {
     console.error('Get fishing player error:', error);
