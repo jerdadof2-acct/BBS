@@ -250,8 +250,27 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Session middleware (in-memory for now)
+// Session middleware with proper storage
+let sessionStore;
+try {
+  if (dbType === 'postgresql') {
+    const PostgreSQLStore = require('connect-pg-simple')(session);
+    sessionStore = new PostgreSQLStore({
+      conString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
+    });
+    console.log('Using PostgreSQL session store');
+  } else {
+    // For SQLite fallback, use memory store
+    sessionStore = undefined;
+    console.log('Using memory session store');
+  }
+} catch (error) {
+  console.error('Failed to initialize session store:', error);
+  sessionStore = undefined;
+}
+
 app.use(session({
+  store: sessionStore,
   secret: 'bbs-secret-key',
   resave: false,
   saveUninitialized: false,
@@ -405,7 +424,7 @@ app.post('/api/fishing-hole/player', async (req, res) => {
       return res.status(401).json({ error: 'Not logged in' });
     }
     
-    const row = await db.get(
+    const row = await getOne(
       dbType === 'postgresql' 
         ? 'SELECT * FROM fishing_hole_players WHERE user_id = $1'
         : 'SELECT * FROM fishing_hole_players WHERE user_id = ?',
@@ -457,7 +476,7 @@ app.post('/api/fishing-hole/save', async (req, res) => {
     const { player, location } = req.body;
     
     if (dbType === 'postgresql') {
-      await db.run(
+      await runQuery(
         `INSERT INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
          ON CONFLICT (user_id) 
@@ -469,7 +488,7 @@ app.post('/api/fishing-hole/save', async (req, res) => {
         ]
       );
     } else {
-      await db.run(
+      await runQuery(
         `INSERT OR REPLACE INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
         [
