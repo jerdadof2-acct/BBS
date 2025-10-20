@@ -1096,6 +1096,269 @@ app.get('/api/sysop/check', (req, res) => {
   }
 });
 
+// SysOp API endpoints
+app.get('/api/sysop/users', async (req, res) => {
+  try {
+    if (!req.session.userId || !req.session.user || req.session.user.access_level < 100) {
+      return res.status(403).json({ error: 'SysOp privileges required' });
+    }
+    
+    const result = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT id, handle, real_name, location, access_level, credits, calls, messages_posted, files_uploaded, games_played, time_online, created_at, last_seen FROM users ORDER BY created_at DESC'
+        : 'SELECT id, handle, real_name, location, access_level, credits, calls, messages_posted, files_uploaded, games_played, time_online, created_at, last_seen FROM users ORDER BY created_at DESC'
+    );
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('SysOp users error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/sysop/stats', async (req, res) => {
+  try {
+    if (!req.session.userId || !req.session.user || req.session.user.access_level < 100) {
+      return res.status(403).json({ error: 'SysOp privileges required' });
+    }
+    
+    // Get basic stats
+    const userCount = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT COUNT(*) as count FROM users'
+        : 'SELECT COUNT(*) as count FROM users'
+    );
+    
+    const gameCount = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT COUNT(*) as count FROM fishing_hole_players'
+        : 'SELECT COUNT(*) as count FROM fishing_hole_players'
+    );
+    
+    res.json({
+      totalUsers: userCount.rows[0].count,
+      totalGames: gameCount.rows[0].count,
+      onlineUsers: onlineUsers.size,
+      serverUptime: process.uptime()
+    });
+  } catch (error) {
+    console.error('SysOp stats error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/sysop-chat/all', async (req, res) => {
+  try {
+    if (!req.session.userId || !req.session.user || req.session.user.access_level < 100) {
+      return res.status(403).json({ error: 'SysOp privileges required' });
+    }
+    
+    // For now, return empty chat history
+    res.json([]);
+  } catch (error) {
+    console.error('SysOp chat all error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/sysop-chat/respond', async (req, res) => {
+  try {
+    if (!req.session.userId || !req.session.user || req.session.user.access_level < 100) {
+      return res.status(403).json({ error: 'SysOp privileges required' });
+    }
+    
+    const { message, recipientId } = req.body;
+    
+    // Broadcast SysOp response to all users
+    io.emit('sysop-chat-message', {
+      sender: 'SysOp',
+      message: message,
+      timestamp: new Date().toISOString(),
+      isResponse: true
+    });
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('SysOp chat respond error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/sysop/activity-logs', async (req, res) => {
+  try {
+    if (!req.session.userId || !req.session.user || req.session.user.access_level < 100) {
+      return res.status(403).json({ error: 'SysOp privileges required' });
+    }
+    
+    // For now, return sample activity logs
+    res.json([
+      {
+        id: 1,
+        user: 'SysOp',
+        action: 'System Started',
+        timestamp: new Date().toISOString(),
+        details: 'BBS server initialized'
+      }
+    ]);
+  } catch (error) {
+    console.error('SysOp activity logs error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/sysop/database-stats', async (req, res) => {
+  try {
+    if (!req.session.userId || !req.session.user || req.session.user.access_level < 100) {
+      return res.status(403).json({ error: 'SysOp privileges required' });
+    }
+    
+    // Get database statistics
+    const userCount = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT COUNT(*) as count FROM users'
+        : 'SELECT COUNT(*) as count FROM users'
+    );
+    
+    const gameCount = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT COUNT(*) as count FROM fishing_hole_players'
+        : 'SELECT COUNT(*) as count FROM fishing_hole_players'
+    );
+    
+    res.json({
+      databaseType: dbType,
+      totalUsers: userCount.rows[0].count,
+      totalGamePlayers: gameCount.rows[0].count,
+      onlineUsers: onlineUsers.size
+    });
+  } catch (error) {
+    console.error('SysOp database stats error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Additional SysOp endpoints
+app.get('/api/sysop/game-states', async (req, res) => {
+  try {
+    if (!req.session.userId || !req.session.user || req.session.user.access_level < 100) {
+      return res.status(403).json({ error: 'SysOp privileges required' });
+    }
+    
+    // Return game states for all users
+    const result = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT user_id, game_name, game_data, created_at, updated_at FROM game_states ORDER BY updated_at DESC'
+        : 'SELECT user_id, game_name, game_data, created_at, updated_at FROM game_states ORDER BY updated_at DESC'
+    );
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('SysOp game states error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/sysop/users/search', async (req, res) => {
+  try {
+    if (!req.session.userId || !req.session.user || req.session.user.access_level < 100) {
+      return res.status(403).json({ error: 'SysOp privileges required' });
+    }
+    
+    const { q } = req.query;
+    if (!q) {
+      return res.json([]);
+    }
+    
+    const result = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT id, handle, real_name, location, access_level, credits, created_at FROM users WHERE handle ILIKE $1 OR real_name ILIKE $1 ORDER BY handle'
+        : 'SELECT id, handle, real_name, location, access_level, credits, created_at FROM users WHERE handle LIKE ? OR real_name LIKE ? ORDER BY handle',
+      dbType === 'postgresql' ? [`%${q}%`] : [`%${q}%`, `%${q}%`]
+    );
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('SysOp user search error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/sysop/users/:userId', async (req, res) => {
+  try {
+    if (!req.session.userId || !req.session.user || req.session.user.access_level < 100) {
+      return res.status(403).json({ error: 'SysOp privileges required' });
+    }
+    
+    const { userId } = req.params;
+    
+    const result = await query(
+      dbType === 'postgresql' 
+        ? 'SELECT id, handle, real_name, location, access_level, credits, calls, messages_posted, files_uploaded, games_played, time_online, created_at, last_seen FROM users WHERE id = $1'
+        : 'SELECT id, handle, real_name, location, access_level, credits, calls, messages_posted, files_uploaded, games_played, time_online, created_at, last_seen FROM users WHERE id = ?',
+      [userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('SysOp user details error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.put('/api/sysop/users/:userId', async (req, res) => {
+  try {
+    if (!req.session.userId || !req.session.user || req.session.user.access_level < 100) {
+      return res.status(403).json({ error: 'SysOp privileges required' });
+    }
+    
+    const { userId } = req.params;
+    const { access_level, credits } = req.body;
+    
+    await query(
+      dbType === 'postgresql' 
+        ? 'UPDATE users SET access_level = $1, credits = $2 WHERE id = $3'
+        : 'UPDATE users SET access_level = ?, credits = ? WHERE id = ?',
+      [access_level, credits, userId]
+    );
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('SysOp user update error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.delete('/api/sysop/users/:userId', async (req, res) => {
+  try {
+    if (!req.session.userId || !req.session.user || req.session.user.access_level < 100) {
+      return res.status(403).json({ error: 'SysOp privileges required' });
+    }
+    
+    const { userId } = req.params;
+    
+    // Don't allow deleting the SysOp user
+    if (parseInt(userId) === 1) {
+      return res.status(400).json({ error: 'Cannot delete SysOp user' });
+    }
+    
+    await query(
+      dbType === 'postgresql' 
+        ? 'DELETE FROM users WHERE id = $1'
+        : 'DELETE FROM users WHERE id = ?',
+      [userId]
+    );
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('SysOp user delete error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Fishing hole leaderboard endpoint
 app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
   try {
