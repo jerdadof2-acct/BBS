@@ -225,12 +225,18 @@ app.post('/api/fishing-hole/player', (req, res) => {
     if (row) {
       res.json({
         player: {
-          player_name: row.player_name,
+          name: row.player_name,
           level: row.level,
           experience: row.experience,
-          credits: row.credits,
+          money: row.credits,
+          totalCaught: JSON.parse(row.inventory || '[]').length,
+          totalWeight: JSON.parse(row.inventory || '[]').reduce((sum, fish) => sum + (fish.weight || 0), 0),
+          biggestCatch: Math.max(...JSON.parse(row.inventory || '[]').map(f => f.weight || 0), 0),
+          biggestCatchName: JSON.parse(row.inventory || '[]').length > 0 ? 
+            JSON.parse(row.inventory || '[]').reduce((biggest, fish) => 
+              (fish.weight || 0) > (biggest.weight || 0) ? fish : biggest, {weight: 0, name: 'None'}).name : 'None',
           inventory: JSON.parse(row.inventory || '[]'),
-          trophy_catches: JSON.parse(row.trophy_catches || '[]'),
+          trophyCatches: JSON.parse(row.trophy_catches || '[]'),
           location: { name: row.current_location || 'Lake Shore' }
         }
       });
