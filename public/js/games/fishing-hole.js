@@ -2548,6 +2548,23 @@ class FishingHole {
             if (fish.weight >= 50) {
                 message = `🔥 ${this.player.name} caught a MASSIVE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
                 this.tournament.tournamentMessages.push(message);
+                
+                // Also broadcast to other players in the fishing game
+                if (this.socketClient && this.socketClient.socket) {
+                    const fishData = {
+                        userId: this.authManager.getCurrentUser().id,
+                        handle: this.player.name,
+                        fishName: fish.name,
+                        weight: fish.weight,
+                        location: this.location.name,
+                        value: fish.value,
+                        experience: fish.experience,
+                        rarity: fish.rarity
+                    };
+                    
+                    console.log('🎣 EMITTING TOURNAMENT FISH-CAUGHT EVENT:', fishData);
+                    this.socketClient.socket.emit('fish-caught', fishData);
+                }
             }
             
             // Broadcast tournament update
