@@ -2200,9 +2200,19 @@ class FishingHole {
     drawTournamentLeftPanel() {
         this.terminal.println(ANSIParser.fg('bright-green') + '  🎣 YOUR FISHING AREA 🎣' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  Location: ' + this.location.name + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  Total Weight: ' + this.tournament.participants[0].totalWeight.toFixed(2) + ' lbs' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  Fish Caught: ' + this.tournament.participants[0].fishCount + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  Biggest Catch: ' + this.tournament.participants[0].biggestCatch.toFixed(2) + ' lbs' + ANSIParser.reset());
+        
+        // Check if participants exist and have data
+        if (this.tournament.participants && this.tournament.participants.length > 0 && this.tournament.participants[0]) {
+            const participant = this.tournament.participants[0];
+            this.terminal.println(ANSIParser.fg('bright-white') + '  Total Weight: ' + (participant.totalWeight || 0).toFixed(2) + ' lbs' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  Fish Caught: ' + (participant.fishCount || 0) + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  Biggest Catch: ' + (participant.biggestCatch || 0).toFixed(2) + ' lbs' + ANSIParser.reset());
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-white') + '  Total Weight: 0.00 lbs' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  Fish Caught: 0' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  Biggest Catch: 0.00 lbs' + ANSIParser.reset());
+        }
+        
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  [F] Cast Line  [Q] Quit Tournament' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-black') + '  (F = Fish, Q = Quit - be careful not to hit F after tournament ends!)' + ANSIParser.reset());
@@ -2312,15 +2322,20 @@ class FishingHole {
         
         // Update tournament stats
         this.tournament.stats.tournamentsPlayed++;
-        this.tournament.stats.totalTournamentWeight += this.tournament.participants[0].totalWeight;
-        this.tournament.stats.totalTournamentFish += this.tournament.participants[0].fishCount;
         
-        if (this.tournament.participants[0].biggestCatch > this.tournament.stats.biggestTournamentFish) {
-            this.tournament.stats.biggestTournamentFish = this.tournament.participants[0].biggestCatch;
-        }
-        
-        if (this.tournament.participants[0].totalWeight > this.tournament.stats.biggestTournamentBag) {
-            this.tournament.stats.biggestTournamentBag = this.tournament.participants[0].totalWeight;
+        // Safely access participant data
+        if (this.tournament.participants && this.tournament.participants.length > 0 && this.tournament.participants[0]) {
+            const participant = this.tournament.participants[0];
+            this.tournament.stats.totalTournamentWeight += participant.totalWeight || 0;
+            this.tournament.stats.totalTournamentFish += participant.fishCount || 0;
+            
+            if ((participant.biggestCatch || 0) > this.tournament.stats.biggestTournamentFish) {
+                this.tournament.stats.biggestTournamentFish = participant.biggestCatch || 0;
+            }
+            
+            if ((participant.totalWeight || 0) > this.tournament.stats.biggestTournamentBag) {
+                this.tournament.stats.biggestTournamentBag = participant.totalWeight || 0;
+            }
         }
         
         // Calculate final results
@@ -2400,12 +2415,14 @@ class FishingHole {
         const caught = Math.random() < 0.4; // 40% catch rate - more realistic tournament pace
         
         if (caught) {
-            // Update tournament participant
-            const participant = this.tournament.participants[0];
-            participant.totalWeight += fish.weight;
-            participant.fishCount++;
-            if (fish.weight > participant.biggestCatch) {
-                participant.biggestCatch = fish.weight;
+            // Update tournament participant - safely access participant data
+            if (this.tournament.participants && this.tournament.participants.length > 0 && this.tournament.participants[0]) {
+                const participant = this.tournament.participants[0];
+                participant.totalWeight = (participant.totalWeight || 0) + fish.weight;
+                participant.fishCount = (participant.fishCount || 0) + 1;
+                if (fish.weight > (participant.biggestCatch || 0)) {
+                    participant.biggestCatch = fish.weight;
+                }
             }
             
             // Add to tournament messages with excitement for big fish
