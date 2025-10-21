@@ -98,9 +98,17 @@ class ChatSystem {
         try {
             const response = await fetch('/api/chat');
             const messages = await response.json();
-            this.chatHistory = messages.slice(-50); // Keep last 50 messages
+            
+            // Ensure messages is an array
+            if (Array.isArray(messages)) {
+                this.chatHistory = messages.slice(-50); // Keep last 50 messages
+            } else {
+                console.warn('Chat API returned non-array response:', messages);
+                this.chatHistory = [];
+            }
         } catch (error) {
             console.error('Error loading chat history:', error);
+            this.chatHistory = [];
         }
     }
 
@@ -113,7 +121,7 @@ class ChatSystem {
             
             if (message) {
                 if (message.toUpperCase() === 'QUIT' || message.toUpperCase() === 'EXIT') {
-                    break;
+                break;
                 } else if (message.startsWith('/')) {
                     await this.handleChatCommand(message);
                 } else if (message.trim()) {
@@ -273,7 +281,7 @@ class ChatSystem {
             });
             await this.terminal.sleep(3000);
         } else if (cmd === '/clear') {
-            this.terminal.clear();
+        this.terminal.clear();
         } else {
             this.addSystemMessage(`Unknown command: ${command}`);
         }
@@ -319,7 +327,7 @@ class ChatSystem {
 
     getHeader() {
         return `
-  ╔══════════════════════════════════════════════════════════════════════════════╗
+╔══════════════════════════════════════════════════════════════════════════════╗
   ║                                                                              ║
   ║   ██████╗██╗  ██╗ █████╗ ████████╗    ██████╗ ██╗  ██╗ █████╗ ████████╗    ║
   ║  ██╔════╝██║  ██║██╔══██╗╚══██╔══╝    ██╔══██╗██║  ██║██╔══██╗╚══██╔══╝    ║

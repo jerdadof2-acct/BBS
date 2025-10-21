@@ -2464,6 +2464,11 @@ class FishingHole {
             } else {
                 this.terminal.println(ANSIParser.fg('bright-green') + `  🎣 Caught a ${fish.name}! (${fish.weight.toFixed(2)} lbs)` + ANSIParser.reset());
             }
+            
+            // Update the display to show new stats
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  Total Weight: ${(participant?.totalWeight || 0).toFixed(2)} lbs` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  Fish Caught: ${participant?.fishCount || 0}` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  Biggest Catch: ${(participant?.biggestCatch || 0).toFixed(2)} lbs` + ANSIParser.reset());
         } else {
             console.log('No fish caught this time'); // Debug log
             this.terminal.println(ANSIParser.fg('bright-red') + '  No fish this time...' + ANSIParser.reset());
