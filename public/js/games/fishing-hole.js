@@ -2540,8 +2540,9 @@ class FishingHole {
             }
             
             // Only broadcast huge fish catches (15+ lbs) to reduce spam
+            let message = '';
             if (fish.weight >= 15) {
-                let message = `🐟 ${this.player.name} caught a HUGE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
+                message = `🐟 ${this.player.name} caught a HUGE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
                 if (fish.weight >= 30) {
                     message = `🔥 ${this.player.name} caught a MASSIVE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
                 }
