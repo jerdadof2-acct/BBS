@@ -19,6 +19,7 @@ class SocketClient {
         if (this.socket && !this.socket.connected) {
             console.log('Cleaning up existing disconnected socket...');
             this.socket.removeAllListeners();
+            this.socket.disconnect();
             this.socket = null;
         }
         
@@ -28,12 +29,12 @@ class SocketClient {
             transports: ['polling', 'websocket'],
             upgrade: true,
             rememberUpgrade: false,
-            timeout: 20000,
+            timeout: 30000, // Increased timeout for Railway
             forceNew: true,
             reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionAttempts: 5,
-            maxReconnectionAttempts: 5
+            reconnectionDelay: 2000, // Increased delay for Railway
+            reconnectionAttempts: 10, // More attempts for Railway
+            maxReconnectionAttempts: 10
         });
         
         this.socket.on('connect', () => {
@@ -68,11 +69,11 @@ class SocketClient {
                 // Client-side disconnect, try to reconnect
                 console.log('Attempting to reconnect in 3 seconds...');
                 setTimeout(() => {
-                    if (!this.connected && !this.socket) {
+                    if (!this.connected) {
                         console.log('Reconnecting...');
                         this.connect();
-                    } else if (this.socket) {
-                        console.log('Socket already exists, skipping reconnect');
+                    } else {
+                        console.log('Already reconnected, skipping');
                     }
                 }, 3000);
             }
@@ -84,9 +85,12 @@ class SocketClient {
             
             // Show user-friendly message for common errors
             if (error.message.includes('502') || error.message.includes('Bad Gateway')) {
-                console.warn('Server is temporarily unavailable. Retrying in 5 seconds...');
+                console.warn('🚨 Railway server is temporarily unavailable. Retrying in 5 seconds...');
+                console.warn('This is a known issue with Railway hosting. The connection will be restored automatically.');
             } else if (error.message.includes('ERR_NAME_NOT_RESOLVED')) {
                 console.warn('Cannot reach server. Check your internet connection.');
+            } else if (error.message.includes('timeout')) {
+                console.warn('Connection timeout. Railway server may be slow to respond.');
             }
         });
 
