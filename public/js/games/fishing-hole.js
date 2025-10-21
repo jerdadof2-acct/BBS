@@ -2056,6 +2056,7 @@ class FishingHole {
                     if (this.tournament.active && this.tournament.tournamentId === data.tournamentId) {
                         this.handleTournamentJoin({ player: data.player });
                     }
+                }
             });
         }
     }
