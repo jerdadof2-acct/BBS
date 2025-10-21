@@ -1960,6 +1960,72 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Trivia Tournament Events
+  socket.on('trivia-tournament-start', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('Trivia tournament started by:', user.handle, 'Tournament ID:', data.tournamentId);
+      
+      // Broadcast tournament start to ALL BBS users
+      io.emit('trivia-tournament-announcement', {
+        type: 'tournament-start',
+        tournamentId: data.tournamentId,
+        host: user.handle,
+        joinPeriod: data.joinPeriod,
+        message: `🧠 TRIVIA TOURNAMENT! ${user.handle} is hosting a brain battle tournament! Join now! (${data.joinPeriod}s to join)`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  socket.on('trivia-tournament-join', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('User joined trivia tournament:', user.handle, 'Tournament ID:', data.tournamentId);
+      
+      // Broadcast join notification to all users
+      io.emit('trivia-tournament-announcement', {
+        type: 'tournament-join',
+        tournamentId: data.tournamentId,
+        player: user.handle,
+        message: `🎯 ${user.handle} joined the trivia tournament!`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  socket.on('trivia-tournament-update', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('Trivia tournament update from:', user.handle, 'Tournament ID:', data.tournamentId);
+      
+      // Broadcast tournament update to all users
+      io.emit('trivia-tournament-announcement', {
+        type: 'tournament-update',
+        tournamentId: data.tournamentId,
+        player: user.handle,
+        message: data.message || `🧠 ${user.handle} advanced in the tournament!`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  socket.on('trivia-tournament-end', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('Trivia tournament ended by:', user.handle, 'Winner:', data.winner);
+      
+      // Broadcast tournament results to all users
+      io.emit('trivia-tournament-announcement', {
+        type: 'tournament-end',
+        tournamentId: data.tournamentId,
+        winner: data.winner,
+        message: `🏆 TOURNAMENT OVER! ${data.winner} is the smartest brain in the west!`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Track user location changes
   socket.on('user-location-change', (data) => {
     const user = onlineUsers.get(socket.id);
