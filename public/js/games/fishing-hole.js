@@ -1875,12 +1875,14 @@ class FishingHole {
             this.terminal.println(ANSIParser.fg('bright-yellow') + '  Waiting 60 seconds for players to join...' + ANSIParser.reset());
             
             // Show join countdown
+            console.log('startTournament - about to call showJoinCountdown'); // Debug log
             await this.showJoinCountdown();
             
-            console.log('startTournament - about to call runTournament, tournament object:', this.tournament); // Debug log
+            console.log('startTournament - showJoinCountdown completed, about to call runTournament, tournament object:', this.tournament); // Debug log
             
             // Start the actual tournament
             await this.runTournament();
+            console.log('startTournament - runTournament completed'); // Debug log
         } else {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Tournament cancelled.' + ANSIParser.reset());
             await this.terminal.sleep(2000);
@@ -2117,6 +2119,7 @@ class FishingHole {
     }
 
     async runTournament() {
+        console.log('runTournament() called!'); // Debug log
         // Set up tournament state
         this.tournament.active = true;
         this.tournament.phase = 'active';
