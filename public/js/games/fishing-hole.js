@@ -2312,6 +2312,8 @@ class FishingHole {
                 biggestCatch: 0
             });
             console.log('Added tournament participant:', data.player);
+        } else {
+            console.log('Participant already exists:', data.player);
         }
         
         // Update leaderboard
@@ -2548,6 +2550,16 @@ class FishingHole {
             rarity: fishTemplate.rarity,
             location: this.location.name
         };
+    }
+
+    getPlayerPosition() {
+        // Find current player's position in the leaderboard
+        if (!this.tournament.leaderboard || this.tournament.leaderboard.length === 0) {
+            return 1;
+        }
+        
+        const playerIndex = this.tournament.leaderboard.findIndex(p => p.name === this.player.name);
+        return playerIndex >= 0 ? playerIndex + 1 : this.tournament.leaderboard.length + 1;
     }
 
     getTournamentFish() {
