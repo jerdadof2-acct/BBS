@@ -21,7 +21,8 @@ class HighNoonDuel {
             this.terminal.clear();
             await this.showWelcomeScreen();
             
-            const choice = (await this.terminal.input()).toLowerCase();
+            const choice = (await this.terminal.input()).toLowerCase().trim();
+            console.log('High Noon Duel - User choice:', choice); // Debug log
             
             if (choice === '1') {
                 await this.quickDuel();
@@ -29,9 +30,14 @@ class HighNoonDuel {
                 await this.tournament();
             } else if (choice === '3') {
                 await this.stats();
-            } else if (choice === 'q') {
+            } else if (choice === 'q' || choice === 'quit') {
+                console.log('High Noon Duel - Quitting to door games'); // Debug log
                 await this.saveGameState();
                 return 'doors';
+            } else {
+                console.log('High Noon Duel - Invalid choice:', choice); // Debug log
+                this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice! Please try again.' + ANSIParser.reset());
+                await this.terminal.sleep(1000);
             }
         }
     }
@@ -101,6 +107,8 @@ class HighNoonDuel {
             await this.startDuel('Lightning Luke', 0.15, 0.3);
         } else if (choice === '4') {
             await this.startDuel('Deadeye Dan', 0.1, 0.2);
+        } else if (choice === 'b') {
+            return; // Go back to main menu
         }
     }
 
