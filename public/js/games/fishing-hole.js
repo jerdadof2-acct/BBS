@@ -2431,12 +2431,13 @@ class FishingHole {
         // Tournament fishing - everyone gets same great equipment and chance for huge fish
         const fish = this.getTournamentFish();
         console.log('Tournament fish generated:', fish); // Debug log
-        const caught = Math.random() < 0.4; // 40% catch rate - more realistic tournament pace
+        const caught = Math.random() < 0.8; // 80% catch rate - temporary for debugging
         console.log('Fish caught:', caught); // Debug log
         
         if (caught) {
             // Get participant data safely
             let participant = null;
+            console.log('Tournament participants array:', this.tournament.participants); // Debug log
             if (this.tournament.participants && this.tournament.participants.length > 0 && this.tournament.participants[0]) {
                 participant = this.tournament.participants[0];
                 console.log('Before update - participant:', participant); // Debug log
@@ -2447,7 +2448,7 @@ class FishingHole {
                 }
                 console.log('After update - participant:', participant); // Debug log
             } else {
-                console.log('No participant found!', this.tournament.participants); // Debug log
+                console.log('No participant found! Tournament participants:', this.tournament.participants); // Debug log
             }
             
             // Add to tournament messages with excitement for big fish
