@@ -2415,9 +2415,10 @@ class FishingHole {
         const caught = Math.random() < 0.4; // 40% catch rate - more realistic tournament pace
         
         if (caught) {
-            // Update tournament participant - safely access participant data
+            // Get participant data safely
+            let participant = null;
             if (this.tournament.participants && this.tournament.participants.length > 0 && this.tournament.participants[0]) {
-                const participant = this.tournament.participants[0];
+                participant = this.tournament.participants[0];
                 participant.totalWeight = (participant.totalWeight || 0) + fish.weight;
                 participant.fishCount = (participant.fishCount || 0) + 1;
                 if (fish.weight > (participant.biggestCatch || 0)) {
@@ -2436,7 +2437,7 @@ class FishingHole {
             this.tournament.tournamentMessages.push(message);
             
             // Broadcast tournament update
-            if (this.socketClient && this.socketClient.socket) {
+            if (this.socketClient && this.socketClient.socket && participant) {
                 this.socketClient.socket.emit('fishing-tournament-update', {
                     tournamentId: this.tournament.tournamentId,
                     player: this.player.name,
