@@ -383,7 +383,16 @@ app.post('/api/login', async (req, res) => {
         handle: user.handle,
         real_name: user.real_name,
         access_level: user.access_level,
-        credits: user.credits
+        credits: user.credits,
+        calls: user.calls || 0,
+        messages_posted: user.messages_posted || 0,
+        files_uploaded: user.files_uploaded || 0,
+        games_played: user.games_played || 0,
+        time_online: user.time_online || 0,
+        location: user.location || 'Unknown',
+        signature: user.signature || '',
+        tagline: user.tagline || '',
+        avatar: user.avatar || ''
       }
     });
   } catch (error) {
@@ -417,7 +426,16 @@ app.get('/api/me', async (req, res) => {
       handle: user.handle,
       real_name: user.real_name,
       access_level: user.access_level,
-      credits: user.credits
+      credits: user.credits,
+      calls: user.calls || 0,
+      messages_posted: user.messages_posted || 0,
+      files_uploaded: user.files_uploaded || 0,
+      games_played: user.games_played || 0,
+      time_online: user.time_online || 0,
+      location: user.location || 'Unknown',
+      signature: user.signature || '',
+      tagline: user.tagline || '',
+      avatar: user.avatar || ''
     });
   } catch (error) {
     console.error('Get user error:', error);
