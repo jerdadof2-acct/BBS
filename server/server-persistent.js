@@ -365,11 +365,11 @@ app.post('/api/login', async (req, res) => {
       credits: user.credits
     };
     
-    // Update last_seen timestamp
+    // Update last_seen timestamp and increment calls
     await runQuery(
       dbType === 'postgresql' 
-        ? 'UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = $1'
-        : 'UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = ?',
+        ? 'UPDATE users SET last_seen = CURRENT_TIMESTAMP, calls = calls + 1 WHERE id = $1'
+        : 'UPDATE users SET last_seen = CURRENT_TIMESTAMP, calls = calls + 1 WHERE id = ?',
       [user.id]
     );
     
@@ -1442,9 +1442,18 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
   
-  socket.on('user-login', (data) => {
+  socket.on('user-login', async (data) => {
     const { userId, handle, accessLevel } = data;
     console.log('🔍 DEBUG: User login - userId:', userId, 'handle:', handle, 'accessLevel:', accessLevel);
+    
+    // Increment user calls counter
+    try {
+      await db.run('UPDATE users SET last_seen = CURRENT_TIMESTAMP, calls = calls + 1 WHERE id = ?', [userId]);
+      console.log('✅ User calls incremented for user:', handle);
+    } catch (error) {
+      console.error('❌ Error incrementing user calls:', error);
+    }
+    
     onlineUsers.set(socket.id, { userId, handle, accessLevel: accessLevel || 1, lastActivity: Date.now() });
     console.log('🔍 DEBUG: Online users after login:', Array.from(onlineUsers.values()));
     socket.broadcast.emit('user-online', { userId, handle });
