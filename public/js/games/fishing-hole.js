@@ -1857,6 +1857,8 @@ class FishingHole {
             this.tournament.phase = 'joining';
             this.tournament.joinEndTime = Date.now() + this.tournament.joinPeriod;
             
+            console.log('startTournament - tournament object before runTournament:', this.tournament); // Debug log
+            
             // Broadcast tournament start to all BBS users
             if (this.socketClient && this.socketClient.socket) {
                 this.socketClient.socket.emit('fishing-tournament-start', {
@@ -1874,6 +1876,8 @@ class FishingHole {
             
             // Show join countdown
             await this.showJoinCountdown();
+            
+            console.log('startTournament - about to call runTournament, tournament object:', this.tournament); // Debug log
             
             // Start the actual tournament
             await this.runTournament();
