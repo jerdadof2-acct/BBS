@@ -2320,10 +2320,14 @@ class FishingHole {
 
     handleTournamentSync(data) {
         // Sync tournament participants with current state
-        if (data.participants) {
+        if (data.participants && data.participants.length > 0) {
+            // Only sync if we have actual participants data
             this.tournament.participants = data.participants;
             this.updateTournamentLeaderboard();
             console.log('Synced tournament participants:', data.participants);
+        } else {
+            // Don't overwrite existing participants with empty array
+            console.log('Sync received empty participants, keeping existing:', this.tournament.participants);
         }
     }
 
