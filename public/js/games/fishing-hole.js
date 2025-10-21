@@ -170,6 +170,9 @@ class FishingHole {
         // Listen for other fishers' catches
         await this.setupFishingListeners();
         
+        // Listen for tournament announcements
+        this.setupTournamentAnnouncementListener();
+        
         while (true) {
             const choice = await this.mainMenu();
             
@@ -1696,9 +1699,8 @@ class FishingHole {
     async tournamentMenu() {
         this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Start New Tournament' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Join Active Tournament' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] View Tournament Rules' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [4] View Active Tournaments' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [5] Tournament History & Stats' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Tournament Rules' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [4] Tournament History & Stats' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-red') + '  [Q] Back to Main Menu' + ANSIParser.reset());
         this.terminal.println('');
         
@@ -1715,9 +1717,6 @@ class FishingHole {
                 await this.showTournamentRules();
                 break;
             case '4':
-                await this.viewActiveTournaments();
-                break;
-            case '5':
                 await this.showTournamentHistory();
                 break;
             case 'Q':
@@ -1881,17 +1880,32 @@ class FishingHole {
     async joinActiveTournament() {
         this.terminal.clear();
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🎣 JOINING ACTIVE TOURNAMENT 🎣' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🎣 JOIN ACTIVE TOURNAMENT 🎣' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
         this.terminal.println('');
         
         if (this.tournament.active) {
-            this.terminal.println(ANSIParser.fg('bright-green') + '  Joining tournament...' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-green') + '  🎉 Found active tournament!' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Tournament ID: ${this.tournament.tournamentId}` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Phase: ${this.tournament.phase}` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Duration: ${this.tournament.duration / (60 * 1000)} minutes` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Participants: ${this.tournament.participants.length}` + ANSIParser.reset());
+            this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Joining tournament...' + ANSIParser.reset());
+            await this.terminal.sleep(2000);
             await this.runTournament();
         } else {
-            this.terminal.println(ANSIParser.fg('bright-red') + '  No active tournament found!' + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-white') + '  Start a new tournament or wait for one to begin.' + ANSIParser.reset());
-            await this.terminal.sleep(3000);
+            this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ No active tournament found!' + ANSIParser.reset());
+            this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  To join a tournament:' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  1. Wait for someone to start a tournament' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  2. You\'ll see a BBS-wide announcement' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  3. Come back here to join within 60 seconds' + ANSIParser.reset());
+            this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-cyan') + '  Or start your own tournament with option [1]!' + ANSIParser.reset());
+            this.terminal.println('');
+            this.terminal.println('  Press any key to continue...');
+            await this.terminal.input();
         }
     }
 
@@ -1933,6 +1947,34 @@ class FishingHole {
         
         this.terminal.println('  Press any key to continue...');
         await this.terminal.input();
+    }
+
+    setupTournamentAnnouncementListener() {
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.on('fishing-tournament-announcement', (data) => {
+                if (data.type === 'tournament-start') {
+                    // Store tournament info for joining
+                    this.tournament.tournamentId = data.tournamentId;
+                    this.tournament.duration = data.duration * 60 * 1000; // Convert minutes to milliseconds
+                    this.tournament.active = true;
+                    this.tournament.phase = 'joining';
+                    this.tournament.joinEndTime = Date.now() + (60 * 1000); // 60 seconds to join
+                    
+                    // Show announcement in fishing game
+                    this.terminal.println('');
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 TOURNAMENT ANNOUNCEMENT 🏆' + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    this.terminal.println('');
+                    this.terminal.println(ANSIParser.fg('bright-white') + `  ${data.message}` + ANSIParser.reset());
+                    this.terminal.println('');
+                    this.terminal.println(ANSIParser.fg('bright-cyan') + '  Go to Tournament Mode → Join Active Tournament to participate!' + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + `  You have 60 seconds to join!` + ANSIParser.reset());
+                    this.terminal.println('');
+                    this.terminal.println('  Press any key to continue...');
+                }
+            });
+        }
     }
 
     async showTournamentHistory() {
