@@ -1242,18 +1242,30 @@ class FishingHole {
 
     async loadGameState() {
         try {
+            // Add timeout for Railway connectivity issues
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+            
             const response = await fetch('/api/game-state/fishing-hole', {
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
+            
             if (!response.ok) throw new Error('No saved game');
             const data = await response.json();
             this.player = data.player;
             this.location = data.location || this.locations[0];
         } catch (error) {
-            console.log('Starting new game');
+            if (error.name === 'AbortError' || error.message.includes('ERR_NAME_NOT_RESOLVED') || error.message.includes('Failed to fetch')) {
+                console.warn('🚨 Railway server connectivity issue - starting new game');
+            } else {
+                console.log('Starting new game');
+            }
         }
     }
 
@@ -1453,6 +1465,10 @@ class FishingHole {
             const currentUser = this.authManager.getCurrentUser();
             const userId = currentUser ? currentUser.id : null;
             
+            // Add timeout for Railway connectivity issues
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            
             const response = await fetch('/api/fishing-hole/player', {
                 method: 'POST',
                 headers: {
@@ -1461,8 +1477,11 @@ class FishingHole {
                 body: JSON.stringify({
                     playerName: playerName,
                     userId: userId
-                })
+                }),
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
             
             if (response.ok) {
                 const data = await response.json();
@@ -1563,7 +1582,17 @@ class FishingHole {
             }
         } catch (error) {
             console.error('Error loading player data:', error);
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Note: Progress saving is not available. Playing in offline mode.' + ANSIParser.reset());
+            
+            // Handle specific Railway connectivity issues
+            if (error.name === 'AbortError' || error.message.includes('ERR_NAME_NOT_RESOLVED') || error.message.includes('Failed to fetch')) {
+                console.warn('🚨 Railway server connectivity issue detected. Using offline mode.');
+                this.terminal.println(ANSIParser.fg('bright-red') + '  ⚠️  Server temporarily unavailable!' + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  Playing in offline mode - progress will sync when connection is restored.' + ANSIParser.reset());
+                await this.terminal.sleep(2000);
+            } else {
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  Note: Progress saving is not available. Playing in offline mode.' + ANSIParser.reset());
+            }
+            
             this.createDefaultPlayer(playerName);
         }
     }
@@ -1654,6 +1683,10 @@ class FishingHole {
             const currentUser = this.authManager.getCurrentUser();
             const userId = currentUser ? currentUser.id : null;
             
+            // Add timeout for Railway connectivity issues
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+            
             const response = await fetch('/api/fishing-hole/save', {
                 method: 'POST',
                 headers: {
@@ -1664,8 +1697,11 @@ class FishingHole {
                     location: latestData.location,
                     tournament: latestData.tournament,
                     userId: userId
-                })
+                }),
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
             
             if (response.ok) {
                 console.log('Player data saved successfully (batched)');
@@ -1676,8 +1712,8 @@ class FishingHole {
         } catch (error) {
             console.log('Error saving player data:', error);
             // Don't show error to user unless it's critical
-            if (error.message.includes('ERR_NAME_NOT_RESOLVED')) {
-                console.warn('Server appears to be down, data will be saved when connection is restored');
+            if (error.name === 'AbortError' || error.message.includes('ERR_NAME_NOT_RESOLVED') || error.message.includes('Failed to fetch')) {
+                console.warn('🚨 Railway server connectivity issue - data will be saved when connection is restored');
             }
         }
     }
