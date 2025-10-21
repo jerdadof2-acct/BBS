@@ -1855,6 +1855,19 @@ io.on('connection', (socket) => {
       });
     }
   });
+
+  socket.on('fishing-tournament-sync', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('Tournament sync requested by:', user.handle);
+      // For now, just acknowledge the sync request
+      // In a full implementation, we'd store tournament state on the server
+      socket.emit('fishing-tournament-sync', {
+        tournamentId: data.tournamentId,
+        participants: [] // Empty for now, will be populated by other players
+      });
+    }
+  });
 });
 
 // Initialize database and start server

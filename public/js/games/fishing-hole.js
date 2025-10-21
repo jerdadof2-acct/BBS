@@ -1893,6 +1893,18 @@ class FishingHole {
             this.terminal.println('');
             this.terminal.println(ANSIParser.fg('bright-yellow') + '  Joining tournament...' + ANSIParser.reset());
             await this.terminal.sleep(2000);
+            
+            // Check if tournament is still in joining phase
+            if (this.tournament.phase === 'joining' && this.tournament.joinEndTime > Date.now()) {
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  Waiting for tournament to start...' + ANSIParser.reset());
+                await this.showJoinCountdown();
+            } else {
+                this.terminal.println(ANSIParser.fg('bright-red') + '  Tournament has already started or ended!' + ANSIParser.reset());
+                await this.terminal.sleep(2000);
+                return;
+            }
+            
+            // Start the tournament interface
             await this.runTournament();
         } else {
             this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ No active tournament found!' + ANSIParser.reset());
@@ -1972,6 +1984,11 @@ class FishingHole {
                     this.terminal.println(ANSIParser.fg('bright-yellow') + `  You have 60 seconds to join!` + ANSIParser.reset());
                     this.terminal.println('');
                     this.terminal.println('  Press any key to continue...');
+                } else if (data.type === 'tournament-join') {
+                    // Handle tournament join - add participant if we're in the tournament
+                    if (this.tournament.active && this.tournament.tournamentId === data.tournamentId) {
+                        this.handleTournamentJoin({ player: data.player });
+                    }
                 }
             });
         }
@@ -2055,6 +2072,12 @@ class FishingHole {
         // Join the tournament
         if (this.socketClient && this.socketClient.socket) {
             this.socketClient.socket.emit('fishing-tournament-join', {
+                tournamentId: this.tournament.tournamentId,
+                player: this.player.name
+            });
+            
+            // Request current tournament state
+            this.socketClient.socket.emit('fishing-tournament-sync', {
                 tournamentId: this.tournament.tournamentId,
                 player: this.player.name
             });
@@ -2159,16 +2182,60 @@ class FishingHole {
             this.socketClient.socket.on('fishing-tournament-update', (data) => {
                 this.handleTournamentUpdate(data);
             });
+            
+            this.socketClient.socket.on('fishing-tournament-join', (data) => {
+                this.handleTournamentJoin(data);
+            });
+            
+            this.socketClient.socket.on('fishing-tournament-sync', (data) => {
+                this.handleTournamentSync(data);
+            });
+        }
+    }
+
+    handleTournamentJoin(data) {
+        // Add new participant if they don't exist
+        const existingParticipant = this.tournament.participants.find(p => p.name === data.player);
+        if (!existingParticipant) {
+            this.tournament.participants.push({
+                name: data.player,
+                totalWeight: 0,
+                fishCount: 0,
+                biggestCatch: 0
+            });
+            console.log('Added tournament participant:', data.player);
+        }
+        
+        // Update leaderboard
+        this.updateTournamentLeaderboard();
+    }
+
+    handleTournamentSync(data) {
+        // Sync tournament participants with current state
+        if (data.participants) {
+            this.tournament.participants = data.participants;
+            this.updateTournamentLeaderboard();
+            console.log('Synced tournament participants:', data.participants);
         }
     }
 
     handleTournamentUpdate(data) {
         // Update participant data
-        const participant = this.tournament.participants.find(p => p.name === data.player);
-        if (participant) {
-            participant.totalWeight = data.totalWeight;
-            participant.position = data.position;
+        let participant = this.tournament.participants.find(p => p.name === data.player);
+        if (!participant) {
+            // Add participant if they don't exist
+            participant = {
+                name: data.player,
+                totalWeight: 0,
+                fishCount: 0,
+                biggestCatch: 0
+            };
+            this.tournament.participants.push(participant);
         }
+        
+        // Update participant stats
+        participant.totalWeight = data.totalWeight;
+        participant.position = data.position;
         
         // Add to tournament messages
         this.tournament.tournamentMessages.push(data.message);
@@ -2322,8 +2389,14 @@ class FishingHole {
     }
 
     getPlayerPosition() {
+        // Update leaderboard first
+        this.updateTournamentLeaderboard();
+        
+        // Find current player's position in the sorted leaderboard
         const sorted = [...this.tournament.participants].sort((a, b) => b.totalWeight - a.totalWeight);
-        return sorted.findIndex(p => p.name === this.player.name) + 1;
+        const position = sorted.findIndex(p => p.name === this.player.name) + 1;
+        
+        return position || 1; // Default to position 1 if not found
     }
 
     getRandomFish() {
