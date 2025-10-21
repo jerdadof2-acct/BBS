@@ -2171,11 +2171,14 @@ class FishingHole {
             
             // Check for input (non-blocking)
             const input = await this.terminal.inputWithTimeout(1000);
+            console.log('Tournament input received:', input); // Debug log
             if (input) {
+                console.log('Processing input:', input.toUpperCase()); // Debug log
                 if (input.toUpperCase() === 'Q') {
                     tournamentRunning = false;
                     break;
                 } else if (input.toUpperCase() === 'F') {
+                    console.log('Casting line in tournament...'); // Debug log
                     // Cast line during tournament
                     await this.castLineInTournament();
                 }
@@ -2406,13 +2409,16 @@ class FishingHole {
     }
 
     async castLineInTournament() {
+        console.log('castLineInTournament called'); // Debug log
         // Quick fishing during tournament
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  Casting line...' + ANSIParser.reset());
         await this.terminal.sleep(1000);
         
         // Tournament fishing - everyone gets same great equipment and chance for huge fish
         const fish = this.getTournamentFish();
+        console.log('Tournament fish generated:', fish); // Debug log
         const caught = Math.random() < 0.4; // 40% catch rate - more realistic tournament pace
+        console.log('Fish caught:', caught); // Debug log
         
         if (caught) {
             // Get participant data safely
@@ -2456,6 +2462,7 @@ class FishingHole {
                 this.terminal.println(ANSIParser.fg('bright-green') + `  🎣 Caught a ${fish.name}! (${fish.weight.toFixed(2)} lbs)` + ANSIParser.reset());
             }
         } else {
+            console.log('No fish caught this time'); // Debug log
             this.terminal.println(ANSIParser.fg('bright-red') + '  No fish this time...' + ANSIParser.reset());
         }
         
