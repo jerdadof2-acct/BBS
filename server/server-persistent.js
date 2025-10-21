@@ -1866,7 +1866,7 @@ io.on('connection', (socket) => {
         totalWeight: data.totalWeight,
         position: data.position,
         tournamentId: data.tournamentId,
-        message: `🏆 ${user.handle} is now in ${data.position} place with ${data.totalWeight.toFixed(2)} lbs!`,
+        message: data.message || `🏆 ${user.handle} is now in ${data.position} place with ${data.totalWeight.toFixed(2)} lbs!`,
         timestamp: new Date().toISOString()
       });
     }

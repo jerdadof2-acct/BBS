@@ -2052,6 +2052,13 @@ class FishingHole {
                     if (this.tournament.active && this.tournament.tournamentId === data.tournamentId) {
                         this.handleTournamentJoin({ player: data.player });
                     }
+                } else if (data.type === 'tournament-update') {
+                    // Handle tournament updates - show big catches to all users
+                    if (data.message) {
+                        this.terminal.println('');
+                        this.terminal.println(ANSIParser.fg('bright-cyan') + `  ${data.message}` + ANSIParser.reset());
+                        this.terminal.println('');
+                    }
                 }
             });
         }
