@@ -240,6 +240,13 @@ class SocketClient {
         }
     }
 
+    updateLocation(location) {
+        if (this.socket && this.socket.connected) {
+            this.socket.emit('user-location-change', { location });
+            console.log('Location updated to:', location);
+        }
+    }
+
     logout() {
         this.socket.emit('user-logout');
         this.userId = null;

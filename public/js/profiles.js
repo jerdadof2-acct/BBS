@@ -334,6 +334,27 @@ class ProfileSystem {
         return `${hours}:${String(minutes).padStart(2, '0')}`;
     }
 
+    async getOnlineUsers() {
+        return new Promise((resolve) => {
+            const timeout = setTimeout(() => resolve([]), 2000);
+            
+            // Set up one-time listener for online users
+            const socketClient = window.app?.socketClient;
+            if (socketClient && socketClient.socket) {
+                socketClient.socket.once('online-users-update', (users) => {
+                    clearTimeout(timeout);
+                    resolve(users);
+                });
+                
+                // Request current online users
+                socketClient.socket.emit('get-online-users');
+            } else {
+                clearTimeout(timeout);
+                resolve([]);
+            }
+        });
+    }
+
     async viewOtherProfiles() {
         while (true) {
             this.terminal.clear();
@@ -343,29 +364,25 @@ class ProfileSystem {
             this.terminal.println('');
             
             try {
-                const response = await fetch('/api/users');
+                // Get online users from socket.io
+                const onlineUsers = await this.getOnlineUsers();
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                
-                const users = await response.json();
-                
-                if (!users || users.length === 0) {
-                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  No users found.' + ANSIParser.reset());
+                if (!onlineUsers || onlineUsers.length === 0) {
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  No online users found.' + ANSIParser.reset());
                     this.terminal.println('');
                     this.terminal.println('  Press any key to continue...');
                     await this.terminal.input();
                     return;
                 }
                 
-                this.terminal.println(ANSIParser.fg('bright-white') + '  ID | Handle        | Location       | Level' + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-white') + '  ID | Handle        | Current Location | Level' + ANSIParser.reset());
                 this.terminal.println(ANSIParser.fg('bright-cyan') + '  ' + '─'.repeat(70) + ANSIParser.reset());
                 
-                users.forEach(user => {
-                    const level = Math.floor(user.credits / 100) + 1;
+                onlineUsers.forEach(user => {
+                    const level = Math.floor((user.credits || 100) / 100) + 1;
+                    const currentLocation = user.currentLocation || 'Main Menu';
                     this.terminal.println(ANSIParser.fg('bright-green') + 
-                        `  ${String(user.id).padEnd(2)} | ${user.handle.padEnd(13)} | ${(user.location || 'N/A').padEnd(14)} | ${level}` + ANSIParser.reset());
+                        `  ${String(user.userId).padEnd(2)} | ${user.handle.padEnd(13)} | ${currentLocation.padEnd(16)} | ${level}` + ANSIParser.reset());
                 });
                 
                 this.terminal.println('');
@@ -377,7 +394,7 @@ class ProfileSystem {
                 if (choice === '0') return;
                 
                 const userId = parseInt(choice);
-                const selectedUser = users.find(u => u.id === userId);
+                const selectedUser = onlineUsers.find(u => u.userId === userId);
                 
                 if (selectedUser) {
                     await this.showUserProfile(selectedUser);
@@ -403,13 +420,14 @@ class ProfileSystem {
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
         this.terminal.println('');
         
-        const level = Math.floor(user.credits / 100) + 1;
+        const level = Math.floor((user.credits || 100) / 100) + 1;
+        const currentLocation = user.currentLocation || 'Main Menu';
         
         this.terminal.println(ANSIParser.fg('bright-white') + '  Handle: ' + ANSIParser.reset() + user.handle);
         this.terminal.println(ANSIParser.fg('bright-white') + '  Level: ' + ANSIParser.reset() + level);
-        this.terminal.println(ANSIParser.fg('bright-white') + '  Credits: ' + ANSIParser.reset() + user.credits);
-        this.terminal.println(ANSIParser.fg('bright-white') + '  Location: ' + ANSIParser.reset() + (user.location || 'Unknown'));
-        this.terminal.println(ANSIParser.fg('bright-white') + '  Calls: ' + ANSIParser.reset() + user.calls);
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Credits: ' + ANSIParser.reset() + (user.credits || 100));
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Current Location: ' + ANSIParser.reset() + currentLocation);
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Calls: ' + ANSIParser.reset() + (user.calls || 0));
         this.terminal.println('');
         
         if (user.signature) {

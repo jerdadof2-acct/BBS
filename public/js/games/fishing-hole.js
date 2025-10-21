@@ -152,6 +152,11 @@ class FishingHole {
     }
 
     async play() {
+        // Track location when entering fishing game
+        if (this.socketClient) {
+            this.socketClient.updateLocation('Fishing Hole Game');
+        }
+        
         // Notify server that user entered fishing game
         if (this.socketClient && this.socketClient.socket) {
             this.socketClient.socket.emit('enter-fishing-game');

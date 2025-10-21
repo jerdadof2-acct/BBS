@@ -241,6 +241,7 @@ class BBSApplication {
 
     async run() {
         while (true) {
+            this.socketClient.updateLocation('Main Menu');
             const choice = await this.menuManager.showMainMenu();
             const nextScreen = await this.menuManager.handleMenuChoice(choice);
             
@@ -248,39 +249,51 @@ class BBSApplication {
                 await this.logout();
                 break;
             } else if (nextScreen === 'messages') {
+                this.socketClient.updateLocation('Message Boards');
                 const result = await this.messageBoard.showMessageBoards();
                 if (result === 'menu') continue;
             } else if (nextScreen === 'email') {
+                this.socketClient.updateLocation('Email System');
                 const emailSystem = new EmailSystem(this.terminal, this.authManager);
                 const result = await emailSystem.showEmailMenu();
                 if (result === 'menu') continue;
             } else if (nextScreen === 'files') {
+                this.socketClient.updateLocation('File Libraries');
                 const result = await this.fileLibrary.showFileLibraries();
                 if (result === 'menu') continue;
             } else if (nextScreen === 'doors') {
+                this.socketClient.updateLocation('Door Games');
                 const result = await this.doorGames.showGames();
                 if (result === 'menu') continue;
             } else if (nextScreen === 'chat') {
+                this.socketClient.updateLocation('Chat Room');
                 const result = await this.chatSystem.showChat();
                 if (result === 'menu') continue;
             } else if (nextScreen === 'users') {
+                this.socketClient.updateLocation('User List');
                 await this.showUsers();
             } else if (nextScreen === 'profile') {
+                this.socketClient.updateLocation('Profile System');
                 const profileSystem = new ProfileSystem(this.terminal, this.authManager);
                 const result = await profileSystem.showProfileMenu();
                 if (result === 'menu') continue;
             } else if (nextScreen === 'bulletins') {
+                this.socketClient.updateLocation('Bulletins');
                 const bulletinSystem = new BulletinSystem(this.terminal, this.authManager);
                 await bulletinSystem.showBulletins();
             } else if (nextScreen === 'oneliners') {
+                this.socketClient.updateLocation('One-Liners');
                 await this.showOneLiners();
             } else if (nextScreen === 'stats') {
+                this.socketClient.updateLocation('Statistics');
                 await this.showStats();
             } else if (nextScreen === 'sysop-chat') {
+                this.socketClient.updateLocation('SysOp Chat');
                 const sysopChat = new SysopChat(this.terminal, this.socketClient, this.authManager);
                 const result = await sysopChat.showChat();
                 if (result === 'menu') continue;
             } else if (nextScreen === 'sysop') {
+                this.socketClient.updateLocation('SysOp Panel');
                 const sysopPanel = new SysopPanel(this.terminal, this.socketClient, this.authManager);
                 const result = await sysopPanel.showPanel();
                 if (result === 'menu') continue;

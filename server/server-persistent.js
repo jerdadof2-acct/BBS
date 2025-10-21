@@ -243,7 +243,7 @@ async function initDatabase() {
 }
 
 // Track online users
-const onlineUsers = new Map(); // socketId -> { userId, handle, accessLevel, lastActivity }
+const onlineUsers = new Map(); // socketId -> { userId, handle, accessLevel, lastActivity, currentLocation }
 
 const app = express();
 const server = http.createServer(app);
@@ -1472,7 +1472,7 @@ io.on('connection', (socket) => {
       console.error('❌ Error incrementing user calls:', error);
     }
     
-    onlineUsers.set(socket.id, { userId, handle, accessLevel: accessLevel || 1, lastActivity: Date.now() });
+    onlineUsers.set(socket.id, { userId, handle, accessLevel: accessLevel || 1, lastActivity: Date.now(), currentLocation: 'Main Menu' });
     console.log('🔍 DEBUG: Online users after login:', Array.from(onlineUsers.values()));
     socket.broadcast.emit('user-online', { userId, handle });
     io.emit('online-users-update', Array.from(onlineUsers.values()));
@@ -1866,6 +1866,17 @@ io.on('connection', (socket) => {
         tournamentId: data.tournamentId,
         participants: [] // Empty for now, will be populated by other players
       });
+    }
+  });
+
+  // Track user location changes
+  socket.on('user-location-change', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      user.currentLocation = data.location;
+      console.log(`User ${user.handle} is now in: ${data.location}`);
+      // Broadcast updated user list to all clients
+      io.emit('online-users-update', Array.from(onlineUsers.values()));
     }
   });
 });
