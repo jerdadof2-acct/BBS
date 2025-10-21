@@ -2261,16 +2261,43 @@ class FishingHole {
         this.terminal.println(ANSIParser.fg('bright-blue') + '  📊 LIVE LEADERBOARD 📊' + ANSIParser.reset());
         this.terminal.println('');
         
-        // Show top 5 players
-        for (let i = 0; i < Math.min(5, this.tournament.leaderboard.length); i++) {
+        // Show all players with detailed stats
+        for (let i = 0; i < this.tournament.leaderboard.length; i++) {
             const player = this.tournament.leaderboard[i];
             const position = i + 1;
             let color = ANSIParser.fg('bright-white');
-            if (position === 1) color = ANSIParser.fg('bright-yellow');
-            else if (position === 2) color = ANSIParser.fg('bright-white');
-            else if (position === 3) color = ANSIParser.fg('bright-cyan');
+            let positionIcon = '  ';
             
-            this.terminal.println(color + `  ${position}. ${player.name}: ${player.totalWeight.toFixed(2)} lbs` + ANSIParser.reset());
+            if (position === 1) {
+                color = ANSIParser.fg('bright-yellow');
+                positionIcon = '🥇';
+            } else if (position === 2) {
+                color = ANSIParser.fg('bright-white');
+                positionIcon = '🥈';
+            } else if (position === 3) {
+                color = ANSIParser.fg('bright-cyan');
+                positionIcon = '🥉';
+            }
+            
+            // Highlight current player
+            const isCurrentPlayer = player.name === this.player.name;
+            const playerColor = isCurrentPlayer ? ANSIParser.fg('bright-green') : color;
+            
+            this.terminal.println(playerColor + `  ${positionIcon} ${position}. ${player.name}: ${player.totalWeight.toFixed(2)} lbs (${player.fishCount} fish)` + ANSIParser.reset());
+            
+            // Show weight difference from leader (if not in first place)
+            if (position > 1 && this.tournament.leaderboard.length > 1) {
+                const leader = this.tournament.leaderboard[0];
+                const weightDiff = leader.totalWeight - player.totalWeight;
+                if (weightDiff > 0) {
+                    this.terminal.println(ANSIParser.fg('bright-black') + `      ${weightDiff.toFixed(2)} lbs behind leader` + ANSIParser.reset());
+                }
+            }
+            
+            // Show biggest catch for each player
+            if (player.biggestCatch > 0) {
+                this.terminal.println(ANSIParser.fg('bright-black') + `      Biggest: ${player.biggestCatch.toFixed(2)} lbs` + ANSIParser.reset());
+            }
         }
         
         this.terminal.println('');
@@ -2357,8 +2384,38 @@ class FishingHole {
     }
 
     updateTournamentLeaderboard() {
+        // Store previous positions for comparison
+        const previousPositions = new Map();
+        this.tournament.leaderboard.forEach((player, index) => {
+            previousPositions.set(player.name, index + 1);
+        });
+        
+        // Sort by total weight (descending)
         this.tournament.leaderboard = [...this.tournament.participants]
             .sort((a, b) => b.totalWeight - a.totalWeight);
+        
+        // Check for position changes and add notifications
+        this.tournament.leaderboard.forEach((player, index) => {
+            const currentPosition = index + 1;
+            const previousPosition = previousPositions.get(player.name);
+            
+            if (previousPosition && previousPosition !== currentPosition) {
+                const positionChange = previousPosition - currentPosition;
+                let message = '';
+                
+                if (positionChange > 0) {
+                    // Moved up in rankings
+                    message = `📈 ${player.name} moved up to #${currentPosition}!`;
+                } else if (positionChange < 0) {
+                    // Moved down in rankings
+                    message = `📉 ${player.name} dropped to #${currentPosition}`;
+                }
+                
+                if (message) {
+                    this.tournament.tournamentMessages.push(message);
+                }
+            }
+        });
     }
 
     async endTournament() {
@@ -2482,15 +2539,14 @@ class FishingHole {
                 console.log('No participant found! Tournament participants:', this.tournament.participants); // Debug log
             }
             
-            // Add to tournament messages with excitement for big fish
-            let message = `🎣 ${this.player.name} caught a ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
-            if (fish.weight > 10) {
-                message = `🐟 ${this.player.name} caught a HUGE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
-            } else if (fish.weight > 5) {
-                message = `🎣 ${this.player.name} caught a big ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
+            // Only broadcast huge fish catches (15+ lbs) to reduce spam
+            if (fish.weight >= 15) {
+                let message = `🐟 ${this.player.name} caught a HUGE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
+                if (fish.weight >= 30) {
+                    message = `🔥 ${this.player.name} caught a MASSIVE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
+                }
+                this.tournament.tournamentMessages.push(message);
             }
-            
-            this.tournament.tournamentMessages.push(message);
             
             // Broadcast tournament update
             if (this.socketClient && this.socketClient.socket && participant) {
