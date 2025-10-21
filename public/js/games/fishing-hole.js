@@ -27,6 +27,17 @@ class FishingHole {
                 totalTournamentFish: 0
             }
         };
+        
+        // Save batching to reduce API calls
+        this.saveQueue = [];
+        this.saveTimeout = null;
+        this.lastSaveTime = 0;
+        this.saveInterval = 5000; // Save every 5 seconds max
+        
+        // Save data when page is unloaded
+        window.addEventListener('beforeunload', () => {
+            this.savePlayerData(true);
+        });
         this.fish = [
             // Common Fish
             { name: 'Minnow', rarity: 'Common', minWeight: 0.1, maxWeight: 0.5, value: 5, experience: 1, season: 'All' },
@@ -158,7 +169,7 @@ class FishingHole {
             const choice = await this.mainMenu();
             
             if (choice === 'Q') {
-                await this.savePlayerData();
+                await this.savePlayerData(true); // Force save when leaving
                 return 'doors';
             } else if (choice === '1') {
                 await this.goFishing();
@@ -755,7 +766,7 @@ class FishingHole {
                 this.player.money -= rod.cost;
                 this.player.gear.rod = rod.name;
                 this.terminal.println(ANSIParser.fg('bright-green') + `  ${rod.name} purchased and equipped!` + ANSIParser.reset());
-                await this.savePlayerData();
+                await this.savePlayerData(true); // Force save when leaving
             }
         }
         
@@ -813,7 +824,7 @@ class FishingHole {
                 this.player.money -= reel.cost;
                 this.player.gear.reel = reel.name;
                 this.terminal.println(ANSIParser.fg('bright-green') + `  ${reel.name} purchased and equipped!` + ANSIParser.reset());
-                await this.savePlayerData();
+                await this.savePlayerData(true); // Force save when leaving
             }
         }
         
@@ -871,7 +882,7 @@ class FishingHole {
                 this.player.money -= line.cost;
                 this.player.gear.line = line.name;
                 this.terminal.println(ANSIParser.fg('bright-green') + `  ${line.name} purchased and equipped!` + ANSIParser.reset());
-                await this.savePlayerData();
+                await this.savePlayerData(true); // Force save when leaving
             }
         }
         
@@ -929,7 +940,7 @@ class FishingHole {
                 this.player.money -= hook.cost;
                 this.player.gear.hook = hook.name;
                 this.terminal.println(ANSIParser.fg('bright-green') + `  ${hook.name} purchased and equipped!` + ANSIParser.reset());
-                await this.savePlayerData();
+                await this.savePlayerData(true); // Force save when leaving
             }
         }
         
@@ -987,7 +998,7 @@ class FishingHole {
                 this.player.money -= bait.cost;
                 this.player.gear.bait = bait.name;
                 this.terminal.println(ANSIParser.fg('bright-green') + `  ${bait.name} purchased and equipped!` + ANSIParser.reset());
-                await this.savePlayerData();
+                await this.savePlayerData(true); // Force save when leaving
             }
         }
         
@@ -1044,12 +1055,12 @@ class FishingHole {
                     this.player.locationUnlocks.push(choice);
                     this.location = location;
                     this.terminal.println(ANSIParser.fg('bright-green') + `  ${location.name} unlocked and selected!` + ANSIParser.reset());
-                    await this.savePlayerData();
+                    await this.savePlayerData(true); // Force save when leaving
                 }
             } else {
                 this.location = location;
                 this.terminal.println(ANSIParser.fg('bright-green') + `  Moved to ${location.name}!` + ANSIParser.reset());
-                await this.savePlayerData();
+                await this.savePlayerData(true); // Force save when leaving
             }
         }
         
@@ -1531,7 +1542,7 @@ class FishingHole {
                     // Create new player
                     this.createDefaultPlayer(playerName);
                     // Try to save new player to database
-                    await this.savePlayerData();
+                    await this.savePlayerData(true); // Force save when leaving
                 }
             } else {
                 // Fallback to default player if API fails
@@ -1592,23 +1603,44 @@ class FishingHole {
         };
     }
 
-    async savePlayerData() {
+    async savePlayerData(force = false) {
+        // Add to save queue
+        this.saveQueue.push({
+            player: JSON.parse(JSON.stringify(this.player)),
+            location: JSON.parse(JSON.stringify(this.location)),
+            tournament: JSON.parse(JSON.stringify(this.tournament))
+        });
+
+        // If forced or enough time has passed, save immediately
+        const now = Date.now();
+        if (force || (now - this.lastSaveTime) >= this.saveInterval) {
+            await this.flushSaveQueue();
+        } else {
+            // Schedule a save if not already scheduled
+            if (!this.saveTimeout) {
+                this.saveTimeout = setTimeout(() => {
+                    this.flushSaveQueue();
+                }, this.saveInterval - (now - this.lastSaveTime));
+            }
+        }
+    }
+
+    async flushSaveQueue() {
+        if (this.saveQueue.length === 0) return;
+
+        // Clear any pending timeout
+        if (this.saveTimeout) {
+            clearTimeout(this.saveTimeout);
+            this.saveTimeout = null;
+        }
+
+        // Get the latest data from the queue
+        const latestData = this.saveQueue[this.saveQueue.length - 1];
+        this.saveQueue = []; // Clear the queue
+
         try {
             const currentUser = this.authManager.getCurrentUser();
             const userId = currentUser ? currentUser.id : null;
-            
-            console.log('Saving player data:', {
-                playerName: this.player.name,
-                userId: userId,
-                level: this.player.level,
-                money: this.player.money,
-                totalCaught: this.player.totalCaught,
-                stats: this.player.stats,
-                statsStringified: JSON.stringify(this.player.stats)
-            });
-            
-            // Also log the full player object being saved
-            console.log('Full player object being saved:', JSON.stringify(this.player, null, 2));
             
             const response = await fetch('/api/fishing-hole/save', {
                 method: 'POST',
@@ -1616,19 +1648,25 @@ class FishingHole {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    player: this.player,
-                    location: this.location,
+                    player: latestData.player,
+                    location: latestData.location,
+                    tournament: latestData.tournament,
                     userId: userId
                 })
             });
             
             if (response.ok) {
-                console.log('Player data saved successfully');
+                console.log('Player data saved successfully (batched)');
+                this.lastSaveTime = Date.now();
             } else {
                 console.log('Failed to save player data:', response.status, response.statusText);
             }
         } catch (error) {
             console.log('Error saving player data:', error);
+            // Don't show error to user unless it's critical
+            if (error.message.includes('ERR_NAME_NOT_RESOLVED')) {
+                console.warn('Server appears to be down, data will be saved when connection is restored');
+            }
         }
     }
 
