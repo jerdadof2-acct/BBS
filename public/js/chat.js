@@ -121,12 +121,12 @@ class ChatSystem {
         while (this.isInChat) {
             this.drawChatInterface();
             
-            // Get user input with timeout for real-time updates
-            const message = await this.terminal.inputWithTimeout(1000);
+            // Get user input without timeout to prevent clearing
+            const message = await this.terminal.input();
             
             if (message) {
                 if (message.toUpperCase() === 'QUIT' || message.toUpperCase() === 'EXIT') {
-                break;
+                    break;
                 } else if (message.startsWith('/')) {
                     await this.handleChatCommand(message);
                 } else if (message.trim()) {

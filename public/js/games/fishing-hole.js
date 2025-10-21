@@ -2433,11 +2433,15 @@ class FishingHole {
             let participant = null;
             if (this.tournament.participants && this.tournament.participants.length > 0 && this.tournament.participants[0]) {
                 participant = this.tournament.participants[0];
+                console.log('Before update - participant:', participant); // Debug log
                 participant.totalWeight = (participant.totalWeight || 0) + fish.weight;
                 participant.fishCount = (participant.fishCount || 0) + 1;
                 if (fish.weight > (participant.biggestCatch || 0)) {
                     participant.biggestCatch = fish.weight;
                 }
+                console.log('After update - participant:', participant); // Debug log
+            } else {
+                console.log('No participant found!', this.tournament.participants); // Debug log
             }
             
             // Add to tournament messages with excitement for big fish
