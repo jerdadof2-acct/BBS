@@ -1555,6 +1555,12 @@ class FishingHole {
                         console.log('Processed existing stats:', this.player.stats);
                     }
                     
+                    // Load tournament stats if they exist
+                    if (data.tournament && data.tournament.stats) {
+                        this.tournament.stats = data.tournament.stats;
+                        console.log('Loaded tournament stats:', this.tournament.stats);
+                    }
+                    
                     // Ensure gear is properly initialized
                     this.player.gear = this.player.gear || {
                         rod: 'Basic Rod',
