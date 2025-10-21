@@ -525,31 +525,35 @@ class FishingHole {
             this.terminal.println(ANSIParser.fg('bright-green') + '  You just caught your biggest fish ever!' + ANSIParser.reset());
         }
         
-        // Broadcast to other players
-        console.log('🐟 Attempting to broadcast fish catch...');
-        console.log('SocketClient available:', !!this.socketClient);
-        console.log('Socket available:', !!(this.socketClient && this.socketClient.socket));
-        console.log('Socket connected:', !!(this.socketClient && this.socketClient.socket && this.socketClient.socket.connected));
-        
-        if (this.socketClient && this.socketClient.socket) {
-            const fishData = {
-                userId: this.authManager.getCurrentUser().id,
-                handle: this.player.name,
-                fishName: caughtFish.name,
-                weight: weight,
-                location: this.location.name,
-                value: value,
-                experience: experience,
-                rarity: caughtFish.rarity
-            };
+        // Broadcast to other players only for big fish (15+ lbs)
+        if (weight >= 15) {
+            console.log('🐟 Attempting to broadcast big fish catch...');
+            console.log('SocketClient available:', !!this.socketClient);
+            console.log('Socket available:', !!(this.socketClient && this.socketClient.socket));
+            console.log('Socket connected:', !!(this.socketClient && this.socketClient.socket && this.socketClient.socket.connected));
             
-            console.log('🎣 EMITTING FISH-CAUGHT EVENT:', fishData);
-            console.log('Socket connected:', this.socketClient.socket.connected);
-            
-            this.socketClient.socket.emit('fish-caught', fishData);
-            console.log('Fish-caught event emitted successfully');
+            if (this.socketClient && this.socketClient.socket) {
+                const fishData = {
+                    userId: this.authManager.getCurrentUser().id,
+                    handle: this.player.name,
+                    fishName: caughtFish.name,
+                    weight: weight,
+                    location: this.location.name,
+                    value: value,
+                    experience: experience,
+                    rarity: caughtFish.rarity
+                };
+                
+                console.log('🎣 EMITTING FISH-CAUGHT EVENT:', fishData);
+                console.log('Socket connected:', this.socketClient.socket.connected);
+                
+                this.socketClient.socket.emit('fish-caught', fishData);
+                console.log('Fish-caught event emitted successfully');
+            } else {
+                console.error('Cannot emit fish-caught event - socket not available');
+            }
         } else {
-            console.error('Cannot emit fish-caught event - socket not available');
+            console.log('🐟 Fish too small to broadcast (under 15 lbs)');
         }
         
         this.checkLevelUp();
@@ -2052,14 +2056,6 @@ class FishingHole {
                     if (this.tournament.active && this.tournament.tournamentId === data.tournamentId) {
                         this.handleTournamentJoin({ player: data.player });
                     }
-                } else if (data.type === 'tournament-update') {
-                    // Handle tournament updates - show big catches to all users
-                    if (data.message) {
-                        this.terminal.println('');
-                        this.terminal.println(ANSIParser.fg('bright-cyan') + `  ${data.message}` + ANSIParser.reset());
-                        this.terminal.println('');
-                    }
-                }
             });
         }
     }
@@ -2546,13 +2542,10 @@ class FishingHole {
                 console.log('No participant found! Tournament participants:', this.tournament.participants); // Debug log
             }
             
-            // Only broadcast huge fish catches (15+ lbs) to reduce spam
+            // Only broadcast massive fish catches (50+ lbs) during tournaments
             let message = '';
-            if (fish.weight >= 15) {
-                message = `🐟 ${this.player.name} caught a HUGE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
-                if (fish.weight >= 30) {
-                    message = `🔥 ${this.player.name} caught a MASSIVE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
-                }
+            if (fish.weight >= 50) {
+                message = `🔥 ${this.player.name} caught a MASSIVE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
                 this.tournament.tournamentMessages.push(message);
             }
             

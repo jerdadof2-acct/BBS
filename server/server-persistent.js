@@ -1859,16 +1859,8 @@ io.on('connection', (socket) => {
     if (user) {
       console.log('Tournament update from:', user.handle, 'Weight:', data.totalWeight);
       
-      // Broadcast tournament update to all users
-      io.emit('fishing-tournament-announcement', {
-        type: 'tournament-update',
-        player: user.handle,
-        totalWeight: data.totalWeight,
-        position: data.position,
-        tournamentId: data.tournamentId,
-        message: data.message || `🏆 ${user.handle} is now in ${data.position} place with ${data.totalWeight.toFixed(2)} lbs!`,
-        timestamp: new Date().toISOString()
-      });
+      // Tournament updates are only sent to tournament participants, not all users
+      // This prevents spam to users who aren't interested in tournaments
     }
   });
 
