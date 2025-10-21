@@ -279,7 +279,12 @@ class FishingHole {
         const playerName = await this.terminal.input('  Enter your angler name: ');
         
         // Load player data from database or create new player
-        await this.loadPlayerData(playerName);
+        const playerLoaded = await this.loadPlayerData(playerName);
+        
+        // If player data couldn't be loaded safely, exit the game
+        if (!playerLoaded) {
+            return; // Exit without creating new player
+        }
         
         // Set default location if none was loaded
         if (!this.location) {
@@ -1569,31 +1574,42 @@ class FishingHole {
                         this.terminal.println(ANSIParser.fg('bright-yellow') + `  Biggest Catch: ${this.player.biggestCatchName} (${(this.player.biggestCatch || 0).toFixed(2)} lbs)` + ANSIParser.reset());
                     }
                     await this.terminal.sleep(2000);
+                    return true; // Successfully loaded existing player
                 } else {
                     // Create new player
                     this.createDefaultPlayer(playerName);
                     // Try to save new player to database
                     await this.savePlayerData(true); // Force save when leaving
+                    return true; // Successfully created new player
                 }
             } else {
-                // Fallback to default player if API fails
-                this.terminal.println(ANSIParser.fg('bright-yellow') + '  Note: Progress saving is not available. Playing in offline mode.' + ANSIParser.reset());
+                // Server responded but with error - this is safe to create new player
+                console.log('Server responded with error, creating new player');
                 this.createDefaultPlayer(playerName);
+                return true; // Created new player successfully
             }
         } catch (error) {
             console.error('Error loading player data:', error);
             
             // Handle specific Railway connectivity issues
             if (error.name === 'AbortError' || error.message.includes('ERR_NAME_NOT_RESOLVED') || error.message.includes('Failed to fetch')) {
-                console.warn('🚨 Railway server connectivity issue detected. Using offline mode.');
+                console.warn('🚨 Railway server connectivity issue detected. Cannot load player data safely.');
                 this.terminal.println(ANSIParser.fg('bright-red') + '  ⚠️  Server temporarily unavailable!' + ANSIParser.reset());
-                this.terminal.println(ANSIParser.fg('bright-yellow') + '  Playing in offline mode - progress will sync when connection is restored.' + ANSIParser.reset());
-                await this.terminal.sleep(2000);
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  Cannot load your fishing progress safely.' + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-white') + '  Please try again when the server is back online.' + ANSIParser.reset());
+                this.terminal.println('');
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to return to the main menu...' + ANSIParser.reset());
+                await this.terminal.input();
+                return false; // Exit without creating new player
             } else {
-                this.terminal.println(ANSIParser.fg('bright-yellow') + '  Note: Progress saving is not available. Playing in offline mode.' + ANSIParser.reset());
+                console.warn('Server error - cannot load player data safely');
+                this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ Unable to load your fishing progress!' + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-white') + '  Please try again later or contact support.' + ANSIParser.reset());
+                this.terminal.println('');
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to return to the main menu...' + ANSIParser.reset());
+                await this.terminal.input();
+                return false; // Exit without creating new player
             }
-            
-            this.createDefaultPlayer(playerName);
         }
     }
 
