@@ -5,6 +5,7 @@ class SocketClient {
         this.connected = false;
         this.userId = null;
         this.handle = null;
+        this.retryTimeout = null;
     }
 
     connect() {
@@ -40,6 +41,12 @@ class SocketClient {
             console.log('✅ Connected to server');
             console.log('Socket ID:', this.socket.id);
             
+            // Clear any retry timeouts
+            if (this.retryTimeout) {
+                clearTimeout(this.retryTimeout);
+                this.retryTimeout = null;
+            }
+            
             // Process any pending login
             if (this.pendingLogin) {
                 console.log('Processing pending login:', this.pendingLogin);
@@ -73,10 +80,19 @@ class SocketClient {
 
         this.socket.on('connect_error', (error) => {
             console.error('Socket connection error:', error);
+            this.connected = false;
+            
+            // Show user-friendly message for common errors
+            if (error.message.includes('502') || error.message.includes('Bad Gateway')) {
+                console.warn('Server is temporarily unavailable. Retrying in 5 seconds...');
+            } else if (error.message.includes('ERR_NAME_NOT_RESOLVED')) {
+                console.warn('Cannot reach server. Check your internet connection.');
+            }
         });
 
         this.socket.on('error', (error) => {
             console.error('Socket error:', error);
+            this.connected = false;
         });
 
         // SysOp broadcast message handler
@@ -300,6 +316,19 @@ class SocketClient {
 
             checkConnection();
         });
+    }
+
+    async checkServerStatus() {
+        try {
+            const response = await fetch('/api/health', {
+                method: 'GET',
+                timeout: 5000
+            });
+            return response.ok;
+        } catch (error) {
+            console.warn('Server health check failed:', error);
+            return false;
+        }
     }
 }
 
