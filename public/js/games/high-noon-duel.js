@@ -556,12 +556,237 @@ class HighNoonDuel {
     }
 
     async runTournament() {
-        // This will be implemented to run the actual tournament
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Tournament system coming soon!' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  This will run the elimination bracket.' + ANSIParser.reset());
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset() + 
+            ANSIParser.fg('bright-white') + '  🏆 TOURNAMENT IN PROGRESS 🏆' + ANSIParser.reset() + 
+            ' '.repeat(40) + ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Generate bracket based on participant count
+        this.generateBracket();
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Participants: ${this.tournament.participants.length}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Rounds: ${this.tournament.maxRounds}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Show bracket
+        this.showBracket();
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to start the tournament...' + ANSIParser.reset());
+        await this.terminal.input();
+        
+        // Run the tournament rounds
+        await this.runTournamentRounds();
+    }
+
+    generateBracket() {
+        const participantCount = this.tournament.participants.length;
+        
+        // Determine bracket size (2, 4, 8, 16)
+        let bracketSize = 2;
+        if (participantCount <= 2) bracketSize = 2;
+        else if (participantCount <= 4) bracketSize = 4;
+        else if (participantCount <= 8) bracketSize = 8;
+        else bracketSize = 16;
+        
+        // Calculate rounds needed
+        this.tournament.maxRounds = Math.log2(bracketSize);
+        
+        // Create bracket structure
+        this.tournament.bracket = [];
+        for (let round = 0; round < this.tournament.maxRounds; round++) {
+            this.tournament.bracket[round] = [];
+            const matchesInRound = bracketSize / Math.pow(2, round + 1);
+            
+            for (let match = 0; match < matchesInRound; match++) {
+                this.tournament.bracket[round][match] = {
+                    player1: null,
+                    player2: null,
+                    winner: null,
+                    completed: false
+                };
+            }
+        }
+        
+        // Assign participants to first round
+        const shuffledParticipants = [...this.tournament.participants].sort(() => Math.random() - 0.5);
+        let participantIndex = 0;
+        
+        for (let match = 0; match < this.tournament.bracket[0].length; match++) {
+            if (participantIndex < shuffledParticipants.length) {
+                this.tournament.bracket[0][match].player1 = shuffledParticipants[participantIndex];
+                participantIndex++;
+            }
+            if (participantIndex < shuffledParticipants.length) {
+                this.tournament.bracket[0][match].player2 = shuffledParticipants[participantIndex];
+                participantIndex++;
+            }
+        }
+    }
+
+    showBracket() {
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Tournament Bracket:' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        for (let round = 0; round < this.tournament.bracket.length; round++) {
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  Round ${round + 1}:` + ANSIParser.reset());
+            
+            for (let match = 0; match < this.tournament.bracket[round].length; match++) {
+                const matchData = this.tournament.bracket[round][match];
+                let matchText = `    Match ${match + 1}: `;
+                
+                if (matchData.player1 && matchData.player2) {
+                    matchText += `${matchData.player1.name} vs ${matchData.player2.name}`;
+                } else if (matchData.player1) {
+                    matchText += `${matchData.player1.name} vs BYE`;
+                } else if (matchData.player2) {
+                    matchText += `BYE vs ${matchData.player2.name}`;
+                } else {
+                    matchText += `TBD vs TBD`;
+                }
+                
+                if (matchData.winner) {
+                    matchText += ` → ${matchData.winner.name}`;
+                }
+                
+                this.terminal.println(ANSIParser.fg('bright-white') + matchText + ANSIParser.reset());
+            }
+            this.terminal.println('');
+        }
+    }
+
+    async runTournamentRounds() {
+        for (let round = 0; round < this.tournament.maxRounds; round++) {
+            this.tournament.currentRound = round;
+            
+            this.terminal.clear();
+            this.terminal.println(ANSIParser.fg('bright-yellow') + `╔══════════════════════════════════════════════════════════════════════════════╗` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-yellow') + `║` + ANSIParser.reset() + 
+                ANSIParser.fg('bright-white') + `  ROUND ${round + 1} OF ${this.tournament.maxRounds}` + ANSIParser.reset() + 
+                ' '.repeat(45) + ANSIParser.fg('bright-yellow') + `║` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-yellow') + `╚══════════════════════════════════════════════════════════════════════════════╝` + ANSIParser.reset());
+            this.terminal.println('');
+            
+            // Run all matches in this round
+            for (let match = 0; match < this.tournament.bracket[round].length; match++) {
+                const matchData = this.tournament.bracket[round][match];
+                
+                if (matchData.player1 && matchData.player2) {
+                    // Both players present - run the duel
+                    await this.runDuelMatch(round, match, matchData);
+                } else if (matchData.player1) {
+                    // Only player1 - they get a bye
+                    matchData.winner = matchData.player1;
+                    matchData.completed = true;
+                    this.terminal.println(ANSIParser.fg('bright-green') + `  ${matchData.player1.name} gets a BYE and advances!` + ANSIParser.reset());
+                } else if (matchData.player2) {
+                    // Only player2 - they get a bye
+                    matchData.winner = matchData.player2;
+                    matchData.completed = true;
+                    this.terminal.println(ANSIParser.fg('bright-green') + `  ${matchData.player2.name} gets a BYE and advances!` + ANSIParser.reset());
+                }
+                
+                await this.terminal.sleep(2000);
+            }
+            
+            // Advance winners to next round
+            this.advanceWinners(round);
+        }
+        
+        // Tournament finished
+        await this.endTournament();
+    }
+
+    async runDuelMatch(round, match, matchData) {
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Match ${match + 1}: ${matchData.player1.name} vs ${matchData.player2.name}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // For now, simulate the duel (we'll add real-time dueling later)
+        const player1Time = 0.5 + Math.random() * 1.5; // 0.5 to 2.0 seconds
+        const player2Time = 0.5 + Math.random() * 1.5; // 0.5 to 2.0 seconds
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Drawing...' + ANSIParser.reset());
+        await this.terminal.sleep(1000);
+        
+        if (player1Time < player2Time) {
+            matchData.winner = matchData.player1;
+            this.terminal.println(ANSIParser.fg('bright-green') + `  ${matchData.player1.name} wins! (${player1Time.toFixed(2)}s vs ${player2Time.toFixed(2)}s)` + ANSIParser.reset());
+        } else {
+            matchData.winner = matchData.player2;
+            this.terminal.println(ANSIParser.fg('bright-green') + `  ${matchData.player2.name} wins! (${player2Time.toFixed(2)}s vs ${player1Time.toFixed(2)}s)` + ANSIParser.reset());
+        }
+        
+        matchData.completed = true;
+        
+        // Broadcast the result
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.emit('duel-tournament-update', {
+                tournamentId: this.tournament.tournamentId,
+                message: `⚔️ ${matchData.winner.name} won their duel in Round ${round + 1}!`
+            });
+        }
+    }
+
+    advanceWinners(round) {
+        if (round < this.tournament.maxRounds - 1) {
+            const nextRound = round + 1;
+            let nextMatch = 0;
+            
+            for (let match = 0; match < this.tournament.bracket[round].length; match++) {
+                const matchData = this.tournament.bracket[round][match];
+                if (matchData.winner) {
+                    if (nextMatch < this.tournament.bracket[nextRound].length) {
+                        if (!this.tournament.bracket[nextRound][nextMatch].player1) {
+                            this.tournament.bracket[nextRound][nextMatch].player1 = matchData.winner;
+                        } else {
+                            this.tournament.bracket[nextRound][nextMatch].player2 = matchData.winner;
+                            nextMatch++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    async endTournament() {
+        // Find the final winner
+        const finalRound = this.tournament.maxRounds - 1;
+        const finalMatch = this.tournament.bracket[finalRound][0];
+        this.tournament.winner = finalMatch.winner;
+        
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset() + 
+            ANSIParser.fg('bright-white') + '  🏆 TOURNAMENT COMPLETE! 🏆' + ANSIParser.reset() + 
+            ' '.repeat(40) + ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + `  🥇 WINNER: ${this.tournament.winner.name}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  The fastest gun in the west!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Show final bracket
+        this.showBracket();
+        
+        // Broadcast tournament end
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.emit('duel-tournament-end', {
+                tournamentId: this.tournament.tournamentId,
+                winner: this.tournament.winner.name
+            });
+        }
+        
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to continue...' + ANSIParser.reset());
         await this.terminal.input();
+        
+        // Reset tournament state
+        this.tournament.active = false;
+        this.tournament.phase = 'finished';
     }
 
     setupTournamentListeners() {
