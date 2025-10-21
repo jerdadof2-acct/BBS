@@ -1879,6 +1879,23 @@ io.on('connection', (socket) => {
       io.emit('online-users-update', Array.from(onlineUsers.values()));
     }
   });
+
+  // Chat room join/leave events
+  socket.on('join-chat', () => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log(`User ${user.handle} joined chat`);
+      socket.broadcast.emit('user-joined-chat', { handle: user.handle });
+    }
+  });
+
+  socket.on('leave-chat', () => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log(`User ${user.handle} left chat`);
+      socket.broadcast.emit('user-left-chat', { handle: user.handle });
+    }
+  });
 });
 
 // Initialize database and start server
