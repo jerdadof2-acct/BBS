@@ -2189,6 +2189,9 @@ class FishingHole {
                     this.terminal.println('');
                     this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to continue...' + ANSIParser.reset());
                     await this.terminal.input();
+                    
+                    // Force refresh the tournament interface to show updated stats
+                    continue; // Skip the rest of the loop and redraw
                 }
             }
             
@@ -2473,11 +2476,6 @@ class FishingHole {
             } else {
                 this.terminal.println(ANSIParser.fg('bright-green') + `  🎣 Caught a ${fish.name}! (${fish.weight.toFixed(2)} lbs)` + ANSIParser.reset());
             }
-            
-            // Update the display to show new stats
-            this.terminal.println(ANSIParser.fg('bright-cyan') + `  Total Weight: ${(participant?.totalWeight || 0).toFixed(2)} lbs` + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-cyan') + `  Fish Caught: ${participant?.fishCount || 0}` + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-cyan') + `  Biggest Catch: ${(participant?.biggestCatch || 0).toFixed(2)} lbs` + ANSIParser.reset());
             
             // Update leaderboard to reflect changes
             this.updateTournamentLeaderboard();
