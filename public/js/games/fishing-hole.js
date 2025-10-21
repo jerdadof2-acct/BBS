@@ -2184,6 +2184,11 @@ class FishingHole {
                     console.log('Casting line in tournament...'); // Debug log
                     // Cast line during tournament
                     await this.castLineInTournament();
+                    
+                    // Show updated stats and wait for user to continue
+                    this.terminal.println('');
+                    this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to continue...' + ANSIParser.reset());
+                    await this.terminal.input();
                 }
             }
             
@@ -2469,6 +2474,9 @@ class FishingHole {
             this.terminal.println(ANSIParser.fg('bright-cyan') + `  Total Weight: ${(participant?.totalWeight || 0).toFixed(2)} lbs` + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-cyan') + `  Fish Caught: ${participant?.fishCount || 0}` + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-cyan') + `  Biggest Catch: ${(participant?.biggestCatch || 0).toFixed(2)} lbs` + ANSIParser.reset());
+            
+            // Update leaderboard to reflect changes
+            this.updateTournamentLeaderboard();
         } else {
             console.log('No fish caught this time'); // Debug log
             this.terminal.println(ANSIParser.fg('bright-red') + '  No fish this time...' + ANSIParser.reset());

@@ -97,15 +97,20 @@ class ChatSystem {
     async loadChatHistory() {
         try {
             const response = await fetch('/api/chat');
-            const messages = await response.json();
+            const data = await response.json();
             
-            // Ensure messages is an array
-            if (Array.isArray(messages)) {
-                this.chatHistory = messages.slice(-50); // Keep last 50 messages
+            // Handle different response formats
+            let messages = [];
+            if (Array.isArray(data)) {
+                messages = data;
+            } else if (data && Array.isArray(data.messages)) {
+                messages = data.messages;
             } else {
-                console.warn('Chat API returned non-array response:', messages);
-                this.chatHistory = [];
+                console.warn('Chat API returned unexpected format:', data);
+                messages = [];
             }
+            
+            this.chatHistory = messages.slice(-50); // Keep last 50 messages
         } catch (error) {
             console.error('Error loading chat history:', error);
             this.chatHistory = [];
