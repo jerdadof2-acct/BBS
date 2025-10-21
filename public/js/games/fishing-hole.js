@@ -2117,12 +2117,32 @@ class FishingHole {
         this.tournament.active = true;
         this.tournament.phase = 'active';
         this.tournament.startTime = Date.now();
-        this.tournament.participants = [{
-            name: this.player.name,
-            totalWeight: 0,
-            fishCount: 0,
-            biggestCatch: 0
-        }];
+        
+        // Only initialize participants if they don't exist (for new tournaments)
+        console.log('runTournament - existing participants:', this.tournament.participants); // Debug log
+        if (!this.tournament.participants || this.tournament.participants.length === 0) {
+            console.log('runTournament - creating new participants array'); // Debug log
+            this.tournament.participants = [{
+                name: this.player.name,
+                totalWeight: 0,
+                fishCount: 0,
+                biggestCatch: 0
+            }];
+        } else {
+            console.log('runTournament - using existing participants, adding player if needed'); // Debug log
+            // For joining existing tournaments, add this player if not already present
+            const existingPlayer = this.tournament.participants.find(p => p.name === this.player.name);
+            if (!existingPlayer) {
+                this.tournament.participants.push({
+                    name: this.player.name,
+                    totalWeight: 0,
+                    fishCount: 0,
+                    biggestCatch: 0
+                });
+            }
+        }
+        console.log('runTournament - final participants:', this.tournament.participants); // Debug log
+        
         this.tournament.leaderboard = [...this.tournament.participants];
         this.tournament.tournamentMessages = [];
         
