@@ -2169,8 +2169,8 @@ class FishingHole {
             this.drawTournamentLeftPanel();
             this.drawTournamentRightPanel();
             
-            // Check for input (non-blocking)
-            const input = await this.terminal.inputWithTimeout(1000);
+            // Check for input using custom handler
+            const input = await this.waitForTournamentInput();
             console.log('Tournament input received:', input); // Debug log
             if (input) {
                 console.log('Processing input:', input.toUpperCase()); // Debug log
@@ -2470,15 +2470,33 @@ class FishingHole {
         await this.terminal.sleep(2000); // 2 seconds between casts
     }
 
-    getPlayerPosition() {
-        // Update leaderboard first
-        this.updateTournamentLeaderboard();
-        
-        // Find current player's position in the sorted leaderboard
-        const sorted = [...this.tournament.participants].sort((a, b) => b.totalWeight - a.totalWeight);
-        const position = sorted.findIndex(p => p.name === this.player.name) + 1;
-        
-        return position || 1; // Default to position 1 if not found
+    // Custom input handler for tournament
+    async waitForTournamentInput() {
+        return new Promise((resolve) => {
+            let inputReceived = false;
+            
+            // Set up a timeout
+            const timeout = setTimeout(() => {
+                if (!inputReceived) {
+                    resolve(null);
+                }
+            }, 100);
+            
+            // Set up input handler
+            const originalCallback = this.terminal.inputCallback;
+            this.terminal.inputCallback = (value) => {
+                if (!inputReceived) {
+                    inputReceived = true;
+                    clearTimeout(timeout);
+                    this.terminal.inputCallback = originalCallback;
+                    resolve(value);
+                }
+            };
+            
+            // Enable input
+            this.terminal.isWaitingForInput = true;
+            this.terminal.updateCursor();
+        });
     }
 
     getRandomFish() {
