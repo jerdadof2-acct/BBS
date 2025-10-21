@@ -1894,6 +1894,72 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Duel Tournament Events
+  socket.on('duel-tournament-start', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('Duel tournament started by:', user.handle, 'Tournament ID:', data.tournamentId);
+      
+      // Broadcast tournament start to ALL BBS users
+      io.emit('duel-tournament-announcement', {
+        type: 'tournament-start',
+        tournamentId: data.tournamentId,
+        host: user.handle,
+        joinPeriod: data.joinPeriod,
+        message: `🤠 DUEL TOURNAMENT! ${user.handle} is hosting a gunslinger tournament! Join now! (${data.joinPeriod}s to join)`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  socket.on('duel-tournament-join', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('User joined duel tournament:', user.handle, 'Tournament ID:', data.tournamentId);
+      
+      // Broadcast join notification to all users
+      io.emit('duel-tournament-announcement', {
+        type: 'tournament-join',
+        tournamentId: data.tournamentId,
+        player: user.handle,
+        message: `🎯 ${user.handle} joined the duel tournament!`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  socket.on('duel-tournament-update', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('Duel tournament update from:', user.handle, 'Tournament ID:', data.tournamentId);
+      
+      // Broadcast tournament update to all users
+      io.emit('duel-tournament-announcement', {
+        type: 'tournament-update',
+        tournamentId: data.tournamentId,
+        player: user.handle,
+        message: data.message || `⚔️ ${user.handle} advanced in the tournament!`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  socket.on('duel-tournament-end', (data) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      console.log('Duel tournament ended by:', user.handle, 'Winner:', data.winner);
+      
+      // Broadcast tournament results to all users
+      io.emit('duel-tournament-announcement', {
+        type: 'tournament-end',
+        tournamentId: data.tournamentId,
+        winner: data.winner,
+        message: `🏆 TOURNAMENT OVER! ${data.winner} is the fastest gun in the west!`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Track user location changes
   socket.on('user-location-change', (data) => {
     const user = onlineUsers.get(socket.id);

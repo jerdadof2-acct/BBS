@@ -12,10 +12,24 @@ class HighNoonDuel {
             totalDuels: 0,
             accuracy: 100
         };
+        this.tournament = {
+            active: false,
+            tournamentId: null,
+            host: null,
+            participants: [],
+            bracket: [],
+            currentRound: 0,
+            maxRounds: 0,
+            phase: 'waiting', // waiting, joining, active, finished
+            joinEndTime: null,
+            currentDuel: null,
+            winner: null
+        };
     }
 
     async play() {
         await this.loadGameState();
+        this.setupTournamentListeners();
         
         while (true) {
             this.terminal.clear();
@@ -423,12 +437,172 @@ class HighNoonDuel {
     }
 
     async tournament() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset() + 
+            ANSIParser.fg('bright-white') + '  🤠 MULTIPLAYER TOURNAMENT 🤠' + ANSIParser.reset() + 
+            ' '.repeat(40) + ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
         this.terminal.println('');
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Tournament mode coming soon!' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  Challenge other players in real-time duels!' + ANSIParser.reset());
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Tournament Rules:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Elimination bracket format' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Fastest draw wins each duel' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Winner advances to next round' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Last gunslinger standing wins!' + ANSIParser.reset());
         this.terminal.println('');
-        this.terminal.println('  Press any key to continue...');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  [1]' + ANSIParser.reset() + ' Host Tournament');
+        this.terminal.println(ANSIParser.fg('bright-blue') + '  [2]' + ANSIParser.reset() + ' Join Tournament');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [B]' + ANSIParser.reset() + ' Back to Main Menu');
+        this.terminal.println('');
+        
+        const choice = (await this.terminal.input()).toLowerCase().trim();
+        
+        if (choice === '1') {
+            await this.hostTournament();
+        } else if (choice === '2') {
+            await this.joinTournament();
+        } else if (choice === 'b') {
+            return; // Go back to main menu
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice! Please try again.' + ANSIParser.reset());
+            await this.terminal.sleep(1000);
+            await this.tournament();
+        }
+    }
+
+    async hostTournament() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset() + 
+            ANSIParser.fg('bright-white') + '  🏆 HOST TOURNAMENT 🏆' + ANSIParser.reset() + 
+            ' '.repeat(45) + ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Generate tournament ID
+        this.tournament.tournamentId = Date.now().toString();
+        this.tournament.host = this.authManager.getCurrentUser().handle;
+        this.tournament.phase = 'joining';
+        this.tournament.joinEndTime = Date.now() + (60 * 1000); // 60 seconds to join
+        this.tournament.participants = [{
+            name: this.authManager.getCurrentUser().handle,
+            userId: this.authManager.getCurrentUser().id,
+            ready: true
+        }];
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Tournament created!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Tournament ID: ${this.tournament.tournamentId}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Host: ${this.tournament.host}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Join Period: 60 seconds` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Broadcast tournament start
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.emit('duel-tournament-start', {
+                tournamentId: this.tournament.tournamentId,
+                host: this.tournament.host,
+                joinPeriod: 60
+            });
+        }
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Waiting for players to join...' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Players can join by selecting "Join Tournament"' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to continue...' + ANSIParser.reset());
         await this.terminal.input();
+        
+        // Start the tournament
+        await this.runTournament();
+    }
+
+    async joinTournament() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset() + 
+            ANSIParser.fg('bright-white') + '  🎯 JOIN TOURNAMENT 🎯' + ANSIParser.reset() + 
+            ' '.repeat(45) + ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Enter Tournament ID:' + ANSIParser.reset());
+        const tournamentId = (await this.terminal.input()).trim();
+        
+        if (!tournamentId) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  No tournament ID entered!' + ANSIParser.reset());
+            await this.terminal.sleep(2000);
+            return;
+        }
+        
+        // Join the tournament
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.emit('duel-tournament-join', {
+                tournamentId: tournamentId,
+                player: this.authManager.getCurrentUser().handle,
+                userId: this.authManager.getCurrentUser().id
+            });
+        }
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Joining tournament...' + ANSIParser.reset());
+        await this.terminal.sleep(2000);
+        
+        // For now, just show a message (we'll implement the full system later)
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Tournament joining system coming soon!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  This will connect you to the tournament lobby.' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+    }
+
+    async runTournament() {
+        // This will be implemented to run the actual tournament
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Tournament system coming soon!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  This will run the elimination bracket.' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+    }
+
+    setupTournamentListeners() {
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.on('duel-tournament-announcement', (data) => {
+                if (data.type === 'tournament-start') {
+                    // Show tournament announcement
+                    this.terminal.println('');
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  🤠 DUEL TOURNAMENT ANNOUNCEMENT 🤠' + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    this.terminal.println('');
+                    this.terminal.println(ANSIParser.fg('bright-white') + `  ${data.message}` + ANSIParser.reset());
+                    this.terminal.println('');
+                    this.terminal.println(ANSIParser.fg('bright-cyan') + '  Go to Tournament Mode → Join Tournament to participate!' + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + `  You have ${data.joinPeriod} seconds to join!` + ANSIParser.reset());
+                    this.terminal.println('');
+                    this.terminal.println('  Press any key to continue...');
+                } else if (data.type === 'tournament-join') {
+                    // Show player joined
+                    this.terminal.println('');
+                    this.terminal.println(ANSIParser.fg('bright-cyan') + `  ${data.message}` + ANSIParser.reset());
+                    this.terminal.println('');
+                } else if (data.type === 'tournament-update') {
+                    // Show tournament update
+                    this.terminal.println('');
+                    this.terminal.println(ANSIParser.fg('bright-green') + `  ${data.message}` + ANSIParser.reset());
+                    this.terminal.println('');
+                } else if (data.type === 'tournament-end') {
+                    // Show tournament results
+                    this.terminal.println('');
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 TOURNAMENT RESULTS 🏆' + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    this.terminal.println('');
+                    this.terminal.println(ANSIParser.fg('bright-white') + `  ${data.message}` + ANSIParser.reset());
+                    this.terminal.println('');
+                    this.terminal.println('  Press any key to continue...');
+                }
+            });
+        }
     }
 
     async stats() {
