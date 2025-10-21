@@ -1530,7 +1530,24 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Fishing Hole - Broadcast fish catches to all players
+  // Fishing Hole - Track when users enter/leave the game
+  socket.on('enter-fishing-game', () => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      user.currentGame = 'fishing-hole';
+      console.log('User entered fishing game:', user.handle);
+    }
+  });
+
+  socket.on('leave-fishing-game', () => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      user.currentGame = null;
+      console.log('User left fishing game:', user.handle);
+    }
+  });
+
+  // Fishing Hole - Broadcast fish catches only to fishing game players
   socket.on('fish-caught', (data) => {
     const user = onlineUsers.get(socket.id);
     console.log('fish-caught received from socket', socket.id, 'user:', user, 'data:', data);
@@ -1546,8 +1563,17 @@ io.on('connection', (socket) => {
         rarity: data.rarity,
         timestamp: new Date().toISOString()
       };
-      console.log('Broadcasting fish-caught to others:', payload);
-      socket.broadcast.emit('fish-caught', payload);
+      console.log('Broadcasting fish-caught to fishing game players only:', payload);
+      
+      // Only broadcast to users who are currently in the fishing game
+      onlineUsers.forEach((userData, socketId) => {
+        if (userData.currentGame === 'fishing-hole' && socketId !== socket.id) {
+          const targetSocket = io.sockets.sockets.get(socketId);
+          if (targetSocket) {
+            targetSocket.emit('fish-caught', payload);
+          }
+        }
+      });
     }
   });
 

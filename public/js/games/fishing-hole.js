@@ -152,6 +152,11 @@ class FishingHole {
     }
 
     async play() {
+        // Notify server that user entered fishing game
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.emit('enter-fishing-game');
+        }
+        
         this.terminal.clear();
         this.terminal.println(ANSIParser.fg('bright-cyan') + this.getTitleScreen() + ANSIParser.reset());
         this.terminal.println('');
@@ -169,6 +174,10 @@ class FishingHole {
             const choice = await this.mainMenu();
             
             if (choice === 'Q') {
+                // Notify server that user left fishing game
+                if (this.socketClient && this.socketClient.socket) {
+                    this.socketClient.socket.emit('leave-fishing-game');
+                }
                 await this.savePlayerData(true); // Force save when leaving
                 return 'doors';
             } else if (choice === '1') {
