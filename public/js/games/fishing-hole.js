@@ -2340,6 +2340,7 @@ class FishingHole {
         // Safely access participant data
         if (this.tournament.participants && this.tournament.participants.length > 0 && this.tournament.participants[0]) {
             const participant = this.tournament.participants[0];
+            console.log('End tournament - participant data:', participant); // Debug log
             this.tournament.stats.totalTournamentWeight += participant.totalWeight || 0;
             this.tournament.stats.totalTournamentFish += participant.fishCount || 0;
             
@@ -2350,6 +2351,8 @@ class FishingHole {
             if ((participant.totalWeight || 0) > this.tournament.stats.biggestTournamentBag) {
                 this.tournament.stats.biggestTournamentBag = participant.totalWeight || 0;
             }
+        } else {
+            console.log('End tournament - no participant data found!', this.tournament.participants); // Debug log
         }
         
         // Calculate final results

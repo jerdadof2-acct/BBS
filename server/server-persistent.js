@@ -1009,6 +1009,39 @@ app.get('/api/chat', async (req, res) => {
   }
 });
 
+app.post('/api/chat', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const { message, recipient_id } = req.body;
+    const user = await db.get('SELECT handle FROM users WHERE id = ?', [req.session.userId]);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Store message in database
+    await db.run(
+      'INSERT INTO chat_messages (sender_id, sender_handle, message, recipient_id, created_at) VALUES (?, ?, ?, ?, ?)',
+      [req.session.userId, user.handle, message, recipient_id, new Date().toISOString()]
+    );
+    
+    // Broadcast to all connected users
+    io.emit('chat-message', {
+      sender: user.handle,
+      message: message,
+      timestamp: new Date().toISOString()
+    });
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Post chat error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Files endpoints
 app.get('/api/files/:areaId', async (req, res) => {
   try {
