@@ -2153,12 +2153,10 @@ class FishingHole {
         this.tournament.leaderboard = [...this.tournament.participants];
         this.tournament.tournamentMessages = [];
         
-        // Join the tournament
+        // Join the tournament (only if not the host)
         if (this.socketClient && this.socketClient.socket) {
-            this.socketClient.socket.emit('fishing-tournament-join', {
-                tournamentId: this.tournament.tournamentId,
-                player: this.player.name
-            });
+            // Don't join your own tournament - you're already the host
+            console.log('Tournament host - not joining own tournament');
             
             // Request current tournament state
             this.socketClient.socket.emit('fishing-tournament-sync', {
