@@ -1274,7 +1274,7 @@ class FishingHole {
             if (error.name === 'AbortError' || error.message.includes('ERR_NAME_NOT_RESOLVED') || error.message.includes('Failed to fetch')) {
                 console.warn('🚨 Railway server connectivity issue - starting new game');
             } else {
-                console.log('Starting new game');
+            console.log('Starting new game');
             }
         }
     }
@@ -2169,8 +2169,11 @@ class FishingHole {
             this.drawTournamentLeftPanel();
             this.drawTournamentRightPanel();
             
-            // Check for input using custom handler
-            const input = await this.waitForTournamentInput();
+            // Simple input handling - wait for user to press a key
+            this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press [F] to fish, [Q] to quit, or any other key to continue...' + ANSIParser.reset());
+            
+            const input = await this.terminal.input();
             console.log('Tournament input received:', input); // Debug log
             if (input) {
                 console.log('Processing input:', input.toUpperCase()); // Debug log
@@ -2470,34 +2473,6 @@ class FishingHole {
         await this.terminal.sleep(2000); // 2 seconds between casts
     }
 
-    // Custom input handler for tournament
-    async waitForTournamentInput() {
-        return new Promise((resolve) => {
-            let inputReceived = false;
-            
-            // Set up a timeout
-            const timeout = setTimeout(() => {
-                if (!inputReceived) {
-                    resolve(null);
-                }
-            }, 100);
-            
-            // Set up input handler
-            const originalCallback = this.terminal.inputCallback;
-            this.terminal.inputCallback = (value) => {
-                if (!inputReceived) {
-                    inputReceived = true;
-                    clearTimeout(timeout);
-                    this.terminal.inputCallback = originalCallback;
-                    resolve(value);
-                }
-            };
-            
-            // Enable input
-            this.terminal.isWaitingForInput = true;
-            this.terminal.updateCursor();
-        });
-    }
 
     getRandomFish() {
         // Select fish based on location
