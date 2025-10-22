@@ -312,7 +312,8 @@ class FishingHole {
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-cyan') + `  Angler: ${this.player.name || 'Unknown'}  |  Level: ${this.player.level || 1}` + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-green') + `  Money: $${this.player.money || 100}  |  Total Caught: ${this.player.totalCaught || 0}` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-yellow') + `  Biggest Catch: ${this.player.biggestCatchName || 'None'} (${(this.player.biggestCatch || 0).toFixed(2)} lbs)` + ANSIParser.reset());
+        const biggestCatch = parseFloat(this.player.biggestCatch) || 0;
+        this.terminal.println(ANSIParser.fg('bright-yellow') + `  Biggest Catch: ${this.player.biggestCatchName || 'None'} (${biggestCatch.toFixed(2)} lbs)` + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-cyan') + `  Current Location: ${this.location.name} (${this.location.difficulty})` + ANSIParser.reset());
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Go Fishing!' + ANSIParser.reset());
@@ -687,7 +688,8 @@ class FishingHole {
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-green') + `  Total Caught: ${this.player.totalCaught}` + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-green') + `  Total Weight: ${(this.player.totalWeight || 0).toFixed(2)} lbs` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-green') + `  Biggest Catch: ${this.player.biggestCatchName} (${(this.player.biggestCatch || 0).toFixed(2)} lbs)` + ANSIParser.reset());
+        const biggestCatch = parseFloat(this.player.biggestCatch) || 0;
+        this.terminal.println(ANSIParser.fg('bright-green') + `  Biggest Catch: ${this.player.biggestCatchName} (${biggestCatch.toFixed(2)} lbs)` + ANSIParser.reset());
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-cyan') + `  Rare Catches: ${this.player.rareCatches}` + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-yellow') + `  Legendary Catches: ${this.player.legendaryCatches}` + ANSIParser.reset());
@@ -1615,7 +1617,8 @@ class FishingHole {
                     this.player.level = this.player.level || 1;
                     this.player.money = this.player.money || 100;
                     this.player.totalCaught = this.player.totalCaught || 0;
-                    this.player.biggestCatch = this.player.biggestCatch || 0;
+                    this.player.totalWeight = parseFloat(this.player.totalWeight) || 0;
+                    this.player.biggestCatch = parseFloat(this.player.biggestCatch) || 0;
                     this.player.biggestCatchName = this.player.biggestCatchName || 'None';
                     
                     // Ensure stats are properly initialized with numbers
@@ -1670,7 +1673,8 @@ class FishingHole {
                     this.terminal.println(ANSIParser.fg('bright-green') + `  Welcome back, ${this.player.name}!` + ANSIParser.reset());
                     this.terminal.println(ANSIParser.fg('bright-cyan') + `  Level: ${this.player.level} | Money: $${this.player.money} | Total Caught: ${this.player.totalCaught}` + ANSIParser.reset());
                     if (this.player.biggestCatch > 0) {
-                        this.terminal.println(ANSIParser.fg('bright-yellow') + `  Biggest Catch: ${this.player.biggestCatchName} (${(this.player.biggestCatch || 0).toFixed(2)} lbs)` + ANSIParser.reset());
+                        const biggestCatch = parseFloat(this.player.biggestCatch) || 0;
+                        this.terminal.println(ANSIParser.fg('bright-yellow') + `  Biggest Catch: ${this.player.biggestCatchName} (${biggestCatch.toFixed(2)} lbs)` + ANSIParser.reset());
                     }
                     await this.terminal.sleep(2000);
                     return true; // Successfully loaded existing player
