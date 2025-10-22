@@ -406,10 +406,15 @@ class FishingHole {
         console.log('Tackle array available:', !!this.tackle);
         console.log('Tackle rods available:', !!this.tackle?.rods);
         console.log('Tackle reels available:', !!this.tackle?.reels);
+        console.log('About to call getTackleBonus for rod...');
         const rodBonus = this.getTackleBonus('rod', 'catchBonus');
+        console.log('About to call getTackleBonus for reel...');
         const reelBonus = this.getTackleBonus('reel', 'speedBonus') * 0.5; // Half bonus for catch rate
+        console.log('About to call getTackleBonus for line...');
         const lineBonus = this.getTackleBonus('line', 'strength') * 0.3; // Quarter bonus for catch rate
+        console.log('About to call getTackleBonus for hook...');
         const hookBonus = this.getTackleBonus('hook', 'hookBonus');
+        console.log('About to call getTackleBonus for bait...');
         const baitBonus = this.getTackleBonus('bait', 'attractionBonus');
         
         chance += (rodBonus + reelBonus + lineBonus + hookBonus + baitBonus) / 100;
