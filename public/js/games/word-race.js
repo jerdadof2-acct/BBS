@@ -424,21 +424,20 @@ class WordRace {
                 return;
             }
             
-            const response = await fetch('/api/game-state/word-race-stats', {
+            const response = await fetch('/api/game-state/word-race', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    action: 'load',
                     userId: currentUser.id
                 })
             });
             
             if (response.ok) {
                 const data = await response.json();
-                if (data.stats) {
-                    this.playerStats = { ...this.playerStats, ...JSON.parse(data.stats.game_data) };
+                if (data.gameState) {
+                    this.playerStats = { ...this.playerStats, ...data.gameState };
                 }
             }
         } catch (error) {
@@ -455,15 +454,14 @@ class WordRace {
                 return;
             }
             
-            await fetch('/api/game-state/word-race-stats', {
+            await fetch('/api/game-state/word-race', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    action: 'save',
                     userId: currentUser.id,
-                    stats: this.playerStats
+                    gameState: this.playerStats
                 })
             });
         } catch (error) {

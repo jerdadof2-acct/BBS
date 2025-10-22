@@ -1487,6 +1487,58 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
   }
 });
 
+// Word Race leaderboard endpoint
+app.get('/api/word-race/leaderboard', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const result = await query(
+      'SELECT player_name, best_wpm, total_races, wins FROM word_race_stats ORDER BY best_wpm DESC LIMIT 10'
+    );
+    
+    const leaderboard = result.rows.map((row, index) => ({
+      rank: index + 1,
+      playerName: row.player_name,
+      bestWPM: row.best_wpm || 0,
+      totalRaces: row.total_races || 0,
+      wins: row.wins || 0
+    }));
+    
+    res.json(leaderboard);
+  } catch (error) {
+    console.error('Word Race leaderboard error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Trivia Battle leaderboard endpoint
+app.get('/api/trivia-battle/leaderboard', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const result = await query(
+      'SELECT player_name, total_games, total_wins, total_correct, total_questions FROM trivia_battle_stats ORDER BY total_wins DESC, (total_correct::float / NULLIF(total_questions, 0)) DESC LIMIT 10'
+    );
+    
+    const leaderboard = result.rows.map((row, index) => ({
+      rank: index + 1,
+      playerName: row.player_name,
+      totalGames: row.total_games || 0,
+      totalWins: row.total_wins || 0,
+      accuracy: row.total_questions > 0 ? ((row.total_correct / row.total_questions) * 100).toFixed(1) : 0
+    }));
+    
+    res.json(leaderboard);
+  } catch (error) {
+    console.error('Trivia Battle leaderboard error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 } // End of setupRoutes function
 
 // Socket.IO
