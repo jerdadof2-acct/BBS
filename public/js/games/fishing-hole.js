@@ -403,6 +403,9 @@ class FishingHole {
         
         // Adjust for tackle bonuses
         console.log('Current equipped gear:', this.player.gear);
+        console.log('Tackle array available:', !!this.tackle);
+        console.log('Tackle rods available:', !!this.tackle?.rods);
+        console.log('Tackle reels available:', !!this.tackle?.reels);
         const rodBonus = this.getTackleBonus('rod', 'catchBonus');
         const reelBonus = this.getTackleBonus('reel', 'speedBonus') * 0.5; // Half bonus for catch rate
         const lineBonus = this.getTackleBonus('line', 'strength') * 0.3; // Quarter bonus for catch rate
