@@ -446,7 +446,11 @@ class FishingHole {
     }
 
     getTackleBonus(category, stat) {
+        console.log(`getTackleBonus called: category=${category}, stat=${stat}`);
+        console.log(`this.tackle exists:`, !!this.tackle);
+        console.log(`this.tackle[${category}] exists:`, !!this.tackle?.[category]);
         if (!this.tackle || !this.tackle[category]) {
+            console.log(`Early return for ${category} - tackle not available`);
             return 0; // Return 0 bonus if tackle not initialized
         }
         const tackle = this.tackle[category];
