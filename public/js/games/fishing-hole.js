@@ -404,8 +404,10 @@ class FishingHole {
         // Adjust for tackle bonuses
         console.log('Current equipped gear:', this.player.gear);
         console.log('Tackle array available:', !!this.tackle);
+        console.log('Tackle object keys:', Object.keys(this.tackle || {}));
         console.log('Tackle rods available:', !!this.tackle?.rods);
         console.log('Tackle reels available:', !!this.tackle?.reels);
+        console.log('Full tackle object:', this.tackle);
         console.log('About to call getTackleBonus for rod...');
         const rodBonus = this.getTackleBonus('rod', 'catchBonus');
         console.log('About to call getTackleBonus for reel...');
