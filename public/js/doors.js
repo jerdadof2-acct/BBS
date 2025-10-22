@@ -19,7 +19,6 @@ class DoorGames {
             { id: 'galactic-trader', name: 'Galactic Trader', description: 'Space trading sim - SINGLE PLAYER' },
             { id: 'the-pit', name: 'The Pit', description: 'PvP combat arena - MULTIPLAYER ONLY' },
             { id: 'blackjack', name: 'Blackjack', description: 'Casino card game - SINGLE PLAYER' },
-            { id: 'trivia', name: 'Trivia', description: 'Quiz game - SINGLE PLAYER' },
             { id: 'hangman', name: 'Hangman', description: 'Word guessing - SINGLE PLAYER' },
             { id: 'number-guess', name: 'Number Guess', description: 'Daily guessing - SINGLE PLAYER' }
         ];
@@ -149,10 +148,6 @@ class DoorGames {
         } else if (game.id === 'blackjack') {
             const blackjack = new Blackjack(this.terminal, this.socketClient, this.authManager);
             const result = await blackjack.play();
-            return result === 'menu' ? 'menu' : 'doors';
-        } else if (game.id === 'trivia') {
-            const trivia = new Trivia(this.terminal, this.socketClient, this.authManager);
-            const result = await trivia.play();
             return result === 'menu' ? 'menu' : 'doors';
         } else if (game.id === 'hangman') {
             const hangman = new Hangman(this.terminal, this.socketClient, this.authManager);
