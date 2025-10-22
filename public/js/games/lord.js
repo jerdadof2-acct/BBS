@@ -57,6 +57,7 @@ class LORD {
         
         // Load game state
         await this.loadGameState();
+        console.log('LORD - After loadGameState, gameState:', this.gameState);
         
         // Check if new game
         if (!this.gameState || !this.gameState.characterCreated) {
@@ -850,8 +851,8 @@ class LORD {
             if (response.ok) {
                 const data = await response.json();
                 if (data.gameState) {
-                    this.gameState = { ...this.gameState, ...data.gameState };
-                    console.log('Loaded LORD game state');
+                    this.gameState = data.gameState;
+                    console.log('Loaded LORD game state:', this.gameState);
                 }
             }
         } catch (error) {
@@ -876,9 +877,9 @@ class LORD {
             });
             
             if (response.ok) {
-                console.log('Saved LORD game state');
+                console.log('Saved LORD game state:', this.gameState);
             } else {
-                console.error('Failed to save LORD game state');
+                console.error('Failed to save LORD game state, response:', response.status, response.statusText);
             }
         } catch (error) {
             console.error('Error saving LORD game state:', error);
