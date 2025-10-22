@@ -172,6 +172,9 @@ class FishingHole {
             await this.createPlayer();
         }
         
+        // Ensure all equipment is unlocked for current level
+        this.ensureEquipmentUnlocked();
+        
         // Listen for other fishers' catches
         await this.setupFishingListeners();
         
@@ -1276,6 +1279,59 @@ class FishingHole {
             if (level >= location.unlockLevel && !this.player.locationUnlocks.includes(index)) {
                 this.player.locationUnlocks.push(index);
                 this.terminal.println(ANSIParser.fg('bright-yellow') + `  🔓 ${location.name} unlocked!` + ANSIParser.reset());
+            }
+        });
+    }
+
+    ensureEquipmentUnlocked() {
+        const level = this.player.level;
+        
+        // Ensure tackleUnlocks is initialized
+        if (!this.player.tackleUnlocks) {
+            this.player.tackleUnlocks = {
+                rods: [0],
+                reels: [0],
+                lines: [0],
+                hooks: [0],
+                bait: [0]
+            };
+        }
+        
+        // Unlock all equipment that should be available at current level
+        this.tackle.rods.forEach((rod, index) => {
+            if (level >= rod.unlockLevel && !this.player.tackleUnlocks.rods.includes(index)) {
+                this.player.tackleUnlocks.rods.push(index);
+            }
+        });
+        
+        this.tackle.reels.forEach((reel, index) => {
+            if (level >= reel.unlockLevel && !this.player.tackleUnlocks.reels.includes(index)) {
+                this.player.tackleUnlocks.reels.push(index);
+            }
+        });
+        
+        this.tackle.lines.forEach((line, index) => {
+            if (level >= line.unlockLevel && !this.player.tackleUnlocks.lines.includes(index)) {
+                this.player.tackleUnlocks.lines.push(index);
+            }
+        });
+        
+        this.tackle.hooks.forEach((hook, index) => {
+            if (level >= hook.unlockLevel && !this.player.tackleUnlocks.hooks.includes(index)) {
+                this.player.tackleUnlocks.hooks.push(index);
+            }
+        });
+        
+        this.tackle.bait.forEach((bait, index) => {
+            if (level >= bait.unlockLevel && !this.player.tackleUnlocks.bait.includes(index)) {
+                this.player.tackleUnlocks.bait.push(index);
+            }
+        });
+        
+        // Unlock all locations that should be available at current level
+        this.locations.forEach((location, index) => {
+            if (level >= location.unlockLevel && !this.player.locationUnlocks.includes(index)) {
+                this.player.locationUnlocks.push(index);
             }
         });
     }
