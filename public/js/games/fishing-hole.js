@@ -442,7 +442,6 @@ class FishingHole {
         const tackle = this.tackle[category];
         const equipped = this.player.gear[category];
         const item = tackle.find(t => t.name === equipped);
-        console.log(`getTackleBonus: category=${category}, stat=${stat}, equipped=${equipped}, item=`, item);
         return item ? item[stat] || 0 : 0;
     }
 
@@ -1644,14 +1643,16 @@ class FishingHole {
                         console.log('Loaded tournament stats:', this.tournament.stats);
                     }
                     
-                    // Ensure gear is properly initialized
-                    this.player.gear = this.player.gear || {
-                        rod: 'Basic Rod',
-                        reel: 'Basic Reel',
-                        line: 'Monofilament',
-                        hook: 'Basic Hook',
-                        bait: 'Basic Bait'
-                    };
+                    // Load gear from database (already loaded in data.player.gear)
+                    if (!this.player.gear) {
+                        this.player.gear = {
+                            rod: 'Basic Rod',
+                            reel: 'Basic Reel',
+                            line: 'Monofilament',
+                            hook: 'Basic Hook',
+                            bait: 'Basic Bait'
+                        };
+                    }
                     
                     // Ensure tackleUnlocks is properly initialized
                     console.log('Raw tackleUnlocks from database:', this.player.tackleUnlocks);

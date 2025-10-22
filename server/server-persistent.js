@@ -88,6 +88,15 @@ async function initDatabase() {
           current_location TEXT DEFAULT 'Lake Shore',
           inventory TEXT DEFAULT '[]',
           trophy_catches TEXT DEFAULT '[]',
+          gear TEXT DEFAULT '{"rod":"Basic Rod","reel":"Basic Reel","line":"Monofilament","hook":"Basic Hook","bait":"Basic Bait"}',
+          tackle_unlocks TEXT DEFAULT '{"rods":[0],"reels":[0],"lines":[0],"hooks":[0],"bait":[0]}',
+          location_unlocks TEXT DEFAULT '[0]',
+          stats TEXT DEFAULT '{"accuracy":50,"luck":50,"patience":50,"strength":50}',
+          tournament_stats TEXT DEFAULT '{"tournamentsPlayed":0,"tournamentsWon":0,"biggestTournamentFish":0,"biggestTournamentBag":0,"totalTournamentWeight":0,"totalTournamentFish":0}',
+          total_caught INTEGER DEFAULT 0,
+          total_weight REAL DEFAULT 0,
+          biggest_catch REAL DEFAULT 0,
+          biggest_catch_name TEXT DEFAULT 'None',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (user_id) REFERENCES users (id),
@@ -108,6 +117,13 @@ async function initDatabase() {
         await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS total_weight REAL DEFAULT 0.0;`);
         await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS biggest_catch REAL DEFAULT 0.0;`);
         await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS biggest_catch_name TEXT DEFAULT 'None';`);
+        
+        // Add new fishing game columns
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS gear TEXT DEFAULT '{"rod":"Basic Rod","reel":"Basic Reel","line":"Monofilament","hook":"Basic Hook","bait":"Basic Bait"}';`);
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS tackle_unlocks TEXT DEFAULT '{"rods":[0],"reels":[0],"lines":[0],"hooks":[0],"bait":[0]}';`);
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS location_unlocks TEXT DEFAULT '[0]';`);
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS stats TEXT DEFAULT '{"accuracy":50,"luck":50,"patience":50,"strength":50}';`);
+        await db.run(`ALTER TABLE fishing_hole_players ADD COLUMN IF NOT EXISTS tournament_stats TEXT DEFAULT '{"tournamentsPlayed":0,"tournamentsWon":0,"biggestTournamentFish":0,"biggestTournamentBag":0,"totalTournamentWeight":0,"totalTournamentFish":0}';`);
         
         // Add unique constraint on user_id if it doesn't exist
         await db.run(`ALTER TABLE fishing_hole_players ADD CONSTRAINT fishing_hole_players_user_id_unique UNIQUE (user_id);`);
@@ -220,6 +236,15 @@ async function initDatabase() {
       current_location TEXT DEFAULT 'Lake Shore',
       inventory TEXT DEFAULT '[]',
       trophy_catches TEXT DEFAULT '[]',
+      gear TEXT DEFAULT '{"rod":"Basic Rod","reel":"Basic Reel","line":"Monofilament","hook":"Basic Hook","bait":"Basic Bait"}',
+      tackle_unlocks TEXT DEFAULT '{"rods":[0],"reels":[0],"lines":[0],"hooks":[0],"bait":[0]}',
+      location_unlocks TEXT DEFAULT '[0]',
+      stats TEXT DEFAULT '{"accuracy":50,"luck":50,"patience":50,"strength":50}',
+      tournament_stats TEXT DEFAULT '{"tournamentsPlayed":0,"tournamentsWon":0,"biggestTournamentFish":0,"biggestTournamentBag":0,"totalTournamentWeight":0,"totalTournamentFish":0}',
+      total_caught INTEGER DEFAULT 0,
+      total_weight REAL DEFAULT 0,
+      biggest_catch REAL DEFAULT 0,
+      biggest_catch_name TEXT DEFAULT 'None',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users (id),
@@ -515,6 +540,11 @@ app.post('/api/fishing-hole/player', async (req, res) => {
     if (row) {
       const inventory = JSON.parse(row.inventory || '[]');
       const trophyCatches = JSON.parse(row.trophy_catches || '[]');
+      const gear = JSON.parse(row.gear || '{"rod":"Basic Rod","reel":"Basic Reel","line":"Monofilament","hook":"Basic Hook","bait":"Basic Bait"}');
+      const tackleUnlocks = JSON.parse(row.tackle_unlocks || '{"rods":[0],"reels":[0],"lines":[0],"hooks":[0],"bait":[0]}');
+      const locationUnlocks = JSON.parse(row.location_unlocks || '[0]');
+      const stats = JSON.parse(row.stats || '{"accuracy":50,"luck":50,"patience":50,"strength":50}');
+      const tournamentStats = JSON.parse(row.tournament_stats || '{"tournamentsPlayed":0,"tournamentsWon":0,"biggestTournamentFish":0,"biggestTournamentBag":0,"totalTournamentWeight":0,"totalTournamentFish":0}');
       
       res.json({
         player: {
@@ -522,21 +552,22 @@ app.post('/api/fishing-hole/player', async (req, res) => {
           level: row.level,
           experience: row.experience,
           money: row.credits,
-          totalCaught: inventory.length,
-          totalWeight: inventory.reduce((sum, fish) => sum + (fish.weight || 0), 0),
-          biggestCatch: inventory.length > 0 ? Math.max(...inventory.map(f => f.weight || 0)) : 0,
-          biggestCatchName: inventory.length > 0 ? 
-            inventory.reduce((biggest, fish) => 
-              (fish.weight || 0) > (biggest.weight || 0) ? fish : biggest, {weight: 0, name: 'None'}).name : 'None',
+          totalCaught: row.total_caught || 0,
+          totalWeight: row.total_weight || 0,
+          biggestCatch: row.biggest_catch || 0,
+          biggestCatchName: row.biggest_catch_name || 'None',
           inventory: inventory,
           trophyCatches: trophyCatches,
           location: { name: row.current_location || 'Lake Shore' },
-          locationUnlocks: [0, 1],
-          tackleUnlocks: { rods: [0], reels: [0], lines: [0], hooks: [0], bait: [0] },
-          stats: { accuracy: 50, luck: 50, patience: 50, strength: 50 },
-          gear: { rod: "Basic Rod", reel: "Basic Reel", line: "Monofilament", hook: "Basic Hook", bait: "Basic Bait" },
+          locationUnlocks: locationUnlocks,
+          tackleUnlocks: tackleUnlocks,
+          stats: stats,
+          gear: gear,
           achievements: [], challenges: [],
           seasonStats: { spring: { caught: 0, biggest: 0 }, summer: { caught: 0, biggest: 0 }, fall: { caught: 0, biggest: 0 }, winter: { caught: 0, biggest: 0 } }
+        },
+        tournament: {
+          stats: tournamentStats
         }
       });
     } else {
@@ -558,26 +589,30 @@ app.post('/api/fishing-hole/save', async (req, res) => {
     
     if (dbType === 'postgresql') {
       await runQuery(
-        `INSERT INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, total_caught, total_weight, biggest_catch, biggest_catch_name, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP)
+        `INSERT INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, gear, tackle_unlocks, location_unlocks, stats, tournament_stats, total_caught, total_weight, biggest_catch, biggest_catch_name, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, CURRENT_TIMESTAMP)
          ON CONFLICT (user_id) 
-         DO UPDATE SET player_name = $2, level = $3, experience = $4, credits = $5, current_location = $6, inventory = $7, trophy_catches = $8, total_caught = $9, total_weight = $10, biggest_catch = $11, biggest_catch_name = $12, updated_at = CURRENT_TIMESTAMP`,
+         DO UPDATE SET player_name = $2, level = $3, experience = $4, credits = $5, current_location = $6, inventory = $7, trophy_catches = $8, gear = $9, tackle_unlocks = $10, location_unlocks = $11, stats = $12, tournament_stats = $13, total_caught = $14, total_weight = $15, biggest_catch = $16, biggest_catch_name = $17, updated_at = CURRENT_TIMESTAMP`,
         [
           req.session.userId, player.name, player.level, player.experience, player.money,
           location?.name || 'Lake Shore', JSON.stringify(player.inventory || []),
-          JSON.stringify(player.trophyCatches || []), player.totalCaught || 0, player.totalWeight || 0,
-          player.biggestCatch || 0, player.biggestCatchName || 'None'
+          JSON.stringify(player.trophyCatches || []), JSON.stringify(player.gear || {}),
+          JSON.stringify(player.tackleUnlocks || {}), JSON.stringify(player.locationUnlocks || []),
+          JSON.stringify(player.stats || {}), JSON.stringify(player.tournamentStats || {}),
+          player.totalCaught || 0, player.totalWeight || 0, player.biggestCatch || 0, player.biggestCatchName || 'None'
         ]
       );
     } else {
       await runQuery(
-        `INSERT OR REPLACE INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, total_caught, total_weight, biggest_catch, biggest_catch_name, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+        `INSERT OR REPLACE INTO fishing_hole_players (user_id, player_name, level, experience, credits, current_location, inventory, trophy_catches, gear, tackle_unlocks, location_unlocks, stats, tournament_stats, total_caught, total_weight, biggest_catch, biggest_catch_name, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
         [
           req.session.userId, player.name, player.level, player.experience, player.money,
           location?.name || 'Lake Shore', JSON.stringify(player.inventory || []),
-          JSON.stringify(player.trophyCatches || []), player.totalCaught || 0, player.totalWeight || 0,
-          player.biggestCatch || 0, player.biggestCatchName || 'None'
+          JSON.stringify(player.trophyCatches || []), JSON.stringify(player.gear || {}),
+          JSON.stringify(player.tackleUnlocks || {}), JSON.stringify(player.locationUnlocks || []),
+          JSON.stringify(player.stats || {}), JSON.stringify(player.tournamentStats || {}),
+          player.totalCaught || 0, player.totalWeight || 0, player.biggestCatch || 0, player.biggestCatchName || 'None'
         ]
       );
     }
