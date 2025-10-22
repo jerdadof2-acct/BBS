@@ -1446,16 +1446,16 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
     try {
       result = await query(
         dbType === 'postgresql' 
-          ? 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
-          : 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+          ? 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name, inventory FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+          : 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name, inventory FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
       );
     } catch (columnError) {
       console.log('New columns not available, using basic query:', columnError.message);
       // Fallback to basic columns if the new ones don't exist yet
       result = await query(
         dbType === 'postgresql' 
-          ? 'SELECT player_name, level, experience, credits FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
-          : 'SELECT player_name, level, experience, credits FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+          ? 'SELECT player_name, level, experience, credits, inventory FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+          : 'SELECT player_name, level, experience, credits, inventory FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
       );
     }
     
@@ -1469,12 +1469,38 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
       biggestCatchName: row.biggest_catch_name || "None"
     }));
     
-    const topBags = result.rows.map((row, index) => ({
-      playerName: row.player_name,
-      level: row.level,
-      totalWeight: row.total_weight || 0,
-      totalCaught: row.total_caught || 0
-    }));
+    const topBags = result.rows.map((row, index) => {
+      let top10Weight = 0;
+      let totalCaught = row.total_caught || 0;
+      
+      // Calculate top 10 fish by weight from inventory
+      if (row.inventory) {
+        try {
+          const inventory = JSON.parse(row.inventory);
+          if (Array.isArray(inventory)) {
+            // Sort fish by weight (descending) and take top 10
+            const sortedFish = inventory
+              .filter(fish => fish && typeof fish.weight === 'number')
+              .sort((a, b) => b.weight - a.weight)
+              .slice(0, 10);
+            
+            top10Weight = sortedFish.reduce((sum, fish) => sum + fish.weight, 0);
+          }
+        } catch (error) {
+          console.log('Error parsing inventory for player', row.player_name, ':', error.message);
+        }
+      }
+      
+      return {
+        playerName: row.player_name,
+        level: row.level,
+        top10Weight: top10Weight,
+        totalCaught: totalCaught
+      };
+    });
+    
+    // Sort topBags by top10Weight (descending)
+    topBags.sort((a, b) => b.top10Weight - a.top10Weight);
     
     console.log('Returning leaderboard data:', { topCatches: topCatches.length, topBags: topBags.length });
     
