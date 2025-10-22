@@ -23,7 +23,7 @@ class TriviaBattle {
             bestStreak: 0,
             averageTime: 0
         };
-        this.tournament = {
+        this.tournamentState = {
             active: false,
             tournamentId: null,
             host: null,
@@ -322,11 +322,11 @@ class TriviaBattle {
         this.terminal.println('');
         
         // Generate tournament ID
-        this.tournament.tournamentId = Date.now().toString();
-        this.tournament.host = this.authManager.getCurrentUser().handle;
-        this.tournament.phase = 'joining';
-        this.tournament.joinEndTime = Date.now() + (60 * 1000); // 60 seconds to join
-        this.tournament.participants = [{
+        this.tournamentState.tournamentId = Date.now().toString();
+        this.tournamentState.host = this.authManager.getCurrentUser().handle;
+        this.tournamentState.phase = 'joining';
+        this.tournamentState.joinEndTime = Date.now() + (60 * 1000); // 60 seconds to join
+        this.tournamentState.participants = [{
             name: this.authManager.getCurrentUser().handle,
             userId: this.authManager.getCurrentUser().id,
             ready: true,
@@ -336,16 +336,16 @@ class TriviaBattle {
         }];
         
         this.terminal.println(ANSIParser.fg('bright-green') + '  Tournament created!' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + `  Tournament ID: ${this.tournament.tournamentId}` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + `  Host: ${this.tournament.host}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Tournament ID: ${this.tournamentState.tournamentId}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Host: ${this.tournamentState.host}` + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + `  Join Period: 60 seconds` + ANSIParser.reset());
         this.terminal.println('');
         
         // Broadcast tournament start
         if (this.socketClient && this.socketClient.socket) {
             this.socketClient.socket.emit('trivia-tournament-start', {
-                tournamentId: this.tournament.tournamentId,
-                host: this.tournament.host,
+                tournamentId: this.tournamentState.tournamentId,
+                host: this.tournamentState.host,
                 joinPeriod: 60
             });
         }
@@ -410,8 +410,8 @@ class TriviaBattle {
         // Generate bracket based on participant count
         this.generateBracket();
         
-        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Participants: ${this.tournament.participants.length}` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Rounds: ${this.tournament.maxRounds}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Participants: ${this.tournamentState.participants.length}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Rounds: ${this.tournamentState.maxRounds}` + ANSIParser.reset());
         this.terminal.println('');
         
         // Show bracket
@@ -426,7 +426,7 @@ class TriviaBattle {
     }
 
     generateBracket() {
-        const participantCount = this.tournament.participants.length;
+        const participantCount = this.tournamentState.participants.length;
         
         // Determine bracket size (2, 4, 8, 16)
         let bracketSize = 2;
@@ -436,16 +436,16 @@ class TriviaBattle {
         else bracketSize = 16;
         
         // Calculate rounds needed
-        this.tournament.maxRounds = Math.log2(bracketSize);
+        this.tournamentState.maxRounds = Math.log2(bracketSize);
         
         // Create bracket structure
-        this.tournament.bracket = [];
-        for (let round = 0; round < this.tournament.maxRounds; round++) {
-            this.tournament.bracket[round] = [];
+        this.tournamentState.bracket = [];
+        for (let round = 0; round < this.tournamentState.maxRounds; round++) {
+            this.tournamentState.bracket[round] = [];
             const matchesInRound = bracketSize / Math.pow(2, round + 1);
             
             for (let match = 0; match < matchesInRound; match++) {
-                this.tournament.bracket[round][match] = {
+                this.tournamentState.bracket[round][match] = {
                     player1: null,
                     player2: null,
                     winner: null,
@@ -455,16 +455,16 @@ class TriviaBattle {
         }
         
         // Assign participants to first round
-        const shuffledParticipants = [...this.tournament.participants].sort(() => Math.random() - 0.5);
+        const shuffledParticipants = [...this.tournamentState.participants].sort(() => Math.random() - 0.5);
         let participantIndex = 0;
         
-        for (let match = 0; match < this.tournament.bracket[0].length; match++) {
+        for (let match = 0; match < this.tournamentState.bracket[0].length; match++) {
             if (participantIndex < shuffledParticipants.length) {
-                this.tournament.bracket[0][match].player1 = shuffledParticipants[participantIndex];
+                this.tournamentState.bracket[0][match].player1 = shuffledParticipants[participantIndex];
                 participantIndex++;
             }
             if (participantIndex < shuffledParticipants.length) {
-                this.tournament.bracket[0][match].player2 = shuffledParticipants[participantIndex];
+                this.tournamentState.bracket[0][match].player2 = shuffledParticipants[participantIndex];
                 participantIndex++;
             }
         }
@@ -474,11 +474,11 @@ class TriviaBattle {
         this.terminal.println(ANSIParser.fg('bright-white') + '  Tournament Bracket:' + ANSIParser.reset());
         this.terminal.println('');
         
-        for (let round = 0; round < this.tournament.bracket.length; round++) {
+        for (let round = 0; round < this.tournamentState.bracket.length; round++) {
             this.terminal.println(ANSIParser.fg('bright-cyan') + `  Round ${round + 1}:` + ANSIParser.reset());
             
-            for (let match = 0; match < this.tournament.bracket[round].length; match++) {
-                const matchData = this.tournament.bracket[round][match];
+            for (let match = 0; match < this.tournamentState.bracket[round].length; match++) {
+                const matchData = this.tournamentState.bracket[round][match];
                 let matchText = `    Match ${match + 1}: `;
                 
                 if (matchData.player1 && matchData.player2) {
@@ -502,20 +502,20 @@ class TriviaBattle {
     }
 
     async runTournamentRounds() {
-        for (let round = 0; round < this.tournament.maxRounds; round++) {
-            this.tournament.currentRound = round;
+        for (let round = 0; round < this.tournamentState.maxRounds; round++) {
+            this.tournamentState.currentRound = round;
             
             this.terminal.clear();
             this.terminal.println(ANSIParser.fg('bright-cyan') + `╔══════════════════════════════════════════════════════════════════════════════╗` + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-cyan') + `║` + ANSIParser.reset() + 
-                ANSIParser.fg('bright-white') + `  ROUND ${round + 1} OF ${this.tournament.maxRounds}` + ANSIParser.reset() + 
+                ANSIParser.fg('bright-white') + `  ROUND ${round + 1} OF ${this.tournamentState.maxRounds}` + ANSIParser.reset() + 
                 ' '.repeat(45) + ANSIParser.fg('bright-cyan') + `║` + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-cyan') + `╚══════════════════════════════════════════════════════════════════════════════╝` + ANSIParser.reset());
             this.terminal.println('');
             
             // Run all matches in this round
-            for (let match = 0; match < this.tournament.bracket[round].length; match++) {
-                const matchData = this.tournament.bracket[round][match];
+            for (let match = 0; match < this.tournamentState.bracket[round].length; match++) {
+                const matchData = this.tournamentState.bracket[round][match];
                 
                 if (matchData.player1 && matchData.player2) {
                     // Both players present - run the trivia battle
@@ -572,25 +572,25 @@ class TriviaBattle {
         // Broadcast the result
         if (this.socketClient && this.socketClient.socket) {
             this.socketClient.socket.emit('trivia-tournament-update', {
-                tournamentId: this.tournament.tournamentId,
+                tournamentId: this.tournamentState.tournamentId,
                 message: `🧠 ${matchData.winner.name} won their trivia battle in Round ${round + 1}!`
             });
         }
     }
 
     advanceWinners(round) {
-        if (round < this.tournament.maxRounds - 1) {
+        if (round < this.tournamentState.maxRounds - 1) {
             const nextRound = round + 1;
             let nextMatch = 0;
             
-            for (let match = 0; match < this.tournament.bracket[round].length; match++) {
-                const matchData = this.tournament.bracket[round][match];
+            for (let match = 0; match < this.tournamentState.bracket[round].length; match++) {
+                const matchData = this.tournamentState.bracket[round][match];
                 if (matchData.winner) {
-                    if (nextMatch < this.tournament.bracket[nextRound].length) {
-                        if (!this.tournament.bracket[nextRound][nextMatch].player1) {
-                            this.tournament.bracket[nextRound][nextMatch].player1 = matchData.winner;
+                    if (nextMatch < this.tournamentState.bracket[nextRound].length) {
+                        if (!this.tournamentState.bracket[nextRound][nextMatch].player1) {
+                            this.tournamentState.bracket[nextRound][nextMatch].player1 = matchData.winner;
                         } else {
-                            this.tournament.bracket[nextRound][nextMatch].player2 = matchData.winner;
+                            this.tournamentState.bracket[nextRound][nextMatch].player2 = matchData.winner;
                             nextMatch++;
                         }
                     }
@@ -601,9 +601,9 @@ class TriviaBattle {
 
     async endTournament() {
         // Find the final winner
-        const finalRound = this.tournament.maxRounds - 1;
-        const finalMatch = this.tournament.bracket[finalRound][0];
-        this.tournament.winner = finalMatch.winner;
+        const finalRound = this.tournamentState.maxRounds - 1;
+        const finalMatch = this.tournamentState.bracket[finalRound][0];
+        this.tournamentState.winner = finalMatch.winner;
         
         this.terminal.clear();
         this.terminal.println(ANSIParser.fg('bright-cyan') + '╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
@@ -613,7 +613,7 @@ class TriviaBattle {
         this.terminal.println(ANSIParser.fg('bright-cyan') + '╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
         this.terminal.println('');
         
-        this.terminal.println(ANSIParser.fg('bright-green') + `  🥇 WINNER: ${this.tournament.winner.name}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + `  🥇 WINNER: ${this.tournamentState.winner.name}` + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  The smartest brain in the west!' + ANSIParser.reset());
         this.terminal.println('');
         
@@ -623,8 +623,8 @@ class TriviaBattle {
         // Broadcast tournament end
         if (this.socketClient && this.socketClient.socket) {
             this.socketClient.socket.emit('trivia-tournament-end', {
-                tournamentId: this.tournament.tournamentId,
-                winner: this.tournament.winner.name
+                tournamentId: this.tournamentState.tournamentId,
+                winner: this.tournamentState.winner.name
             });
         }
         
@@ -633,8 +633,8 @@ class TriviaBattle {
         await this.terminal.input();
         
         // Reset tournament state
-        this.tournament.active = false;
-        this.tournament.phase = 'finished';
+        this.tournamentState.active = false;
+        this.tournamentState.phase = 'finished';
     }
 
     setupTournamentListeners() {
