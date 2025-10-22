@@ -107,45 +107,45 @@ class FishingHole {
         // Extensive tackle system
         this.tackle = {
             rods: [
-                { name: 'Basic Rod', cost: 0, catchBonus: 0, strength: 10, description: 'Starting rod' },
-                { name: 'Fiberglass Rod', cost: 100, catchBonus: 5, strength: 15, description: 'Better durability' },
-                { name: 'Carbon Fiber Rod', cost: 300, catchBonus: 10, strength: 20, description: 'Lightweight and strong' },
-                { name: 'Pro Rod', cost: 600, catchBonus: 15, strength: 25, description: 'Professional grade' },
-                { name: 'Master Rod', cost: 1000, catchBonus: 20, strength: 30, description: 'Master angler equipment' },
-                { name: 'Legendary Rod', cost: 2000, catchBonus: 25, strength: 40, description: 'Legendary craftsmanship' },
-                { name: 'Trophy Rod', cost: 5000, catchBonus: 30, strength: 50, description: 'Trophy fishing specialist' }
+                { name: 'Basic Rod', cost: 0, catchBonus: 0, strength: 10, description: 'Starting rod', unlockLevel: 1 },
+                { name: 'Fiberglass Rod', cost: 100, catchBonus: 5, strength: 15, description: 'Better durability', unlockLevel: 3 },
+                { name: 'Carbon Fiber Rod', cost: 300, catchBonus: 10, strength: 20, description: 'Lightweight and strong', unlockLevel: 6 },
+                { name: 'Pro Rod', cost: 600, catchBonus: 15, strength: 25, description: 'Professional grade', unlockLevel: 9 },
+                { name: 'Master Rod', cost: 1000, catchBonus: 20, strength: 30, description: 'Master angler equipment', unlockLevel: 12 },
+                { name: 'Legendary Rod', cost: 2000, catchBonus: 25, strength: 40, description: 'Legendary craftsmanship', unlockLevel: 15 },
+                { name: 'Trophy Rod', cost: 5000, catchBonus: 30, strength: 50, description: 'Trophy fishing specialist', unlockLevel: 18 }
             ],
             reels: [
-                { name: 'Basic Reel', cost: 0, speedBonus: 0, smoothness: 10, description: 'Simple reel' },
-                { name: 'Spinning Reel', cost: 75, speedBonus: 5, smoothness: 15, description: 'Smooth retrieval' },
-                { name: 'Baitcasting Reel', cost: 200, speedBonus: 10, smoothness: 20, description: 'Precision casting' },
-                { name: 'Fly Reel', cost: 400, speedBonus: 15, smoothness: 25, description: 'Fly fishing specialist' },
-                { name: 'Big Game Reel', cost: 800, speedBonus: 20, smoothness: 30, description: 'Heavy duty fishing' },
-                { name: 'Trophy Reel', cost: 1500, speedBonus: 25, smoothness: 40, description: 'Trophy fishing specialist' }
+                { name: 'Basic Reel', cost: 0, speedBonus: 0, smoothness: 10, description: 'Simple reel', unlockLevel: 1 },
+                { name: 'Spinning Reel', cost: 75, speedBonus: 5, smoothness: 15, description: 'Smooth retrieval', unlockLevel: 4 },
+                { name: 'Baitcasting Reel', cost: 200, speedBonus: 10, smoothness: 20, description: 'Precision casting', unlockLevel: 7 },
+                { name: 'Fly Reel', cost: 400, speedBonus: 15, smoothness: 25, description: 'Fly fishing specialist', unlockLevel: 10 },
+                { name: 'Big Game Reel', cost: 800, speedBonus: 20, smoothness: 30, description: 'Heavy duty fishing', unlockLevel: 13 },
+                { name: 'Trophy Reel', cost: 1500, speedBonus: 25, smoothness: 40, description: 'Trophy fishing specialist', unlockLevel: 16 }
             ],
             lines: [
-                { name: 'Monofilament', cost: 0, strength: 10, visibility: 5, description: 'Basic fishing line' },
-                { name: 'Braided Line', cost: 50, strength: 15, visibility: 3, description: 'Strong and thin' },
-                { name: 'Fluorocarbon', cost: 100, strength: 12, visibility: 1, description: 'Nearly invisible' },
-                { name: 'Super Line', cost: 200, strength: 20, visibility: 2, description: 'Advanced technology' },
-                { name: 'Trophy Line', cost: 400, strength: 30, visibility: 1, description: 'Trophy fishing specialist' }
+                { name: 'Monofilament', cost: 0, strength: 10, visibility: 5, description: 'Basic fishing line', unlockLevel: 1 },
+                { name: 'Braided Line', cost: 50, strength: 15, visibility: 3, description: 'Strong and thin', unlockLevel: 5 },
+                { name: 'Fluorocarbon', cost: 100, strength: 12, visibility: 1, description: 'Nearly invisible', unlockLevel: 8 },
+                { name: 'Super Line', cost: 200, strength: 20, visibility: 2, description: 'Advanced technology', unlockLevel: 11 },
+                { name: 'Trophy Line', cost: 400, strength: 30, visibility: 1, description: 'Trophy fishing specialist', unlockLevel: 14 }
             ],
             hooks: [
-                { name: 'Basic Hook', cost: 0, hookBonus: 0, size: 'Medium', description: 'Standard hook' },
-                { name: 'Sharp Hook', cost: 25, hookBonus: 5, size: 'Medium', description: 'Sharper point' },
-                { name: 'Barbed Hook', cost: 50, hookBonus: 10, size: 'Medium', description: 'Harder to escape' },
-                { name: 'Circle Hook', cost: 75, hookBonus: 15, size: 'Large', description: 'Better hooking' },
-                { name: 'Treble Hook', cost: 100, hookBonus: 20, size: 'Large', description: 'Triple hooks' },
-                { name: 'Trophy Hook', cost: 200, hookBonus: 30, size: 'Extra Large', description: 'Trophy fishing specialist' }
+                { name: 'Basic Hook', cost: 0, hookBonus: 0, size: 'Medium', description: 'Standard hook', unlockLevel: 1 },
+                { name: 'Sharp Hook', cost: 25, hookBonus: 5, size: 'Medium', description: 'Sharper point', unlockLevel: 6 },
+                { name: 'Barbed Hook', cost: 50, hookBonus: 10, size: 'Medium', description: 'Harder to escape', unlockLevel: 9 },
+                { name: 'Circle Hook', cost: 75, hookBonus: 15, size: 'Large', description: 'Better hooking', unlockLevel: 12 },
+                { name: 'Treble Hook', cost: 100, hookBonus: 20, size: 'Large', description: 'Triple hooks', unlockLevel: 15 },
+                { name: 'Trophy Hook', cost: 200, hookBonus: 30, size: 'Extra Large', description: 'Trophy fishing specialist', unlockLevel: 17 }
             ],
             bait: [
-                { name: 'Basic Bait', cost: 0, attractionBonus: 0, durability: 5, description: 'Simple bait' },
-                { name: 'Worms', cost: 10, attractionBonus: 5, durability: 3, description: 'Natural attraction' },
-                { name: 'Minnows', cost: 20, attractionBonus: 10, durability: 4, description: 'Live bait' },
-                { name: 'Crickets', cost: 15, attractionBonus: 8, durability: 2, description: 'Fresh bait' },
-                { name: 'Power Bait', cost: 30, attractionBonus: 15, durability: 6, description: 'Enhanced attraction' },
-                { name: 'Lures', cost: 50, attractionBonus: 20, durability: 10, description: 'Reusable lures' },
-                { name: 'Trophy Bait', cost: 100, attractionBonus: 30, durability: 15, description: 'Trophy fishing specialist' }
+                { name: 'Basic Bait', cost: 0, attractionBonus: 0, durability: 5, description: 'Simple bait', unlockLevel: 1 },
+                { name: 'Worms', cost: 10, attractionBonus: 5, durability: 3, description: 'Natural attraction', unlockLevel: 2 },
+                { name: 'Minnows', cost: 20, attractionBonus: 10, durability: 4, description: 'Live bait', unlockLevel: 4 },
+                { name: 'Crickets', cost: 15, attractionBonus: 8, durability: 2, description: 'Fresh bait', unlockLevel: 6 },
+                { name: 'Power Bait', cost: 30, attractionBonus: 15, durability: 6, description: 'Enhanced attraction', unlockLevel: 8 },
+                { name: 'Lures', cost: 50, attractionBonus: 20, durability: 10, description: 'Reusable lures', unlockLevel: 10 },
+                { name: 'Trophy Bait', cost: 100, attractionBonus: 30, durability: 15, description: 'Trophy fishing specialist', unlockLevel: 13 }
             ]
         };
         this.otherFishers = [];
@@ -1220,32 +1220,56 @@ class FishingHole {
     unlockNewContent() {
         const level = this.player.level;
         
-        // Unlock new tackle
-        if (level >= 3 && !this.player.tackleUnlocks?.rods?.includes(1)) {
-            if (!this.player.tackleUnlocks.rods) this.player.tackleUnlocks.rods = [];
-            this.player.tackleUnlocks.rods.push(1);
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  🔓 Fiberglass Rod unlocked!' + ANSIParser.reset());
+        // Ensure tackleUnlocks is initialized
+        if (!this.player.tackleUnlocks) {
+            this.player.tackleUnlocks = {
+                rods: [0],
+                reels: [0],
+                lines: [0],
+                hooks: [0],
+                bait: [0]
+            };
         }
-        if (level >= 5 && !this.player.tackleUnlocks?.reels?.includes(1)) {
-            if (!this.player.tackleUnlocks.reels) this.player.tackleUnlocks.reels = [];
-            this.player.tackleUnlocks.reels.push(1);
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  🔓 Spinning Reel unlocked!' + ANSIParser.reset());
-        }
-        if (level >= 7 && !this.player.tackleUnlocks?.lines?.includes(1)) {
-            if (!this.player.tackleUnlocks.lines) this.player.tackleUnlocks.lines = [];
-            this.player.tackleUnlocks.lines.push(1);
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  🔓 Braided Line unlocked!' + ANSIParser.reset());
-        }
-        if (level >= 9 && !this.player.tackleUnlocks?.hooks?.includes(1)) {
-            if (!this.player.tackleUnlocks.hooks) this.player.tackleUnlocks.hooks = [];
-            this.player.tackleUnlocks.hooks.push(1);
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  🔓 Sharp Hook unlocked!' + ANSIParser.reset());
-        }
-        if (level >= 11 && !this.player.tackleUnlocks?.bait?.includes(1)) {
-            if (!this.player.tackleUnlocks.bait) this.player.tackleUnlocks.bait = [];
-            this.player.tackleUnlocks.bait.push(1);
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  🔓 Worms unlocked!' + ANSIParser.reset());
-        }
+        
+        // Unlock rods based on level
+        this.tackle.rods.forEach((rod, index) => {
+            if (level >= rod.unlockLevel && !this.player.tackleUnlocks.rods.includes(index)) {
+                this.player.tackleUnlocks.rods.push(index);
+                this.terminal.println(ANSIParser.fg('bright-yellow') + `  🔓 ${rod.name} unlocked!` + ANSIParser.reset());
+            }
+        });
+        
+        // Unlock reels based on level
+        this.tackle.reels.forEach((reel, index) => {
+            if (level >= reel.unlockLevel && !this.player.tackleUnlocks.reels.includes(index)) {
+                this.player.tackleUnlocks.reels.push(index);
+                this.terminal.println(ANSIParser.fg('bright-yellow') + `  🔓 ${reel.name} unlocked!` + ANSIParser.reset());
+            }
+        });
+        
+        // Unlock lines based on level
+        this.tackle.lines.forEach((line, index) => {
+            if (level >= line.unlockLevel && !this.player.tackleUnlocks.lines.includes(index)) {
+                this.player.tackleUnlocks.lines.push(index);
+                this.terminal.println(ANSIParser.fg('bright-yellow') + `  🔓 ${line.name} unlocked!` + ANSIParser.reset());
+            }
+        });
+        
+        // Unlock hooks based on level
+        this.tackle.hooks.forEach((hook, index) => {
+            if (level >= hook.unlockLevel && !this.player.tackleUnlocks.hooks.includes(index)) {
+                this.player.tackleUnlocks.hooks.push(index);
+                this.terminal.println(ANSIParser.fg('bright-yellow') + `  🔓 ${hook.name} unlocked!` + ANSIParser.reset());
+            }
+        });
+        
+        // Unlock bait based on level
+        this.tackle.bait.forEach((bait, index) => {
+            if (level >= bait.unlockLevel && !this.player.tackleUnlocks.bait.includes(index)) {
+                this.player.tackleUnlocks.bait.push(index);
+                this.terminal.println(ANSIParser.fg('bright-yellow') + `  🔓 ${bait.name} unlocked!` + ANSIParser.reset());
+            }
+        });
         
         // Unlock new locations (check if already unlocked)
         this.locations.forEach((location, index) => {
