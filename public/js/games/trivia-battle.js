@@ -225,6 +225,7 @@ class TriviaBattle {
     }
 
     async play() {
+        console.log('Trivia Battle - Starting play method'); // Debug log
         await this.loadGameState();
         this.setupTournamentListeners();
         
@@ -247,7 +248,7 @@ class TriviaBattle {
         this.terminal.println(ANSIParser.fg('bright-green') + '  [2]' + ANSIParser.reset() + ' Tournament Mode');
         this.terminal.println(ANSIParser.fg('bright-green') + '  [3]' + ANSIParser.reset() + ' View Leaderboard');
         this.terminal.println(ANSIParser.fg('bright-green') + '  [4]' + ANSIParser.reset() + ' Your Statistics');
-        this.terminal.println(ANSIParser.fg('bright-red') + '  [Q]' + ANSIParser.reset() + ' Quit to Door Games');
+        this.terminal.println(ANSIParser.fg('bright-red') + '  [Q/X]' + ANSIParser.reset() + ' Quit to Door Games');
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  Select option: ' + ANSIParser.reset());
         
@@ -264,6 +265,8 @@ class TriviaBattle {
                 return await this.showStats();
             case 'q':
             case 'quit':
+            case 'x':
+            case 'exit':
                 await this.saveGameState();
                 return 'doors';
             default:
