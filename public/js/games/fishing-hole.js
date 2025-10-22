@@ -403,11 +403,11 @@ class FishingHole {
         
         // Adjust for tackle bonuses
         console.log('Current gear for bonus calculation:', this.player.gear);
-        const rodBonus = this.getTackleBonus('rods', 'catchBonus');
-        const reelBonus = this.getTackleBonus('reels', 'speedBonus') * 0.5; // Half bonus for catch rate
-        const lineBonus = this.getTackleBonus('lines', 'strength') * 0.3; // Quarter bonus for catch rate
-        const hookBonus = this.getTackleBonus('hooks', 'hookBonus');
-        const baitBonus = this.getTackleBonus('bait', 'attractionBonus');
+        const rodBonus = this.getTackleBonus('rods', 'catchBonus', 'rod');
+        const reelBonus = this.getTackleBonus('reels', 'speedBonus', 'reel') * 0.5; // Half bonus for catch rate
+        const lineBonus = this.getTackleBonus('lines', 'strength', 'line') * 0.3; // Quarter bonus for catch rate
+        const hookBonus = this.getTackleBonus('hooks', 'hookBonus', 'hook');
+        const baitBonus = this.getTackleBonus('bait', 'attractionBonus', 'bait');
         
         chance += (rodBonus + reelBonus + lineBonus + hookBonus + baitBonus) / 100;
         
@@ -437,12 +437,12 @@ class FishingHole {
         return finalChance;
     }
 
-    getTackleBonus(category, stat) {
+    getTackleBonus(category, stat, gearProperty) {
         if (!this.tackle || !this.tackle[category]) {
             return 0; // Return 0 bonus if tackle not initialized
         }
         const tackle = this.tackle[category];
-        const equipped = this.player.gear[category];
+        const equipped = this.player.gear[gearProperty];
         const item = tackle.find(t => t.name === equipped);
         console.log(`getTackleBonus: ${category} - equipped="${equipped}", found item:`, !!item, item ? item[stat] : 'N/A');
         return item ? item[stat] || 0 : 0;
