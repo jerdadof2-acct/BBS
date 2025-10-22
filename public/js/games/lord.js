@@ -50,6 +50,21 @@ class LORD {
         ];
     }
 
+    async inputWithQuit(prompt = '') {
+        if (prompt) {
+            this.terminal.println(prompt);
+        }
+        const input = await this.terminal.input();
+        const choice = input.toLowerCase().trim();
+        
+        // Check for quit commands
+        if (choice === 'x' || choice === 'quit' || choice === 'exit' || choice === 'back') {
+            return 'quit';
+        }
+        
+        return choice;
+    }
+
     async play() {
         this.terminal.clear();
         this.terminal.println(ANSIParser.fg('bright-cyan') + this.getTitle() + ANSIParser.reset());
@@ -133,7 +148,7 @@ class LORD {
             this.terminal.println('');
             this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
             
-            const choice = (await this.terminal.input()).toLowerCase();
+            const choice = await this.inputWithQuit();
             
             if (choice === 'f') {
                 await this.forest();
@@ -157,7 +172,7 @@ class LORD {
                 await this.viewLeaderboards();
             } else if (choice === 'a') {
                 await this.enterArena();
-            } else if (choice === 'x') {
+            } else if (choice === 'x' || choice === 'quit' || choice === 'exit') {
                 await this.saveGameState();
                 return 'doors';
             }
@@ -336,9 +351,13 @@ class LORD {
                 this.terminal.println('');
                 this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
                 
-                const choice = (await this.terminal.input()).toLowerCase();
+                const choice = await this.inputWithQuit();
                 
-                if (choice === 'a') {
+                if (choice === 'quit') {
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  You flee from combat!' + ANSIParser.reset());
+                    this.inCombat = false;
+                    return;
+                } else if (choice === 'a') {
                     // Attack
                     const baseDamage = this.gameState.strength;
                     const variance = Math.floor(Math.random() * 10) - 5;
