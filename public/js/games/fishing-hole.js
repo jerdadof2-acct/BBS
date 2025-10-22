@@ -442,6 +442,7 @@ class FishingHole {
         const tackle = this.tackle[category];
         const equipped = this.player.gear[category];
         const item = tackle.find(t => t.name === equipped);
+        console.log(`getTackleBonus: category=${category}, stat=${stat}, equipped=${equipped}, item=`, item);
         return item ? item[stat] || 0 : 0;
     }
 
