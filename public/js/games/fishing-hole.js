@@ -402,6 +402,7 @@ class FishingHole {
         else if (this.location.difficulty === 'Tournament') chance -= 0.4;
         
         // Adjust for tackle bonuses
+        console.log('Current gear for bonus calculation:', this.player.gear);
         const rodBonus = this.getTackleBonus('rods', 'catchBonus');
         const reelBonus = this.getTackleBonus('reels', 'speedBonus') * 0.5; // Half bonus for catch rate
         const lineBonus = this.getTackleBonus('lines', 'strength') * 0.3; // Quarter bonus for catch rate
@@ -443,6 +444,7 @@ class FishingHole {
         const tackle = this.tackle[category];
         const equipped = this.player.gear[category];
         const item = tackle.find(t => t.name === equipped);
+        console.log(`getTackleBonus: ${category} - equipped="${equipped}", found item:`, !!item, item ? item[stat] : 'N/A');
         return item ? item[stat] || 0 : 0;
     }
 
