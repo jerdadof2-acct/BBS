@@ -639,7 +639,7 @@ class FishingHole {
             this.terminal.println('');
             
             // Show Biggest Bag Leaderboard
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  🎣 BIGGEST BAG LEADERBOARD (Top 10 Fish Total)' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  🎣 TOTAL WEIGHT LEADERBOARD' + ANSIParser.reset());
             this.terminal.println('');
             
             console.log('topBags data:', data.topBags);
@@ -648,7 +648,7 @@ class FishingHole {
             if (!data.topBags || data.topBags.length === 0) {
                 this.terminal.println(ANSIParser.fg('bright-yellow') + '  No anglers yet!' + ANSIParser.reset());
             } else {
-                this.terminal.println(ANSIParser.fg('bright-cyan') + '  Rank  Angler Name         Level  Total Weight' + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  Rank  Angler Name         Level  Total Weight  Fish Caught' + ANSIParser.reset());
                 this.terminal.println(ANSIParser.fg('bright-white') + '  ───────────────────────────────────────────' + ANSIParser.reset());
                 
                 data.topBags.forEach((entry, index) => {
@@ -656,9 +656,11 @@ class FishingHole {
                     const name = entry.playerName.padEnd(20);
                     const level = entry.level.toString().padStart(5);
                     const totalWeight = parseFloat(entry.totalWeight) || 0;
-                    const weight = `${totalWeight.toFixed(2)} lbs`;
+                    const fishCaught = entry.totalCaught || 0;
+                    const weight = `${totalWeight.toFixed(2)} lbs`.padEnd(12);
+                    const fishCount = `${fishCaught} fish`;
                     const color = index === 0 ? 'bright-yellow' : index < 3 ? 'bright-green' : 'bright-cyan';
-                    this.terminal.println(ANSIParser.fg(color) + `  ${rank}.  ${name}  ${level}  ${weight}` + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg(color) + `  ${rank}.  ${name}  ${level}  ${weight}  ${fishCount}` + ANSIParser.reset());
                 });
             }
         } catch (error) {

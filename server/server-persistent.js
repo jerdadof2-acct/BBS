@@ -1472,7 +1472,8 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
     const topBags = result.rows.map((row, index) => ({
       playerName: row.player_name,
       level: row.level,
-      totalWeight: row.total_weight || 0
+      totalWeight: row.total_weight || 0,
+      totalCaught: row.total_caught || 0
     }));
     
     console.log('Returning leaderboard data:', { topCatches: topCatches.length, topBags: topBags.length });
