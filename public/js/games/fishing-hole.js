@@ -402,21 +402,10 @@ class FishingHole {
         else if (this.location.difficulty === 'Tournament') chance -= 0.4;
         
         // Adjust for tackle bonuses
-        console.log('Current equipped gear:', this.player.gear);
-        console.log('Tackle array available:', !!this.tackle);
-        console.log('Tackle object keys:', Object.keys(this.tackle || {}));
-        console.log('Tackle rods available:', !!this.tackle?.rods);
-        console.log('Tackle reels available:', !!this.tackle?.reels);
-        console.log('Full tackle object:', this.tackle);
-        console.log('About to call getTackleBonus for rod...');
-        const rodBonus = this.getTackleBonus('rod', 'catchBonus');
-        console.log('About to call getTackleBonus for reel...');
-        const reelBonus = this.getTackleBonus('reel', 'speedBonus') * 0.5; // Half bonus for catch rate
-        console.log('About to call getTackleBonus for line...');
-        const lineBonus = this.getTackleBonus('line', 'strength') * 0.3; // Quarter bonus for catch rate
-        console.log('About to call getTackleBonus for hook...');
-        const hookBonus = this.getTackleBonus('hook', 'hookBonus');
-        console.log('About to call getTackleBonus for bait...');
+        const rodBonus = this.getTackleBonus('rods', 'catchBonus');
+        const reelBonus = this.getTackleBonus('reels', 'speedBonus') * 0.5; // Half bonus for catch rate
+        const lineBonus = this.getTackleBonus('lines', 'strength') * 0.3; // Quarter bonus for catch rate
+        const hookBonus = this.getTackleBonus('hooks', 'hookBonus');
         const baitBonus = this.getTackleBonus('bait', 'attractionBonus');
         
         chance += (rodBonus + reelBonus + lineBonus + hookBonus + baitBonus) / 100;
@@ -448,17 +437,12 @@ class FishingHole {
     }
 
     getTackleBonus(category, stat) {
-        console.log(`getTackleBonus called: category=${category}, stat=${stat}`);
-        console.log(`this.tackle exists:`, !!this.tackle);
-        console.log(`this.tackle[${category}] exists:`, !!this.tackle?.[category]);
         if (!this.tackle || !this.tackle[category]) {
-            console.log(`Early return for ${category} - tackle not available`);
             return 0; // Return 0 bonus if tackle not initialized
         }
         const tackle = this.tackle[category];
         const equipped = this.player.gear[category];
         const item = tackle.find(t => t.name === equipped);
-        console.log(`getTackleBonus: category=${category}, stat=${stat}, equipped="${equipped}", item=`, item);
         return item ? item[stat] || 0 : 0;
     }
 
