@@ -837,73 +837,51 @@ class LORD {
             const currentUser = this.authManager.getCurrentUser();
             const userId = currentUser ? currentUser.id : null;
             
-            // First try to load from LORD-specific API
-            if (this.gameState && this.gameState.name) {
-                const response = await fetch('/api/lord/player', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        playerName: this.gameState.name,
-                        userId: userId
-                    })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.player) {
-                        this.gameState = { ...this.gameState, ...data.player };
-                        console.log('Loaded LORD player data:', data.player.name);
-                        return;
-                    }
+            const response = await fetch('/api/game-state/lord', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userId
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.gameState) {
+                    this.gameState = { ...this.gameState, ...data.gameState };
+                    console.log('Loaded LORD game state');
                 }
             }
-            
-            // Fallback to general game state API
-            const response = await fetch(`/api/game-state/lord`);
-            const state = await response.json();
-            if (state && state.game_data) {
-                this.gameState = { ...this.gameState, ...JSON.parse(state.game_data) };
-            }
         } catch (error) {
-            // No saved game state yet, start fresh
-            console.log('Starting new LORD game');
+            console.error('Failed to load LORD game state:', error);
         }
     }
 
     async saveGameState() {
         try {
-            // Save to LORD-specific API if we have a character name
-            if (this.gameState && this.gameState.name) {
-                const currentUser = this.authManager.getCurrentUser();
-                const userId = currentUser ? currentUser.id : null;
-                
-                const response = await fetch('/api/lord/save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        player: this.gameState,
-                        userId: userId
-                    })
-                });
-                
-                if (response.ok) {
-                    console.log('Saved LORD player data:', this.gameState.name);
-                    return;
-                }
-            }
+            const currentUser = this.authManager.getCurrentUser();
+            const userId = currentUser ? currentUser.id : null;
             
-            // Fallback to general game state API
-            await fetch(`/api/game-state/lord`, {
+            const response = await fetch('/api/game-state/lord', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.gameState)
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    gameState: this.gameState
+                })
             });
+            
+            if (response.ok) {
+                console.log('Saved LORD game state');
+            } else {
+                console.error('Failed to save LORD game state');
+            }
         } catch (error) {
-            console.error('Error saving game state:', error);
+            console.error('Error saving LORD game state:', error);
         }
     }
 
