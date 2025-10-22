@@ -679,7 +679,6 @@ class TriviaBattle {
     }
 
     async quickBattle() {
-        // Simple AI battle for now
         this.terminal.clear();
         this.terminal.println(ANSIParser.fg('bright-cyan') + '╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-cyan') + '║' + ANSIParser.reset() + 
@@ -688,8 +687,176 @@ class TriviaBattle {
         this.terminal.println(ANSIParser.fg('bright-cyan') + '╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
         this.terminal.println('');
         
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Quick Battle system coming soon!' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  This will be a single-player vs AI trivia game.' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Challenge the AI in a trivia battle!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Answer questions as fast as you can to beat the AI.' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Select difficulty
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Select AI Difficulty:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + '  [1]' + ANSIParser.reset() + ' Easy AI (60% accuracy, 3-5s response)');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [2]' + ANSIParser.reset() + ' Medium AI (75% accuracy, 2-4s response)');
+        this.terminal.println(ANSIParser.fg('bright-red') + '  [3]' + ANSIParser.reset() + ' Hard AI (90% accuracy, 1-3s response)');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [B]' + ANSIParser.reset() + ' Back to Main Menu');
+        this.terminal.println('');
+        
+        const choice = (await this.terminal.input()).toLowerCase().trim();
+        
+        let aiDifficulty = null;
+        if (choice === '1') {
+            aiDifficulty = { accuracy: 0.6, minTime: 3000, maxTime: 5000, name: 'Easy AI' };
+        } else if (choice === '2') {
+            aiDifficulty = { accuracy: 0.75, minTime: 2000, maxTime: 4000, name: 'Medium AI' };
+        } else if (choice === '3') {
+            aiDifficulty = { accuracy: 0.9, minTime: 1000, maxTime: 3000, name: 'Hard AI' };
+        } else if (choice === 'b') {
+            return; // Go back to main menu
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice! Please try again.' + ANSIParser.reset());
+            await this.terminal.sleep(1000);
+            return await this.quickBattle();
+        }
+        
+        // Start the battle
+        await this.runAIBattle(aiDifficulty);
+    }
+
+    async runAIBattle(aiDifficulty) {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '║' + ANSIParser.reset() + 
+            ANSIParser.fg('bright-white') + `  🧠 BATTLE vs ${aiDifficulty.name.toUpperCase()} 🧠` + ANSIParser.reset() + 
+            ' '.repeat(35) + ANSIParser.fg('bright-cyan') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        const playerName = this.authManager.getCurrentUser().handle;
+        const aiName = aiDifficulty.name;
+        
+        let playerScore = 0;
+        let aiScore = 0;
+        const totalQuestions = 10;
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + `  ${playerName} vs ${aiName}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  First to ${Math.ceil(totalQuestions/2)} correct answers wins!` + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to start...' + ANSIParser.reset());
+        await this.terminal.input();
+        
+        // Run the battle
+        for (let round = 1; round <= totalQuestions; round++) {
+            this.terminal.clear();
+            this.terminal.println(ANSIParser.fg('bright-cyan') + '╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + '║' + ANSIParser.reset() + 
+                ANSIParser.fg('bright-white') + `  QUESTION ${round} OF ${totalQuestions}` + ANSIParser.reset() + 
+                ' '.repeat(45) + ANSIParser.fg('bright-cyan') + '║' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + '╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+            this.terminal.println('');
+            
+            // Show current scores
+            this.terminal.println(ANSIParser.fg('bright-white') + `  ${playerName}: ${playerScore}  |  ${aiName}: ${aiScore}` + ANSIParser.reset());
+            this.terminal.println('');
+            
+            // Get random question
+            const question = this.questions[Math.floor(Math.random() * this.questions.length)];
+            
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  Category: ${question.category}` + ANSIParser.reset());
+            this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-white') + `  ${question.question}` + ANSIParser.reset());
+            this.terminal.println('');
+            
+            // Show options
+            question.options.forEach((option, index) => {
+                this.terminal.println(ANSIParser.fg('bright-yellow') + `  [${index + 1}]` + ANSIParser.reset() + ` ${option}`);
+            });
+            this.terminal.println('');
+            
+            // Start timing
+            const startTime = Date.now();
+            this.terminal.println(ANSIParser.fg('bright-green') + '  Your answer (1-4): ' + ANSIParser.reset());
+            
+            const playerAnswer = await this.terminal.input();
+            const playerTime = Date.now() - startTime;
+            
+            // Simulate AI response
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  ${aiName} is thinking...` + ANSIParser.reset());
+            const aiResponseTime = aiDifficulty.minTime + Math.random() * (aiDifficulty.maxTime - aiDifficulty.minTime);
+            await this.terminal.sleep(aiResponseTime);
+            
+            // Check answers
+            const playerCorrect = parseInt(playerAnswer) === question.correct + 1;
+            const aiCorrect = Math.random() < aiDifficulty.accuracy;
+            
+            this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  Results:' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  ${playerName}: ${playerCorrect ? 'CORRECT' : 'WRONG'} (${(playerTime/1000).toFixed(1)}s)` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  ${aiName}: ${aiCorrect ? 'CORRECT' : 'WRONG'} (${(aiResponseTime/1000).toFixed(1)}s)` + ANSIParser.reset());
+            
+            // Update scores
+            if (playerCorrect) playerScore++;
+            if (aiCorrect) aiScore++;
+            
+            this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  Current Score: ${playerName} ${playerScore} - ${aiScore} ${aiName}` + ANSIParser.reset());
+            
+            // Check for winner
+            if (playerScore >= Math.ceil(totalQuestions/2) || aiScore >= Math.ceil(totalQuestions/2)) {
+                break;
+            }
+            
+            this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to continue...' + ANSIParser.reset());
+            await this.terminal.input();
+        }
+        
+        // Show final results
+        await this.showBattleResults(playerName, aiName, playerScore, aiScore, totalQuestions);
+    }
+
+    async showBattleResults(playerName, aiName, playerScore, aiScore, totalQuestions) {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '║' + ANSIParser.reset() + 
+            ANSIParser.fg('bright-white') + '  🏆 BATTLE RESULTS 🏆' + ANSIParser.reset() + 
+            ' '.repeat(45) + ANSIParser.fg('bright-cyan') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Final Score: ${playerName} ${playerScore} - ${aiScore} ${aiName}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        if (playerScore > aiScore) {
+            this.terminal.println(ANSIParser.fg('bright-green') + `  🎉 VICTORY! ${playerName} wins!` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  You outsmarted the AI!' + ANSIParser.reset());
+            
+            // Update player stats
+            this.gameState.totalGames++;
+            this.gameState.totalWins++;
+            this.gameState.totalQuestions += totalQuestions;
+            this.gameState.totalCorrect += playerScore;
+        } else if (aiScore > playerScore) {
+            this.terminal.println(ANSIParser.fg('bright-red') + `  💀 DEFEAT! ${aiName} wins!` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  The AI was too smart this time!' + ANSIParser.reset());
+            
+            // Update player stats
+            this.gameState.totalGames++;
+            this.gameState.totalQuestions += totalQuestions;
+            this.gameState.totalCorrect += playerScore;
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  🤝 DRAW! It\'s a tie!' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  Both players are equally smart!' + ANSIParser.reset());
+            
+            // Update player stats
+            this.gameState.totalGames++;
+            this.gameState.totalQuestions += totalQuestions;
+            this.gameState.totalCorrect += playerScore;
+        }
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Accuracy: ${playerName} ${((playerScore/totalQuestions)*100).toFixed(1)}% | ${aiName} ${((aiScore/totalQuestions)*100).toFixed(1)}%` + ANSIParser.reset());
+        
+        // Save updated stats
+        await this.saveGameState();
+        
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to continue...' + ANSIParser.reset());
         await this.terminal.input();
