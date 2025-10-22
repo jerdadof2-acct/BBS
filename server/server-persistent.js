@@ -1446,8 +1446,8 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
     try {
       result = await query(
         dbType === 'postgresql' 
-          ? 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name, inventory FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
-          : 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name, inventory FROM fishing_hole_players ORDER BY level DESC, experience DESC LIMIT 10'
+          ? 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name, inventory FROM fishing_hole_players ORDER BY biggest_catch DESC, level DESC LIMIT 10'
+          : 'SELECT player_name, level, experience, credits, total_caught, total_weight, biggest_catch, biggest_catch_name, inventory FROM fishing_hole_players ORDER BY biggest_catch DESC, level DESC LIMIT 10'
       );
     } catch (columnError) {
       console.log('New columns not available, using basic query:', columnError.message);
@@ -1468,6 +1468,9 @@ app.get('/api/game-state/fishing-hole/leaderboard', async (req, res) => {
       biggestCatch: row.biggest_catch || 0,
       biggestCatchName: row.biggest_catch_name || "None"
     }));
+    
+    // Sort topCatches by biggest catch weight (descending)
+    topCatches.sort((a, b) => b.biggestCatch - a.biggestCatch);
     
     const topBags = result.rows.map((row, index) => {
       let top10Weight = 0;
