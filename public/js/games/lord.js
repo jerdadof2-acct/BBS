@@ -839,19 +839,14 @@ class LORD {
             const userId = currentUser ? currentUser.id : null;
             
             const response = await fetch('/api/game-state/lord', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    userId: userId
-                })
+                method: 'GET',
+                credentials: 'include'
             });
             
             if (response.ok) {
                 const data = await response.json();
-                if (data.gameState) {
-                    this.gameState = data.gameState;
+                if (data) {
+                    this.gameState = data;
                     console.log('Loaded LORD game state:', this.gameState);
                 }
             }
@@ -870,10 +865,8 @@ class LORD {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    userId: userId,
-                    gameState: this.gameState
-                })
+                credentials: 'include',
+                body: JSON.stringify(this.gameState)
             });
             
             if (response.ok) {
