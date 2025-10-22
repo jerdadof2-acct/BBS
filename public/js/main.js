@@ -48,6 +48,7 @@ class BBSApplication {
         
         // Set up settings
         this.setupSettings();
+        this.setupBBSAnnouncements();
         
         // Start application
         await this.start();
@@ -351,7 +352,70 @@ class BBSApplication {
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to continue...' + ANSIParser.reset());
         await this.terminal.input();
     }
-    
+
+    setupBBSAnnouncements() {
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.on('bbs-announcement', (data) => {
+                if (data.type === 'user-login') {
+                    this.showBBSAnnouncement(data.message, 'login');
+                } else if (data.type === 'user-logout') {
+                    this.showBBSAnnouncement(data.message, 'logout');
+                }
+            });
+        }
+    }
+
+    showBBSAnnouncement(message, type) {
+        // Create a temporary announcement that appears on screen
+        const announcement = document.createElement('div');
+        announcement.className = 'bbs-announcement';
+        announcement.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'login' ? '#2d5a2d' : '#5a2d2d'};
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 2px solid ${type === 'login' ? '#4a7c4a' : '#7c4a4a'};
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            z-index: 10000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            animation: slideIn 0.5s ease-out;
+        `;
+        
+        announcement.textContent = message;
+        document.body.appendChild(announcement);
+        
+        // Add CSS animation
+        if (!document.getElementById('bbs-announcement-styles')) {
+            const style = document.createElement('style');
+            style.id = 'bbs-announcement-styles';
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            announcement.style.animation = 'slideOut 0.5s ease-in';
+            setTimeout(() => {
+                if (announcement.parentNode) {
+                    announcement.parentNode.removeChild(announcement);
+                }
+            }, 500);
+        }, 5000);
+    }
+
     async getOnlineUsers() {
         return new Promise((resolve) => {
             this.socketClient.on('online-users-update', (users) => {

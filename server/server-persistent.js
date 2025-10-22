@@ -1507,7 +1507,18 @@ io.on('connection', (socket) => {
     
     onlineUsers.set(socket.id, { userId, handle, accessLevel: accessLevel || 1, lastActivity: Date.now(), currentLocation: 'Main Menu' });
     console.log('🔍 DEBUG: Online users after login:', Array.from(onlineUsers.values()));
-    socket.broadcast.emit('user-online', { userId, handle });
+    
+    // Broadcast user login to ALL users (including the person who just logged in)
+    io.emit('user-online', { userId, handle });
+    
+    // Send BBS-wide login announcement
+    io.emit('bbs-announcement', {
+      type: 'user-login',
+      message: `🌟 ${handle} has logged on to the BBS!`,
+      user: handle,
+      timestamp: new Date().toISOString()
+    });
+    
     io.emit('online-users-update', Array.from(onlineUsers.values()));
   });
 
@@ -1515,7 +1526,18 @@ io.on('connection', (socket) => {
     const user = onlineUsers.get(socket.id);
     if (user) {
       onlineUsers.delete(socket.id);
-      socket.broadcast.emit('user-offline', { userId: user.userId, handle: user.handle });
+      
+      // Broadcast user logout to ALL users
+      io.emit('user-offline', { userId: user.userId, handle: user.handle });
+      
+      // Send BBS-wide logout announcement
+      io.emit('bbs-announcement', {
+        type: 'user-logout',
+        message: `👋 ${user.handle} has logged off the BBS.`,
+        user: user.handle,
+        timestamp: new Date().toISOString()
+      });
+      
       io.emit('online-users-update', Array.from(onlineUsers.values()));
     }
   });
