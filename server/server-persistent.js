@@ -1766,6 +1766,7 @@ io.on('connection', (socket) => {
       });
       
       // Send current players to the new joiner
+      console.log('DEBUG: Sending current-players to', user.handle, ':', currentPlayers);
       socket.emit('current-players', {
         game: 'high-noon-hustle',
         players: currentPlayers
@@ -1777,7 +1778,7 @@ io.on('connection', (socket) => {
       const playerTown = storedData.current_town || 'tumbleweed_junction';
       const characterClass = storedData.character_class || 'gunslinger';
       
-      io.to(room).emit('player-joined', { 
+      const playerJoinedData = { 
         game: 'high-noon-hustle',
         player: {
           id: user.userId,
@@ -1787,7 +1788,9 @@ io.on('connection', (socket) => {
           current_town: playerTown,
           socketId: socket.id
         }
-      });
+      };
+      console.log('DEBUG: Broadcasting player-joined to all players:', playerJoinedData);
+      io.to(room).emit('player-joined', playerJoinedData);
     } else {
       // Generic player join notification
       socket.to(room).emit('player-joined', { socketId: socket.id });
