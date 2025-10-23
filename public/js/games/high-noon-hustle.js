@@ -425,6 +425,8 @@ class HighNoonHustle {
             await this.formPosse();
         } else if (choice === '9') {
             await this.tournamentMode();
+        } else if (choice === 'tournament' || choice === 't') {
+            await this.tournamentMode();
         } else if (choice === 'r' || choice === 'refresh') {
             await this.enterSaloon(); // Refresh the saloon display
         } else if (choice === 'b' || choice === 'back') {

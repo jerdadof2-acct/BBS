@@ -162,7 +162,7 @@ class SocketClient {
                     terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
                     terminal.println('');
                     terminal.println(ANSIParser.fg('bright-white') + `  ${data.host} started a ${data.gameType} tournament!` + ANSIParser.reset());
-                    terminal.println(ANSIParser.fg('bright-cyan') + '  Go to Tournaments menu to join!' + ANSIParser.reset());
+                    terminal.println(ANSIParser.fg('bright-cyan') + '  Type "tournament" in the saloon to join!' + ANSIParser.reset());
                     if (data.joinPeriod) {
                         terminal.println(ANSIParser.fg('bright-yellow') + `  You have ${data.joinPeriod} seconds to join!` + ANSIParser.reset());
                     }
