@@ -136,6 +136,32 @@ class SocketClient {
             }
         });
 
+        // High Noon Hustle tournament announcement handler
+        this.socket.on('tournament-start', (data) => {
+            console.log('DEBUG: Received tournament-start event:', data);
+            if (data.game === 'high-noon-hustle' && window.app && window.app.terminal) {
+                console.log('DEBUG: Displaying tournament announcement');
+                window.app.terminal.println('');
+                window.app.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                window.app.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 HIGH NOON HUSTLE TOURNAMENT 🏆' + ANSIParser.reset());
+                window.app.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                window.app.terminal.println('');
+                window.app.terminal.println(ANSIParser.fg('bright-white') + `  ${data.host} started a ${data.gameType} tournament!` + ANSIParser.reset());
+                window.app.terminal.println(ANSIParser.fg('bright-cyan') + '  Go to Door Games → High Noon Hustle → Tournaments to join!' + ANSIParser.reset());
+                if (data.joinPeriod) {
+                    window.app.terminal.println(ANSIParser.fg('bright-yellow') + `  You have ${data.joinPeriod} seconds to join!` + ANSIParser.reset());
+                }
+                window.app.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                window.app.terminal.println('');
+            } else {
+                console.log('DEBUG: Not displaying tournament announcement - conditions not met:', {
+                    game: data.game,
+                    hasApp: !!window.app,
+                    hasTerminal: !!(window.app && window.app.terminal)
+                });
+            }
+        });
+
         // SysOp direct message handler
         this.socket.on('sysop-direct-message', (data) => {
             if (window.app && window.app.terminal) {

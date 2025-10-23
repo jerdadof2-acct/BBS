@@ -7,6 +7,9 @@ const cors = require('cors');
 const path = require('path');
 const { initDatabase } = require('./db');
 
+// Import High Noon Hustle server
+const hnhRoutes = require('./hnh-server');
+
 
 const app = express();
 const server = http.createServer(app);
@@ -43,6 +46,9 @@ initDatabase().then(database => {
   console.error('Failed to initialize database:', err);
   process.exit(1);
 });
+
+// API Routes
+app.use('/api/hnh', hnhRoutes);
 
 // Socket.io connection handling
 const onlineUsers = new Map(); // socketId -> { userId, handle, accessLevel, lastActivity }
@@ -106,9 +112,57 @@ io.on('connection', (socket) => {
     socket.broadcast.to(data.room).emit('game-update', data);
   });
 
-  socket.on('join-game-room', (room) => {
+  socket.on('join-game-room', (data) => {
+    // Handle both old string format and new object format
+    const room = typeof data === 'string' ? data : data.game;
+    const playerData = typeof data === 'object' ? data.player : null;
+    
+    console.log('DEBUG: User joining room:', room, 'socketId:', socket.id);
+    console.log('DEBUG: Player data:', playerData);
     socket.join(room);
-    socket.to(room).emit('player-joined', { socketId: socket.id });
+    const user = onlineUsers.get(socket.id);
+    console.log('DEBUG: User data:', user);
+    
+    if (user && room === 'high-noon-hustle') {
+      // High Noon Hustle specific player join notification
+      console.log('DEBUG: Emitting player-joined for high-noon-hustle:', user.handle);
+      
+      // Send current player list to the new player
+      const currentPlayers = Array.from(onlineUsers.values()).map(u => ({
+        id: u.userId,
+        name: u.handle,
+        display_name: u.handle,
+        character_class: 'gunslinger', // Default class for now
+        current_town: 'tumbleweed_junction', // Default town for now
+        socketId: socket.id
+      }));
+      
+      // Send current players to the new joiner
+      socket.emit('current-players', {
+        game: 'high-noon-hustle',
+        players: currentPlayers
+      });
+      
+      // Send to all players in the room (including the one who just joined)
+      // Use actual player data if available, otherwise use defaults
+      const playerTown = playerData?.current_town || 'tumbleweed_junction';
+      const characterClass = playerData?.character_class || 'gunslinger';
+      
+      io.to(room).emit('player-joined', { 
+        game: 'high-noon-hustle',
+        player: {
+          id: user.userId,
+          name: user.handle,
+          display_name: user.handle,
+          character_class: characterClass,
+          current_town: playerTown,
+          socketId: socket.id
+        }
+      });
+    } else {
+      // Generic player join notification
+      socket.to(room).emit('player-joined', { socketId: socket.id });
+    }
   });
 
   socket.on('leave-game-room', (room) => {
@@ -116,9 +170,86 @@ io.on('connection', (socket) => {
     socket.to(room).emit('player-left', { socketId: socket.id });
   });
 
+  socket.on('saloon-message', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      socket.to('high-noon-hustle').emit('saloon-message', data);
+    }
+  });
+
+  // High Noon Hustle Duel System
+  socket.on('duel-challenge', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Duel challenge from', data.challenger.name, 'to player', data.targetPlayer);
+      socket.to('high-noon-hustle').emit('duel-challenge', data);
+    }
+  });
+
+  socket.on('duel-response', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Duel response from player', data.targetPlayer, 'accepted:', data.accepted);
+      socket.to('high-noon-hustle').emit('duel-response', data);
+    }
+  });
+
+  socket.on('saloon-message', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Saloon message from', data.player.name, ':', data.message);
+      // Broadcast to all players in the high-noon-hustle room
+      io.to('high-noon-hustle').emit('saloon-message', data);
+    }
+  });
+
+  // Tournament handlers for High Noon Hustle
+  socket.on('tournament-start', (data) => {
+    console.log('DEBUG: Received tournament-start event on server:', data);
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Tournament start from', data.host, ':', data.gameType);
+      console.log('DEBUG: Broadcasting to all BBS users...');
+      // Broadcast tournament start to all BBS users
+      io.emit('tournament-start', data);
+      console.log('DEBUG: Tournament broadcast sent to', io.engine.clientsCount, 'clients');
+    } else {
+      console.log('DEBUG: Tournament event not for high-noon-hustle, game:', data.game);
+    }
+  });
+
+  socket.on('tournament-join', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Tournament join from', data.participant.name);
+      // Broadcast tournament join to all players in the room
+      io.to('high-noon-hustle').emit('tournament-join', data);
+    }
+  });
+
+  socket.on('tournament-update', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Tournament update');
+      // Broadcast tournament update to all players in the room
+      io.to('high-noon-hustle').emit('tournament-update', data);
+    }
+  });
+
+  socket.on('tournament-end', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Tournament end, winner:', data.winner);
+      // Broadcast tournament end to all BBS users
+      io.emit('tournament-end', data);
+    }
+  });
+
   socket.on('disconnect', () => {
     const user = onlineUsers.get(socket.id);
     if (user) {
+      // Notify High Noon Hustle players if they were in the game
+      socket.to('high-noon-hustle').emit('player-left', {
+        game: 'high-noon-hustle',
+        player: {
+          id: user.userId,
+          name: user.handle,
+          socketId: socket.id
+        }
+      });
+      
       onlineUsers.delete(socket.id);
       socket.broadcast.emit('user-offline', { userId: user.userId, handle: user.handle });
       io.emit('online-users-update', Array.from(onlineUsers.values()));

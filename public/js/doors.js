@@ -5,6 +5,7 @@ class DoorGames {
         this.socketClient = socketClient;
         this.authManager = authManager;
         this.games = [
+            { id: 'high-noon-hustle', name: '🤠 High Noon Hustle 🤠', description: 'Western multiplayer hub - MULTIPLAYER FOCUSED (Saloon social + PvP + co-op)' },
             { id: 'word-race', name: '🏃 Word Race 🏃', description: 'Typing competition - SOLO/MP (Practice + Multiplayer)' },
             { id: 'trivia-battle', name: '🧠 Trivia Battle 🧠', description: 'Trivia competition - MULTIPLAYER ONLY' },
             { id: 'high-noon-duel', name: '🤠 High Noon Duel 🤠', description: 'Western shootout - MULTIPLAYER ONLY' },
@@ -66,7 +67,7 @@ class DoorGames {
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  GAME SUMMARY:' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-green') + '  • 11 Single Player Games' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-red') + '  • 3 Multiplayer Only Games' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-red') + '  • 4 Multiplayer Only Games' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-magenta') + '  • 2 Games (Solo + Multiplayer)' + ANSIParser.reset());
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  [0]' + ANSIParser.reset() + ' Return to Main Menu');
@@ -93,7 +94,11 @@ class DoorGames {
         await this.terminal.sleep(1000);
         
         // Launch the appropriate game
-        if (game.id === 'word-race') {
+        if (game.id === 'high-noon-hustle') {
+            const highNoonHustle = new HighNoonHustle(this.terminal, this.socketClient, this.authManager);
+            const result = await highNoonHustle.play();
+            return result === 'menu' ? 'menu' : 'doors';
+        } else if (game.id === 'word-race') {
             const wordRace = new WordRace(this.terminal, this.socketClient, this.authManager);
             const result = await wordRace.play();
             return result === 'menu' ? 'menu' : 'doors';
