@@ -35,17 +35,15 @@ router.post('/player/load', async (req, res) => {
             return res.status(400).json({ error: 'Username required' });
         }
         
-        if (!usePostgreSQL) {
+        if (!usePostgreSQL || !db) {
             return res.json({ player: null });
         }
         
-        const pool = getPool();
-        
         // Check if HNH tables exist, create if not
-        await createHNHTables(pool);
+        await createHNHTables();
         
         // Load player data
-        const playerResult = await pool.query(
+        const playerResult = await db.query(
             'SELECT * FROM hnh_players WHERE username = $1',
             [username]
         );
@@ -54,7 +52,7 @@ router.post('/player/load', async (req, res) => {
             const player = playerResult.rows[0];
             
             // Load game state
-            const gameStateResult = await pool.query(
+            const gameStateResult = await db.query(
                 'SELECT * FROM hnh_player_stats WHERE player_id = $1',
                 [player.id]
             );
@@ -103,17 +101,15 @@ router.post('/player/save', async (req, res) => {
             return res.status(400).json({ error: 'Username and player data required' });
         }
         
-        if (!usePostgreSQL) {
+        if (!usePostgreSQL || !db) {
             return res.json({ success: true, message: 'Data saved to local storage' });
         }
         
-        const pool = getPool();
-        
         // Check if HNH tables exist, create if not
-        await createHNHTables(pool);
+        await createHNHTables();
         
         // Check if player exists
-        const existingPlayerResult = await pool.query(
+        const existingPlayerResult = await db.query(
             'SELECT id FROM hnh_players WHERE username = $1',
             [username]
         );
@@ -122,24 +118,24 @@ router.post('/player/save', async (req, res) => {
             // Update existing player
             const playerId = existingPlayerResult.rows[0].id;
             
-            await pool.query(
+            await db.query(
                 'UPDATE hnh_players SET display_name = $1, character_class = $2, gender = $3, current_town = $4, updated_at = NOW() WHERE id = $5',
                 [player.display_name, player.character_class, player.gender, currentTown || 'dusty_gulch', playerId]
             );
             
             // Update or create game state
-            const gameStateResult = await pool.query(
+            const gameStateResult = await db.query(
                 'SELECT id FROM hnh_player_stats WHERE player_id = $1',
                 [playerId]
             );
             
             if (gameStateResult.rows.length > 0) {
-                await pool.query(
+                await db.query(
                     'UPDATE hnh_player_stats SET current_energy = $1, max_energy = $2, gold = $3, experience = $4, level = $5, honor_score = $6, current_activity = $7, current_location = $8, updated_at = NOW() WHERE player_id = $9',
                     [gameState.energy, gameState.maxEnergy, gameState.gold, gameState.experience, gameState.level, gameState.honorScore, gameState.currentActivity, gameState.currentLocation, playerId]
                 );
             } else {
-                await pool.query(
+                await db.query(
                     'INSERT INTO hnh_player_stats (player_id, current_energy, max_energy, gold, experience, level, honor_score, current_activity, current_location, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())',
                     [playerId, gameState.energy, gameState.maxEnergy, gameState.gold, gameState.experience, gameState.level, gameState.honorScore, gameState.currentActivity, gameState.currentLocation]
                 );
@@ -154,7 +150,7 @@ router.post('/player/save', async (req, res) => {
             const playerId = newPlayerResult.rows[0].id;
             
             // Create game state
-            await pool.query(
+            await db.query(
                 'INSERT INTO hnh_player_stats (player_id, current_energy, max_energy, gold, experience, level, honor_score, current_activity, current_location, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())',
                 [playerId, gameState.energy, gameState.maxEnergy, gameState.gold, gameState.experience, gameState.level, gameState.honorScore, gameState.currentActivity, gameState.currentLocation]
             );
@@ -168,10 +164,15 @@ router.post('/player/save', async (req, res) => {
 });
 
 // Create HNH tables if they don't exist
-async function createHNHTables(pool) {
+async function createHNHTables() {
     try {
+        if (!db) {
+            console.log('No database connection available for creating HNH tables');
+            return;
+        }
+        
         // Create hnh_players table
-        await pool.query(`
+        await db.query(`
             CREATE TABLE IF NOT EXISTS hnh_players (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(50) UNIQUE NOT NULL,
@@ -191,7 +192,7 @@ async function createHNHTables(pool) {
         `);
 
         // Create hnh_player_stats table
-        await pool.query(`
+        await db.query(`
             CREATE TABLE IF NOT EXISTS hnh_player_stats (
                 id SERIAL PRIMARY KEY,
                 player_id INTEGER NOT NULL REFERENCES hnh_players(id) ON DELETE CASCADE,
