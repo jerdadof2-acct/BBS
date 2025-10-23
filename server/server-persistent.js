@@ -7,7 +7,7 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 
 // Import High Noon Hustle server
-const hnhRoutes = require('./hnh-server');
+const hnhRoutes = require('./hnh-server-simple');
 
 // Try PostgreSQL first, fall back to SQLite
 let db, dbType;

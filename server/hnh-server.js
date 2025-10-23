@@ -42,25 +42,17 @@ router.post('/player/load', async (req, res) => {
         
         console.log('HNH Load: Attempting to load player:', username);
         
-        // Check if HNH tables exist, create if not
-        await createHNHTables();
-        
-        // Load player data
-        const playerResult = await db.query(
-            'SELECT * FROM hnh_players WHERE username = $1',
-            [username]
+        // Use existing game_states table instead of creating new tables
+        const gameStateResult = await db.query(
+            'SELECT game_data FROM game_states WHERE user_id = $1 AND game_name = $2',
+            [1, 'high-noon-hustle'] // Use user_id 1 for now, game_name 'high-noon-hustle'
         );
         
-        console.log('HNH Load: Player query result:', playerResult);
+        console.log('HNH Load: Game state query result:', gameStateResult);
         
-        if (playerResult.rows.length > 0) {
-            const player = playerResult.rows[0];
-            
-            // Load game state
-            const gameStateResult = await db.query(
-                'SELECT * FROM hnh_player_stats WHERE player_id = $1',
-                [player.id]
-            );
+        if (gameStateResult.rows.length > 0) {
+            const gameData = JSON.parse(gameStateResult.rows[0].game_data);
+            const player = gameData.player;
             
             const gameState = gameStateResult.rows.length > 0 ? {
                 energy: gameStateResult.rows[0].current_energy,
