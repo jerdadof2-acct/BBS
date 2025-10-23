@@ -350,6 +350,9 @@ app.get('/', (req, res) => {
 
 // Function to set up all database-dependent routes
 function setupRoutes() {
+  // Initialize High Noon Hustle database connection
+  hnhRoutes.initDatabase(db, dbType);
+  
   // High Noon Hustle API routes
   app.use('/api/hnh', hnhRoutes);
   
@@ -1729,6 +1732,68 @@ io.on('connection', (socket) => {
   socket.on('leave-game-room', (room) => {
     socket.leave(room);
     socket.to(room).emit('player-left', { socketId: socket.id });
+  });
+
+  // Tournament handlers for High Noon Hustle
+  socket.on('tournament-start', (data) => {
+    console.log('DEBUG: Received tournament-start event on server:', data);
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Tournament start from', data.host, ':', data.gameType);
+      console.log('DEBUG: Broadcasting to all BBS users...');
+      // Broadcast tournament start to all BBS users
+      io.emit('tournament-start', data);
+      console.log('DEBUG: Tournament broadcast sent to', io.engine.clientsCount, 'clients');
+    } else {
+      console.log('DEBUG: Tournament event not for high-noon-hustle, game:', data.game);
+    }
+  });
+
+  socket.on('tournament-join', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Tournament join from', data.participant.name);
+      // Broadcast tournament join to all players in the room
+      io.to('high-noon-hustle').emit('tournament-join', data);
+    }
+  });
+
+  socket.on('tournament-update', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Tournament update');
+      // Broadcast tournament update to all players in the room
+      io.to('high-noon-hustle').emit('tournament-update', data);
+    }
+  });
+
+  socket.on('tournament-end', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Tournament end, winner:', data.winner);
+      // Broadcast tournament end to all BBS users
+      io.emit('tournament-end', data);
+    }
+  });
+
+  // High Noon Hustle Saloon Chat
+  socket.on('saloon-message', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Saloon message from', data.player.name, ':', data.message);
+      // Broadcast to all players in the high-noon-hustle room
+      io.to('high-noon-hustle').emit('saloon-message', data);
+    }
+  });
+
+  // High Noon Hustle Duel System
+  socket.on('duel-challenge', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Duel challenge from', data.challenger.name, 'to player', data.targetPlayer);
+      socket.to('high-noon-hustle').emit('duel-challenge', data);
+    }
+  });
+
+  socket.on('duel-response', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Duel response from player', data.targetPlayer, 'accepted:', data.accepted);
+      socket.to('high-noon-hustle').emit('duel-response', data);
+    }
   });
 
   socket.on('disconnect', () => {

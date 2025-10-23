@@ -1,21 +1,23 @@
 // High Noon Hustle Server API
-// Handles PostgreSQL database operations for the game
+// Handles database operations for the game
 
 const express = require('express');
-const { getPool } = require('./db-pg');
 const Database = require('better-sqlite3');
 const path = require('path');
 
 const router = express.Router();
 
-// Check if PostgreSQL is available
+// Database will be passed from the main server
+let db = null;
+let dbType = 'sqlite';
 let usePostgreSQL = false;
-try {
-    const pool = getPool();
-    usePostgreSQL = true;
-} catch (error) {
-    console.log('PostgreSQL not available, using SQLite fallback for High Noon Hustle');
-    usePostgreSQL = false;
+
+// Initialize database connection
+function initDatabase(database, databaseType) {
+    db = database;
+    dbType = databaseType;
+    usePostgreSQL = (databaseType === 'postgresql');
+    console.log('High Noon Hustle: Database initialized, type:', databaseType);
 }
 
 // SQLite fallback
@@ -228,3 +230,4 @@ router.get('/health', (req, res) => {
 });
 
 module.exports = router;
+module.exports.initDatabase = initDatabase;
