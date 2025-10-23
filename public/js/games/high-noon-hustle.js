@@ -3876,6 +3876,7 @@ class HighNoonHustle {
             this.tournament.phase = 'joining';
             this.tournament.joinEndTime = Date.now() + (30 * 1000); // 30 seconds
             this.tournament.gameType = gameType;
+            console.log('DEBUG: this.player object when starting tournament:', this.player);
             this.tournament.participants = [{
                 id: this.player.id,
                 name: this.player.display_name,
@@ -4206,6 +4207,7 @@ class HighNoonHustle {
             }
 
             // Add player to tournament
+            console.log('DEBUG: this.player object when joining tournament:', this.player);
             const newParticipant = {
                 id: this.player.id,
                 name: this.player.display_name,
