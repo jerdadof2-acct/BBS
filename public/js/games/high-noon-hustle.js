@@ -3728,6 +3728,7 @@ class HighNoonHustle {
             this.socketClient.socket.on('current-players', (data) => {
                 if (data.game === 'high-noon-hustle') {
                     console.log('DEBUG: Received current players list:', data.players);
+                    console.log('DEBUG: First player in received data:', data.players[0]);
                     this.onlinePlayers = data.players;
                     console.log('DEBUG: Set onlinePlayers to:', this.onlinePlayers);
                     console.log('DEBUG: onlinePlayers length after setting:', this.onlinePlayers.length);
@@ -3787,6 +3788,7 @@ class HighNoonHustle {
             console.log('DEBUG: Sending player data:', playerData);
             console.log('DEBUG: this.currentTown:', this.currentTown);
             console.log('DEBUG: this.player.character_class:', this.player.character_class);
+            console.log('DEBUG: Full player object being sent:', this.player);
             this.socketClient.socket.emit('join-game-room', playerData);
         } else {
             console.log('DEBUG: No player data available, sending fallback');
