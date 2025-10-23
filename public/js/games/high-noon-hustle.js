@@ -3645,12 +3645,15 @@ class HighNoonHustle {
                         console.log('DEBUG: Player data:', data.player);
                         this.terminal.println(ANSIParser.fg('bright-green') + `  🤠 ${data.player.name || data.player.display_name} joined the frontier!` + ANSIParser.reset());
                         
-                        // Refresh the saloon display if we're currently in the saloon
+                        // Automatically refresh the saloon display if we're currently in the saloon
                         if (this.currentLocation === 'saloon') {
-                            // Automatically refresh the saloon display
+                            // Use a more reliable refresh approach
                             setTimeout(() => {
-                                this.enterSaloon();
-                            }, 1000); // Small delay to ensure the player list is updated
+                                if (this.currentLocation === 'saloon') {
+                                    this.terminal.clear();
+                                    this.enterSaloon();
+                                }
+                            }, 1000);
                         }
                     }
                 }
@@ -3660,6 +3663,16 @@ class HighNoonHustle {
                 if (data.game === 'high-noon-hustle') {
                     this.onlinePlayers = this.onlinePlayers.filter(p => p.id !== data.player.id);
                     this.terminal.println(ANSIParser.fg('bright-yellow') + `  👋 ${data.player.name} rode off into the sunset` + ANSIParser.reset());
+                    
+                    // Automatically refresh the saloon display if we're currently in the saloon
+                    if (this.currentLocation === 'saloon') {
+                        setTimeout(() => {
+                            if (this.currentLocation === 'saloon') {
+                                this.terminal.clear();
+                                this.enterSaloon();
+                            }
+                        }, 1000);
+                    }
                 }
             });
 
