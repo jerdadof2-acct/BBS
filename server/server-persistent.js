@@ -6,6 +6,9 @@ const session = require('express-session');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 
+// Import High Noon Hustle server
+const hnhRoutes = require('./hnh-server');
+
 // Try PostgreSQL first, fall back to SQLite
 let db, dbType;
 
@@ -347,6 +350,9 @@ app.get('/', (req, res) => {
 
 // Function to set up all database-dependent routes
 function setupRoutes() {
+  // High Noon Hustle API routes
+  app.use('/api/hnh', hnhRoutes);
+  
   // Test endpoint to verify database connection
   app.get('/api/test-db', async (req, res) => {
     try {
