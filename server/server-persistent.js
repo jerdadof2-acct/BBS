@@ -1740,14 +1740,18 @@ io.on('connection', (socket) => {
       console.log('DEBUG: Emitting player-joined for high-noon-hustle:', user.handle);
       
       // Send current player list to the new player
-      const currentPlayers = Array.from(onlineUsers.values()).map(u => ({
-        id: u.userId,
-        name: u.handle,
-        display_name: u.handle,
-        character_class: playerData?.character_class || 'gunslinger', // Use actual class
-        current_town: playerData?.current_town || 'tumbleweed_junction', // Use actual town
-        socketId: u.socketId // Use the socketId from the onlineUsers map
-      }));
+      const currentPlayers = Array.from(onlineUsers.values()).map(u => {
+        // Get the actual character data for each player from their stored data
+        const storedPlayerData = u.characterData || {};
+        return {
+          id: u.userId,
+          name: u.handle,
+          display_name: u.handle,
+          character_class: storedPlayerData.character_class || 'gunslinger',
+          current_town: storedPlayerData.current_town || 'tumbleweed_junction',
+          socketId: u.socketId
+        };
+      });
       
       // Send current players to the new joiner
       socket.emit('current-players', {
@@ -1755,10 +1759,19 @@ io.on('connection', (socket) => {
         players: currentPlayers
       });
       
+      // Store the player's character data in the onlineUsers map
+      if (playerData) {
+        user.characterData = {
+          character_class: playerData.character_class || 'gunslinger',
+          current_town: playerData.current_town || 'tumbleweed_junction'
+        };
+      }
+      
       // Send to all players in the room (including the one who just joined)
-      // Use actual player data if available, otherwise use defaults
-      const playerTown = playerData?.current_town || 'tumbleweed_junction';
-      const characterClass = playerData?.character_class || 'gunslinger';
+      // Use the stored character data
+      const storedData = user.characterData || {};
+      const playerTown = storedData.current_town || 'tumbleweed_junction';
+      const characterClass = storedData.character_class || 'gunslinger';
       
       io.to(room).emit('player-joined', { 
         game: 'high-noon-hustle',
