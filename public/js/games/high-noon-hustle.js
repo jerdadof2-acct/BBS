@@ -3654,30 +3654,36 @@ class HighNoonHustle {
             this.socketClient.socket.on('player-joined', (data) => {
                 console.log('DEBUG: Received player-joined event:', data);
                 if (data.game === 'high-noon-hustle') {
-                    // Check if player already exists to avoid duplicates
-                    const existingPlayer = this.onlinePlayers.find(p => p.id === data.player.id);
-                    if (!existingPlayer) {
+                    // Check if player already exists
+                    const existingPlayerIndex = this.onlinePlayers.findIndex(p => p.id === data.player.id);
+                    if (existingPlayerIndex === -1) {
+                        // Player doesn't exist, add them
                         this.onlinePlayers.push(data.player);
-                        console.log('DEBUG: Added player to onlinePlayers:', this.onlinePlayers);
+                        console.log('DEBUG: Added new player to onlinePlayers:', this.onlinePlayers);
                         console.log('DEBUG: Player data:', data.player);
                         this.terminal.println(ANSIParser.fg('bright-green') + `  🤠 ${data.player.name || data.player.display_name} joined the frontier!` + ANSIParser.reset());
-                        
-                        // Automatically refresh the saloon display if we're currently in the saloon
-                        console.log('DEBUG: Player joined - currentLocation:', this.currentLocation);
-                        if (this.currentLocation === 'saloon') {
-                            console.log('DEBUG: Player in saloon, scheduling refresh...');
-                            // Use a more reliable refresh approach
-                            setTimeout(() => {
-                                console.log('DEBUG: Timeout fired - currentLocation:', this.currentLocation);
-                                if (this.currentLocation === 'saloon') {
-                                    console.log('DEBUG: Refreshing saloon display...');
-                                    this.terminal.clear();
-                                    this.enterSaloon();
-                                }
-                            }, 1000);
-                        } else {
-                            console.log('DEBUG: Player not in saloon, no refresh needed');
-                        }
+                    } else {
+                        // Player exists, update their character data
+                        console.log('DEBUG: Updating existing player character data:', data.player);
+                        this.onlinePlayers[existingPlayerIndex] = data.player;
+                        console.log('DEBUG: Updated onlinePlayers:', this.onlinePlayers);
+                    }
+                    
+                    // Automatically refresh the saloon display if we're currently in the saloon
+                    console.log('DEBUG: Player joined - currentLocation:', this.currentLocation);
+                    if (this.currentLocation === 'saloon') {
+                        console.log('DEBUG: Player in saloon, scheduling refresh...');
+                        // Use a more reliable refresh approach
+                        setTimeout(() => {
+                            console.log('DEBUG: Timeout fired - currentLocation:', this.currentLocation);
+                            if (this.currentLocation === 'saloon') {
+                                console.log('DEBUG: Refreshing saloon display...');
+                                this.terminal.clear();
+                                this.enterSaloon();
+                            }
+                        }, 1000);
+                    } else {
+                        console.log('DEBUG: Player not in saloon, no refresh needed');
                     }
                 }
             });
