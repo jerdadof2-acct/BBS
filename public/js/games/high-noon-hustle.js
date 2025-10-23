@@ -348,7 +348,9 @@ class HighNoonHustle {
     }
 
     async enterSaloon() {
+        console.log('DEBUG: enterSaloon() called');
         this.gameState.currentLocation = 'saloon';
+        this.currentLocation = 'saloon'; // Make sure both are set
         await this.updatePlayerStatus();
         
         // Show saloon welcome
@@ -3646,14 +3648,20 @@ class HighNoonHustle {
                         this.terminal.println(ANSIParser.fg('bright-green') + `  🤠 ${data.player.name || data.player.display_name} joined the frontier!` + ANSIParser.reset());
                         
                         // Automatically refresh the saloon display if we're currently in the saloon
+                        console.log('DEBUG: Player joined - currentLocation:', this.currentLocation);
                         if (this.currentLocation === 'saloon') {
+                            console.log('DEBUG: Player in saloon, scheduling refresh...');
                             // Use a more reliable refresh approach
                             setTimeout(() => {
+                                console.log('DEBUG: Timeout fired - currentLocation:', this.currentLocation);
                                 if (this.currentLocation === 'saloon') {
+                                    console.log('DEBUG: Refreshing saloon display...');
                                     this.terminal.clear();
                                     this.enterSaloon();
                                 }
                             }, 1000);
+                        } else {
+                            console.log('DEBUG: Player not in saloon, no refresh needed');
                         }
                     }
                 }
