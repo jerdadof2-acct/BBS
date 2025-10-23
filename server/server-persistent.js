@@ -27,14 +27,28 @@ async function initDatabase() {
       // Test connection
       await pool.query('SELECT NOW()');
       
+      // Helper function to convert SQLite syntax to PostgreSQL
+      const convertQuery = (text, params) => {
+        if (!params || params.length === 0) return { text, params };
+        
+        let paramIndex = 1;
+        const convertedText = text.replace(/\?/g, () => `$${paramIndex++}`);
+        return { text: convertedText, params };
+      };
+
       db = {
-        query: (text, params) => pool.query(text, params),
+        query: (text, params) => {
+          const { text: convertedText, params: convertedParams } = convertQuery(text, params);
+          return pool.query(convertedText, convertedParams);
+        },
         get: async (text, params) => {
-          const result = await pool.query(text, params);
+          const { text: convertedText, params: convertedParams } = convertQuery(text, params);
+          const result = await pool.query(convertedText, convertedParams);
           return result.rows[0] || null;
         },
         run: async (text, params) => {
-          const result = await pool.query(text, params);
+          const { text: convertedText, params: convertedParams } = convertQuery(text, params);
+          const result = await pool.query(convertedText, convertedParams);
           return { lastID: result.insertId || result.rows?.[0]?.id || 0 };
         }
       };
