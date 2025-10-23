@@ -96,7 +96,9 @@ class DoorGames {
         // Launch the appropriate game
         if (game.id === 'high-noon-hustle') {
             const highNoonHustle = new HighNoonHustle(this.terminal, this.socketClient, this.authManager);
+            window.currentGame = highNoonHustle; // Set for tournament announcements
             const result = await highNoonHustle.play();
+            window.currentGame = null; // Clear when game ends
             return result === 'menu' ? 'menu' : 'doors';
         } else if (game.id === 'word-race') {
             const wordRace = new WordRace(this.terminal, this.socketClient, this.authManager);

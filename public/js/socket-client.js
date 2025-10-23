@@ -139,26 +139,38 @@ class SocketClient {
         // High Noon Hustle tournament announcement handler
         this.socket.on('tournament-start', (data) => {
             console.log('DEBUG: Received tournament-start event:', data);
-            if (data.game === 'high-noon-hustle' && window.app && window.app.terminal) {
-                console.log('DEBUG: Displaying tournament announcement');
-                window.app.terminal.println('');
-                window.app.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
-                window.app.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 HIGH NOON HUSTLE TOURNAMENT 🏆' + ANSIParser.reset());
-                window.app.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
-                window.app.terminal.println('');
-                window.app.terminal.println(ANSIParser.fg('bright-white') + `  ${data.host} started a ${data.gameType} tournament!` + ANSIParser.reset());
-                window.app.terminal.println(ANSIParser.fg('bright-cyan') + '  Go to Door Games → High Noon Hustle → Tournaments to join!' + ANSIParser.reset());
-                if (data.joinPeriod) {
-                    window.app.terminal.println(ANSIParser.fg('bright-yellow') + `  You have ${data.joinPeriod} seconds to join!` + ANSIParser.reset());
+            if (data.game === 'high-noon-hustle') {
+                // Try to find the appropriate terminal to display the announcement
+                let terminal = null;
+                
+                // Check if we're in the main BBS app
+                if (window.app && window.app.terminal) {
+                    terminal = window.app.terminal;
+                    console.log('DEBUG: Using main BBS terminal for tournament announcement');
                 }
-                window.app.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
-                window.app.terminal.println('');
-            } else {
-                console.log('DEBUG: Not displaying tournament announcement - conditions not met:', {
-                    game: data.game,
-                    hasApp: !!window.app,
-                    hasTerminal: !!(window.app && window.app.terminal)
-                });
+                // Check if we're in a game that has a terminal
+                else if (window.currentGame && window.currentGame.terminal) {
+                    terminal = window.currentGame.terminal;
+                    console.log('DEBUG: Using game terminal for tournament announcement');
+                }
+                
+                if (terminal) {
+                    console.log('DEBUG: Displaying tournament announcement');
+                    terminal.println('');
+                    terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 HIGH NOON HUSTLE TOURNAMENT 🏆' + ANSIParser.reset());
+                    terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    terminal.println('');
+                    terminal.println(ANSIParser.fg('bright-white') + `  ${data.host} started a ${data.gameType} tournament!` + ANSIParser.reset());
+                    terminal.println(ANSIParser.fg('bright-cyan') + '  Go to Tournaments menu to join!' + ANSIParser.reset());
+                    if (data.joinPeriod) {
+                        terminal.println(ANSIParser.fg('bright-yellow') + `  You have ${data.joinPeriod} seconds to join!` + ANSIParser.reset());
+                    }
+                    terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    terminal.println('');
+                } else {
+                    console.log('DEBUG: No terminal found for tournament announcement');
+                }
             }
         });
 
