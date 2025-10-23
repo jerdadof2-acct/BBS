@@ -370,6 +370,14 @@ class HighNoonHustle {
         // Show who's here
         console.log('DEBUG: Saloon - onlinePlayers length:', this.onlinePlayers.length);
         console.log('DEBUG: Saloon - onlinePlayers:', this.onlinePlayers);
+        this.onlinePlayers.forEach((player, index) => {
+            console.log(`DEBUG: Player ${index}:`, {
+                display_name: player.display_name,
+                character_class: player.character_class,
+                current_town: player.current_town,
+                name: player.name
+            });
+        });
         if (this.onlinePlayers.length > 0) {
             this.terminal.println(ANSIParser.fg('bright-yellow') + '  🤠 Folks in the Saloon:' + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-cyan') + '  (DG=Dusty Gulch, RM=Red Mesa, TJ=Tumbleweed Junction, DH=Dead Horse Canyon)' + ANSIParser.reset());
@@ -3773,6 +3781,8 @@ class HighNoonHustle {
                 }
             };
             console.log('DEBUG: Sending player data:', playerData);
+            console.log('DEBUG: this.currentTown:', this.currentTown);
+            console.log('DEBUG: this.player.character_class:', this.player.character_class);
             this.socketClient.socket.emit('join-game-room', playerData);
         } else {
             console.log('DEBUG: No player data available, sending fallback');
