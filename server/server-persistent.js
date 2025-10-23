@@ -1724,9 +1724,57 @@ io.on('connection', (socket) => {
     socket.broadcast.to(data.room).emit('game-update', data);
   });
 
-  socket.on('join-game-room', (room) => {
+  socket.on('join-game-room', (data) => {
+    // Handle both old string format and new object format
+    const room = typeof data === 'string' ? data : data.game;
+    const playerData = typeof data === 'object' ? data.player : null;
+    
+    console.log('DEBUG: User joining room:', room, 'socketId:', socket.id);
+    console.log('DEBUG: Player data:', playerData);
     socket.join(room);
-    socket.to(room).emit('player-joined', { socketId: socket.id });
+    const user = onlineUsers.get(socket.id);
+    console.log('DEBUG: User data:', user);
+    
+    if (user && room === 'high-noon-hustle') {
+      // High Noon Hustle specific player join notification
+      console.log('DEBUG: Emitting player-joined for high-noon-hustle:', user.handle);
+      
+      // Send current player list to the new player
+      const currentPlayers = Array.from(onlineUsers.values()).map(u => ({
+        id: u.userId,
+        name: u.handle,
+        display_name: u.handle,
+        character_class: playerData?.character_class || 'gunslinger', // Use actual class
+        current_town: playerData?.current_town || 'tumbleweed_junction', // Use actual town
+        socketId: u.socketId // Use the socketId from the onlineUsers map
+      }));
+      
+      // Send current players to the new joiner
+      socket.emit('current-players', {
+        game: 'high-noon-hustle',
+        players: currentPlayers
+      });
+      
+      // Send to all players in the room (including the one who just joined)
+      // Use actual player data if available, otherwise use defaults
+      const playerTown = playerData?.current_town || 'tumbleweed_junction';
+      const characterClass = playerData?.character_class || 'gunslinger';
+      
+      io.to(room).emit('player-joined', { 
+        game: 'high-noon-hustle',
+        player: {
+          id: user.userId,
+          name: user.handle,
+          display_name: user.handle,
+          character_class: characterClass,
+          current_town: playerTown,
+          socketId: socket.id
+        }
+      });
+    } else {
+      // Generic player join notification
+      socket.to(room).emit('player-joined', { socketId: socket.id });
+    }
   });
 
   socket.on('leave-game-room', (room) => {
