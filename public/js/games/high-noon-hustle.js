@@ -4129,10 +4129,14 @@ class HighNoonHustle {
         // Sort participants by score
         const sorted = [...this.tournament.participants].sort((a, b) => b.score - a.score);
         
+        console.log('DEBUG: showTournamentLeaderboard - this.player.id:', this.player.id);
+        console.log('DEBUG: showTournamentLeaderboard - participants:', this.tournament.participants);
+        
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏆 Current Leaderboard:' + ANSIParser.reset());
         sorted.forEach((participant, index) => {
             const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏃';
             const isYou = participant.id === this.player.id ? ' (YOU)' : '';
+            console.log(`DEBUG: Participant ${index}: id=${participant.id}, name=${participant.name}, isYou=${isYou}`);
             this.terminal.println(ANSIParser.fg('bright-white') + `  ${medal} ${participant.name}${isYou}: ${participant.score.toFixed(1)}` + ANSIParser.reset());
         });
         this.terminal.println('');
@@ -4202,12 +4206,14 @@ class HighNoonHustle {
             }
 
             // Add player to tournament
-            this.tournament.participants.push({
+            const newParticipant = {
                 id: this.player.id,
                 name: this.player.display_name,
                 score: 0,
                 gold: 0
-            });
+            };
+            console.log('DEBUG: Adding participant to tournament:', newParticipant);
+            this.tournament.participants.push(newParticipant);
 
             // Notify other players
             if (this.socketClient && this.socketClient.socket) {
