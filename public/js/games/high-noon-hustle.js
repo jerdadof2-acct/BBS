@@ -3754,7 +3754,7 @@ class HighNoonHustle {
             // Join the high-noon-hustle room with player data
             console.log('DEBUG: Emitting join-game-room for high-noon-hustle');
             if (this.player) {
-                this.socketClient.socket.emit('join-game-room', {
+                const playerData = {
                     game: 'high-noon-hustle',
                     player: {
                         id: this.player.id,
@@ -3763,8 +3763,11 @@ class HighNoonHustle {
                         character_class: this.player.character_class,
                         current_town: this.currentTown
                     }
-                });
+                };
+                console.log('DEBUG: Sending player data:', playerData);
+                this.socketClient.socket.emit('join-game-room', playerData);
             } else {
+                console.log('DEBUG: No player data available, sending fallback');
                 // Fallback for when player data isn't loaded yet
                 this.socketClient.socket.emit('join-game-room', 'high-noon-hustle');
             }
