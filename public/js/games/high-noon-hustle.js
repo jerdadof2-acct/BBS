@@ -3644,6 +3644,14 @@ class HighNoonHustle {
                         console.log('DEBUG: Added player to onlinePlayers:', this.onlinePlayers);
                         console.log('DEBUG: Player data:', data.player);
                         this.terminal.println(ANSIParser.fg('bright-green') + `  🤠 ${data.player.name || data.player.display_name} joined the frontier!` + ANSIParser.reset());
+                        
+                        // Refresh the saloon display if we're currently in the saloon
+                        if (this.currentLocation === 'saloon') {
+                            // Automatically refresh the saloon display
+                            setTimeout(() => {
+                                this.enterSaloon();
+                            }, 1000); // Small delay to ensure the player list is updated
+                        }
                     }
                 }
             });
