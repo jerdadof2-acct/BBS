@@ -1739,7 +1739,18 @@ io.on('connection', (socket) => {
       // High Noon Hustle specific player join notification
       console.log('DEBUG: Emitting player-joined for high-noon-hustle:', user.handle);
       
-      // Send current player list to the new player
+      // Store the player's character data in the onlineUsers map FIRST
+      if (playerData) {
+        user.characterData = {
+          character_class: playerData.character_class || 'gunslinger',
+          current_town: playerData.current_town || 'tumbleweed_junction'
+        };
+        console.log('DEBUG: Stored character data for', user.handle, ':', user.characterData);
+      } else {
+        console.log('DEBUG: No playerData provided for', user.handle);
+      }
+      
+      // Send current player list to the new player (after storing the new player's data)
       const currentPlayers = Array.from(onlineUsers.values()).map(u => {
         // Get the actual character data for each player from their stored data
         const storedPlayerData = u.characterData || {};
@@ -1759,17 +1770,6 @@ io.on('connection', (socket) => {
         game: 'high-noon-hustle',
         players: currentPlayers
       });
-      
-      // Store the player's character data in the onlineUsers map
-      if (playerData) {
-        user.characterData = {
-          character_class: playerData.character_class || 'gunslinger',
-          current_town: playerData.current_town || 'tumbleweed_junction'
-        };
-        console.log('DEBUG: Stored character data for', user.handle, ':', user.characterData);
-      } else {
-        console.log('DEBUG: No playerData provided for', user.handle);
-      }
       
       // Send to all players in the room (including the one who just joined)
       // Use the stored character data
