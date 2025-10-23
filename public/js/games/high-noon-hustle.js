@@ -3773,6 +3773,13 @@ class HighNoonHustle {
                 }
             });
 
+            // Listen for tournament state updates
+            this.socketClient.socket.on('tournament-state', (data) => {
+                if (data.game === 'high-noon-hustle') {
+                    this.handleTournamentState(data);
+                }
+            });
+
             // Socket listeners are set up, but join-game-room will be called separately
         }
     }
@@ -3796,6 +3803,11 @@ class HighNoonHustle {
             console.log('DEBUG: this.player.character_class:', this.player.character_class);
             console.log('DEBUG: Full player object being sent:', this.player);
             this.socketClient.socket.emit('join-game-room', playerData);
+            
+            // Request current tournament state
+            this.socketClient.socket.emit('get-tournament-state', {
+                game: 'high-noon-hustle'
+            });
         } else {
             console.log('DEBUG: No player data available, sending fallback');
             // Fallback for when player data isn't loaded yet
@@ -4291,6 +4303,20 @@ class HighNoonHustle {
         this.tournament.active = false;
         this.tournament.phase = 'ended';
         this.terminal.println(ANSIParser.fg('bright-green') + `  🏆 Tournament ended! ${data.winner} won!` + ANSIParser.reset());
+    }
+
+    handleTournamentState(data) {
+        console.log('DEBUG: Received tournament state:', data);
+        if (data.tournaments && data.tournaments.length > 0) {
+            // Update local tournament state with server data
+            const serverTournament = data.tournaments[0]; // Take the first active tournament
+            this.tournament = {
+                ...this.tournament,
+                ...serverTournament,
+                active: serverTournament.phase === 'active' || serverTournament.phase === 'joining'
+            };
+            console.log('DEBUG: Updated tournament state from server:', this.tournament);
+        }
     }
 
     // POKER CARD METHODS

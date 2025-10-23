@@ -287,6 +287,9 @@ async function initDatabase() {
 // Track online users
 const onlineUsers = new Map(); // socketId -> { userId, handle, accessLevel, lastActivity, currentLocation }
 
+// Tournament state management
+const activeTournaments = new Map(); // tournamentId -> { game, host, gameType, participants, phase, startTime, etc. }
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -1807,6 +1810,33 @@ io.on('connection', (socket) => {
     console.log('DEBUG: Received tournament-start event on server:', data);
     if (data.game === 'high-noon-hustle') {
       console.log('DEBUG: Tournament start from', data.host, ':', data.gameType);
+      
+      // Store tournament state on server
+      const tournamentId = data.tournamentId;
+      const user = onlineUsers.get(socket.id);
+      if (user) {
+        activeTournaments.set(tournamentId, {
+          game: data.game,
+          host: data.host,
+          hostUserId: user.userId,
+          gameType: data.gameType,
+          tournamentId: tournamentId,
+          participants: [{
+            id: user.userId,
+            name: user.handle,
+            display_name: user.handle,
+            score: 0,
+            gold: 0
+          }],
+          phase: 'joining',
+          joinEndTime: Date.now() + (data.joinPeriod * 1000),
+          startTime: null,
+          duration: 5 * 60 * 1000, // 5 minutes
+          active: false
+        });
+        console.log('DEBUG: Stored tournament state:', activeTournaments.get(tournamentId));
+      }
+      
       console.log('DEBUG: Broadcasting to all BBS users...');
       // Broadcast tournament start to all BBS users
       io.emit('tournament-start', data);
@@ -1819,6 +1849,28 @@ io.on('connection', (socket) => {
   socket.on('tournament-join', (data) => {
     if (data.game === 'high-noon-hustle') {
       console.log('DEBUG: Tournament join from', data.participant.name);
+      
+      // Update server-side tournament state
+      const tournamentId = data.tournamentId;
+      const tournament = activeTournaments.get(tournamentId);
+      if (tournament) {
+        const user = onlineUsers.get(socket.id);
+        if (user) {
+          // Check if player already in tournament
+          const existingParticipant = tournament.participants.find(p => p.id === user.userId);
+          if (!existingParticipant) {
+            tournament.participants.push({
+              id: user.userId,
+              name: user.handle,
+              display_name: user.handle,
+              score: 0,
+              gold: 0
+            });
+            console.log('DEBUG: Added participant to tournament:', tournament.participants);
+          }
+        }
+      }
+      
       // Broadcast tournament join to all players in the room
       io.to('high-noon-hustle').emit('tournament-join', data);
     }
@@ -1835,8 +1887,28 @@ io.on('connection', (socket) => {
   socket.on('tournament-end', (data) => {
     if (data.game === 'high-noon-hustle') {
       console.log('DEBUG: Tournament end, winner:', data.winner);
+      // Remove tournament from active tournaments
+      const tournamentId = data.tournamentId;
+      if (tournamentId) {
+        activeTournaments.delete(tournamentId);
+        console.log('DEBUG: Removed tournament from active tournaments');
+      }
       // Broadcast tournament end to all BBS users
       io.emit('tournament-end', data);
+    }
+  });
+
+  // Get current tournament state
+  socket.on('get-tournament-state', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Getting tournament state for', data.game);
+      // Send all active tournaments
+      const tournaments = Array.from(activeTournaments.values());
+      socket.emit('tournament-state', {
+        game: 'high-noon-hustle',
+        tournaments: tournaments
+      });
+      console.log('DEBUG: Sent tournament state:', tournaments);
     }
   });
 
