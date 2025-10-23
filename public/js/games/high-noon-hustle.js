@@ -168,6 +168,9 @@ class HighNoonHustle {
         // Set up socket listeners now that player data is loaded
         this.setupSocketListeners();
         
+        // Join the game room after player data is fully loaded
+        this.joinGameRoom();
+        
         while (true) {
             this.terminal.clear();
             await this.showMainMenu();
@@ -3751,26 +3754,30 @@ class HighNoonHustle {
                 }
             });
 
-            // Join the high-noon-hustle room with player data
-            console.log('DEBUG: Emitting join-game-room for high-noon-hustle');
-            if (this.player) {
-                const playerData = {
-                    game: 'high-noon-hustle',
-                    player: {
-                        id: this.player.id,
-                        name: this.player.display_name,
-                        display_name: this.player.display_name,
-                        character_class: this.player.character_class,
-                        current_town: this.currentTown
-                    }
-                };
-                console.log('DEBUG: Sending player data:', playerData);
-                this.socketClient.socket.emit('join-game-room', playerData);
-            } else {
-                console.log('DEBUG: No player data available, sending fallback');
-                // Fallback for when player data isn't loaded yet
-                this.socketClient.socket.emit('join-game-room', 'high-noon-hustle');
-            }
+            // Socket listeners are set up, but join-game-room will be called separately
+        }
+    }
+
+    joinGameRoom() {
+        // Join the high-noon-hustle room with player data
+        console.log('DEBUG: Emitting join-game-room for high-noon-hustle');
+        if (this.player) {
+            const playerData = {
+                game: 'high-noon-hustle',
+                player: {
+                    id: this.player.id,
+                    name: this.player.display_name,
+                    display_name: this.player.display_name,
+                    character_class: this.player.character_class,
+                    current_town: this.currentTown
+                }
+            };
+            console.log('DEBUG: Sending player data:', playerData);
+            this.socketClient.socket.emit('join-game-room', playerData);
+        } else {
+            console.log('DEBUG: No player data available, sending fallback');
+            // Fallback for when player data isn't loaded yet
+            this.socketClient.socket.emit('join-game-room', 'high-noon-hustle');
         }
     }
 
