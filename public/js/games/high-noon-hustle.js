@@ -352,6 +352,8 @@ class HighNoonHustle {
 
     async enterSaloon() {
         console.log('DEBUG: enterSaloon() called');
+        console.log('DEBUG: enterSaloon() - onlinePlayers length:', this.onlinePlayers.length);
+        console.log('DEBUG: enterSaloon() - onlinePlayers:', this.onlinePlayers);
         this.gameState.currentLocation = 'saloon';
         this.currentLocation = 'saloon'; // Make sure both are set
         await this.updatePlayerStatus();
@@ -3727,6 +3729,8 @@ class HighNoonHustle {
                 if (data.game === 'high-noon-hustle') {
                     console.log('DEBUG: Received current players list:', data.players);
                     this.onlinePlayers = data.players;
+                    console.log('DEBUG: Set onlinePlayers to:', this.onlinePlayers);
+                    console.log('DEBUG: onlinePlayers length after setting:', this.onlinePlayers.length);
                 }
             });
 
