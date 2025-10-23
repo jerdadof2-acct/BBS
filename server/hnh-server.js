@@ -36,8 +36,11 @@ router.post('/player/load', async (req, res) => {
         }
         
         if (!usePostgreSQL || !db) {
+            console.log('HNH Load: Not using PostgreSQL or no database connection');
             return res.json({ player: null });
         }
+        
+        console.log('HNH Load: Attempting to load player:', username);
         
         // Check if HNH tables exist, create if not
         await createHNHTables();
@@ -47,6 +50,8 @@ router.post('/player/load', async (req, res) => {
             'SELECT * FROM hnh_players WHERE username = $1',
             [username]
         );
+        
+        console.log('HNH Load: Player query result:', playerResult);
         
         if (playerResult.rows.length > 0) {
             const player = playerResult.rows[0];
@@ -102,8 +107,11 @@ router.post('/player/save', async (req, res) => {
         }
         
         if (!usePostgreSQL || !db) {
+            console.log('HNH Save: Not using PostgreSQL or no database connection');
             return res.json({ success: true, message: 'Data saved to local storage' });
         }
+        
+        console.log('HNH Save: Attempting to save player:', username);
         
         // Check if HNH tables exist, create if not
         await createHNHTables();
@@ -211,8 +219,8 @@ async function createHNHTables() {
         `);
 
         // Create indexes for performance
-        await pool.query('CREATE INDEX IF NOT EXISTS idx_hnh_players_username ON hnh_players(username)');
-        await pool.query('CREATE INDEX IF NOT EXISTS idx_hnh_player_stats_player_id ON hnh_player_stats(player_id)');
+        await db.query('CREATE INDEX IF NOT EXISTS idx_hnh_players_username ON hnh_players(username)');
+        await db.query('CREATE INDEX IF NOT EXISTS idx_hnh_player_stats_player_id ON hnh_player_stats(player_id)');
         
     } catch (error) {
         console.error('Error creating HNH tables:', error);
