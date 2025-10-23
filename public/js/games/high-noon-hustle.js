@@ -3884,7 +3884,7 @@ class HighNoonHustle {
             this.tournament.gameType = gameType;
             console.log('DEBUG: this.player object when starting tournament:', this.player);
             this.tournament.participants = [{
-                id: this.player.id,
+                id: this.player.username, // Use username as unique identifier
                 name: this.player.display_name,
                 score: 0,
                 gold: 0
@@ -4126,7 +4126,7 @@ class HighNoonHustle {
     }
 
     updatePlayerScore(score) {
-        const playerIndex = this.tournament.participants.findIndex(p => p.id === this.player.id);
+        const playerIndex = this.tournament.participants.findIndex(p => p.id === this.player.username);
         if (playerIndex !== -1) {
             this.tournament.participants[playerIndex].score += score;
         }
@@ -4136,13 +4136,13 @@ class HighNoonHustle {
         // Sort participants by score
         const sorted = [...this.tournament.participants].sort((a, b) => b.score - a.score);
         
-        console.log('DEBUG: showTournamentLeaderboard - this.player.id:', this.player.id);
+        console.log('DEBUG: showTournamentLeaderboard - this.player.username:', this.player.username);
         console.log('DEBUG: showTournamentLeaderboard - participants:', this.tournament.participants);
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏆 Current Leaderboard:' + ANSIParser.reset());
         sorted.forEach((participant, index) => {
             const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏃';
-            const isYou = participant.id === this.player.id ? ' (YOU)' : '';
+            const isYou = participant.id === this.player.username ? ' (YOU)' : '';
             console.log(`DEBUG: Participant ${index}: id=${participant.id}, name=${participant.name}, isYou=${isYou}`);
             this.terminal.println(ANSIParser.fg('bright-white') + `  ${medal} ${participant.name}${isYou}: ${participant.score.toFixed(1)}` + ANSIParser.reset());
         });
@@ -4204,7 +4204,7 @@ class HighNoonHustle {
         
         if (join.toLowerCase() === 'y' || join.toLowerCase() === 'yes') {
             // Check if already participating
-            const alreadyParticipating = this.tournament.participants.find(p => p.id === this.player.id);
+            const alreadyParticipating = this.tournament.participants.find(p => p.id === this.player.username);
             if (alreadyParticipating) {
                 this.terminal.println(ANSIParser.fg('bright-yellow') + '  You are already in this tournament!' + ANSIParser.reset());
                 await this.terminal.sleep(2000);
@@ -4215,7 +4215,7 @@ class HighNoonHustle {
             // Add player to tournament
             console.log('DEBUG: this.player object when joining tournament:', this.player);
             const newParticipant = {
-                id: this.player.id,
+                id: this.player.username, // Use username as unique identifier
                 name: this.player.display_name,
                 score: 0,
                 gold: 0
