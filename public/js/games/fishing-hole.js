@@ -2430,6 +2430,10 @@ class FishingHole {
             this.socketClient.socket.on('fishing-tournament-sync', (data) => {
                 this.handleTournamentSync(data);
             });
+            
+            this.socketClient.socket.on('fishing-tournament-end', (data) => {
+                this.handleTournamentEnd(data);
+            });
         }
     }
 
@@ -2466,6 +2470,11 @@ class FishingHole {
     }
 
     handleTournamentUpdate(data) {
+        // Don't process updates from ourselves
+        if (data.player === this.player.name) {
+            return;
+        }
+        
         // Update participant data
         let participant = this.tournament.participants.find(p => p.name === data.player);
         if (!participant) {
@@ -2480,14 +2489,67 @@ class FishingHole {
         }
         
         // Update participant stats
-        participant.totalWeight = data.totalWeight;
+        participant.totalWeight = data.totalWeight || 0;
+        participant.fishCount = data.fishCount || 0;
+        participant.biggestCatch = data.biggestCatch || 0;
         participant.position = data.position;
         
+        // Show other player's catch if they caught a fish
+        if (data.fishName && data.fishWeight) {
+            const rarityColor = this.getRarityColor(data.fishRarity);
+            this.terminal.println(rarityColor + `  🎣 ${data.player} caught: ${data.fishName} (${data.fishWeight.toFixed(2)} lbs) [${data.fishRarity}]` + ANSIParser.reset());
+        }
+        
         // Add to tournament messages
-        this.tournament.tournamentMessages.push(data.message);
+        if (data.message) {
+            this.tournament.tournamentMessages.push(data.message);
+        }
         
         // Update leaderboard
         this.updateTournamentLeaderboard();
+    }
+
+    handleTournamentEnd(data) {
+        // Don't process if we're the one who ended the tournament
+        if (data.host === this.player.name) {
+            return;
+        }
+        
+        // Show tournament results from other players
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 TOURNAMENT RESULTS 🏆' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Show final leaderboard
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏆 FINAL LEADERBOARD 🏆' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        data.results.forEach((result, index) => {
+            let color = ANSIParser.fg('bright-white');
+            if (index === 0) color = ANSIParser.fg('bright-yellow');
+            else if (index === 1) color = ANSIParser.fg('bright-cyan');
+            else if (index === 2) color = ANSIParser.fg('bright-green');
+            
+            const isYou = result.player === this.player.name ? ' (YOU)' : '';
+            this.terminal.println(color + `  ${result.position}. ${result.player}${isYou}: ${result.weight.toFixed(2)} lbs (${result.fishCount} fish)` + ANSIParser.reset());
+        });
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to continue...' + ANSIParser.reset());
+        this.terminal.input();
+    }
+
+    getRarityColor(rarity) {
+        switch (rarity) {
+            case 'Legendary': return ANSIParser.fg('bright-yellow');
+            case 'Epic': return ANSIParser.fg('bright-magenta');
+            case 'Rare': return ANSIParser.fg('bright-cyan');
+            case 'Uncommon': return ANSIParser.fg('bright-green');
+            case 'Common': return ANSIParser.fg('bright-white');
+            default: return ANSIParser.fg('white');
+        }
     }
 
     updateTournamentLeaderboard() {
@@ -2532,22 +2594,22 @@ class FishingHole {
         // Update tournament stats
         this.tournament.stats.tournamentsPlayed++;
         
-        // Safely access participant data
-        if (this.tournament.participants && this.tournament.participants.length > 0 && this.tournament.participants[0]) {
-            const participant = this.tournament.participants[0];
-            console.log('End tournament - participant data:', participant); // Debug log
-            this.tournament.stats.totalTournamentWeight += participant.totalWeight || 0;
-            this.tournament.stats.totalTournamentFish += participant.fishCount || 0;
+        // Safely access participant data - find current player's data
+        const currentPlayerParticipant = this.tournament.participants.find(p => p.name === this.player.name);
+        if (currentPlayerParticipant) {
+            console.log('End tournament - participant data:', currentPlayerParticipant); // Debug log
+            this.tournament.stats.totalTournamentWeight += currentPlayerParticipant.totalWeight || 0;
+            this.tournament.stats.totalTournamentFish += currentPlayerParticipant.fishCount || 0;
             
-            if ((participant.biggestCatch || 0) > this.tournament.stats.biggestTournamentFish) {
-                this.tournament.stats.biggestTournamentFish = participant.biggestCatch || 0;
+            if ((currentPlayerParticipant.biggestCatch || 0) > this.tournament.stats.biggestTournamentFish) {
+                this.tournament.stats.biggestTournamentFish = currentPlayerParticipant.biggestCatch || 0;
             }
             
-            if ((participant.totalWeight || 0) > this.tournament.stats.biggestTournamentBag) {
-                this.tournament.stats.biggestTournamentBag = participant.totalWeight || 0;
+            if ((currentPlayerParticipant.totalWeight || 0) > this.tournament.stats.biggestTournamentBag) {
+                this.tournament.stats.biggestTournamentBag = currentPlayerParticipant.totalWeight || 0;
             }
         } else {
-            console.log('End tournament - no participant data found!', this.tournament.participants); // Debug log
+            console.log('End tournament - no participant data found for current player!', this.tournament.participants); // Debug log
         }
         
         // Calculate final results
@@ -2676,6 +2738,11 @@ class FishingHole {
                     tournamentId: this.tournament.tournamentId,
                     player: this.player.name,
                     totalWeight: participant.totalWeight,
+                    fishCount: participant.fishCount,
+                    biggestCatch: participant.biggestCatch,
+                    fishName: fish.name,
+                    fishWeight: fish.weight,
+                    fishRarity: fish.rarity,
                     position: this.getPlayerPosition(),
                     message: message
                 });

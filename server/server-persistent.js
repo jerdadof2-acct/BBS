@@ -2374,8 +2374,18 @@ io.on('connection', (socket) => {
     if (user) {
       console.log('Tournament update from:', user.handle, 'Weight:', data.totalWeight);
       
-      // Tournament updates are only sent to tournament participants, not all users
-      // This prevents spam to users who aren't interested in tournaments
+      // Broadcast tournament update to all users in the same tournament
+      io.emit('fishing-tournament-update', {
+        tournamentId: data.tournamentId,
+        player: user.handle,
+        totalWeight: data.totalWeight,
+        fishCount: data.fishCount,
+        biggestCatch: data.biggestCatch,
+        fishName: data.fishName,
+        fishWeight: data.fishWeight,
+        fishRarity: data.fishRarity,
+        timestamp: new Date().toISOString()
+      });
     }
   });
 
