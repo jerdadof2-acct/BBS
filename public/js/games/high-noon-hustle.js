@@ -3179,6 +3179,12 @@ class HighNoonHustle {
     }
 
     async getLeaderboardData(category, limit = 10) {
+        // For now, always use mock data since API endpoints don't exist yet
+        console.log(`DEBUG: Using mock data for ${category} leaderboard`);
+        return this.getMockLeaderboardData(category, limit);
+        
+        // TODO: Uncomment when API endpoints are implemented
+        /*
         try {
             const response = await fetch('/api/leaderboard', {
                 method: 'POST',
@@ -3203,6 +3209,7 @@ class HighNoonHustle {
             // Return mock data for development
             return this.getMockLeaderboardData(category, limit);
         }
+        */
     }
 
     getMockLeaderboardData(category, limit) {
@@ -3280,6 +3287,12 @@ class HighNoonHustle {
     }
 
     async getOverallRankings() {
+        // For now, always use mock data since API endpoints don't exist yet
+        console.log('DEBUG: Using mock data for overall rankings');
+        return this.getMockOverallRankings();
+        
+        // TODO: Uncomment when API endpoints are implemented
+        /*
         try {
             const response = await fetch('/api/overall-rankings', {
                 method: 'POST',
@@ -3302,6 +3315,7 @@ class HighNoonHustle {
             // Return mock data for development
             return this.getMockOverallRankings();
         }
+        */
     }
 
     getMockOverallRankings() {
@@ -4685,7 +4699,7 @@ class HighNoonHustle {
             this.terminal.println('');
             
             // Show current leaderboard
-            this.showTournamentLeaderboard();
+            this.showCurrentTournamentLeaderboard();
             this.terminal.println('');
             
             // Play one round of the game (with fixed timing)
@@ -4961,12 +4975,12 @@ class HighNoonHustle {
         }
     }
 
-    showTournamentLeaderboard() {
+    showCurrentTournamentLeaderboard() {
         // Sort participants by score
         const sorted = [...this.tournament.participants].sort((a, b) => b.score - a.score);
         
-        console.log('DEBUG: showTournamentLeaderboard - this.player.username:', this.player.username);
-        console.log('DEBUG: showTournamentLeaderboard - participants:', this.tournament.participants);
+        console.log('DEBUG: showCurrentTournamentLeaderboard - this.player.username:', this.player.username);
+        console.log('DEBUG: showCurrentTournamentLeaderboard - participants:', this.tournament.participants);
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏆 Current Leaderboard:' + ANSIParser.reset());
         sorted.forEach((participant, index) => {
