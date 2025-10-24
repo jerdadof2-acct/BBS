@@ -593,7 +593,8 @@ class HighNoonHustle {
             const choice = (await this.terminal.input()).toLowerCase().trim();
             
             if (choice === 'b' || choice === 'back') {
-                break;
+                await this.enterSaloon();
+                return;
             }
             
             const gameIndexNum = parseInt(choice) - 1;
@@ -3241,9 +3242,11 @@ class HighNoonHustle {
                     clearTimeout(timeout);
                     this.socketClient.socket.off('duel-response', handleDuelResponse);
                     if (data.accepted) {
-                        this.startDuel(data.duelType, data.wager, data.challenger);
+                        await this.startDuel(data.duelType, data.wager, data.challenger);
                     } else {
                         this.terminal.println(ANSIParser.fg('bright-yellow') + `  ${data.challenger.name} declined your duel challenge!` + ANSIParser.reset());
+                        await this.terminal.sleep(2000);
+                        await this.enterSaloon();
                     }
                     resolve();
                 }
@@ -3733,10 +3736,151 @@ class HighNoonHustle {
     async helpOtherPlayers() { /* TODO */ }
     async danceWithOthers() { /* TODO */ }
     async serveDrinks() { /* TODO */ }
-    async formPosse() { /* TODO */ }
-    async viewEventsAndAnnouncements() { /* TODO */ }
-    async tradeWithPlayers() { /* TODO */ }
-    async joinCompetitions() { /* TODO */ }
+    async formPosse() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔════ FORM POSSE ════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║ Gather your gang! ║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  ╚═══════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🤠 Available Gang Members:' + ANSIParser.reset());
+        this.onlinePlayers.forEach((player, index) => {
+            if (player.username !== this.player?.username) {
+                const townTag = this.getTownTag(player.current_town);
+                this.terminal.println(ANSIParser.fg('bright-white') + `  [${index + 1}] ${townTag} ${player.display_name} (${player.character_class})` + ANSIParser.reset());
+            }
+        });
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [B] Back to Saloon' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        
+        const choice = (await this.terminal.input()).toLowerCase().trim();
+        
+        if (choice === 'b' || choice === 'back') {
+            await this.enterSaloon();
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Posse formation coming soon!' + ANSIParser.reset());
+            await this.terminal.sleep(2000);
+            await this.enterSaloon();
+        }
+    }
+    
+    async viewEventsAndAnnouncements() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔════ EVENTS & ANNOUNCEMENTS ════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║ Latest frontier news! ║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  ╚═══════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  📢 Current Events:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • High Noon Hustle Tournament Season' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • New equipment available at the General Store' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Daily challenges reset at midnight' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 Recent Winners:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Poker Tournament: Halley66' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Derby Race: SlowPoke' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [B] Back to Saloon' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        
+        const choice = (await this.terminal.input()).toLowerCase().trim();
+        await this.enterSaloon();
+    }
+    
+    async tradeWithPlayers() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔════ TRADING POST ════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║ Player-to-Player Trading ║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  ╚═══════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🤠 Available Traders:' + ANSIParser.reset());
+        this.onlinePlayers.forEach((player, index) => {
+            if (player.username !== this.player?.username) {
+                const townTag = this.getTownTag(player.current_town);
+                this.terminal.println(ANSIParser.fg('bright-white') + `  [${index + 1}] ${townTag} ${player.display_name} (${player.character_class})` + ANSIParser.reset());
+            }
+        });
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [B] Back to Saloon' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        
+        const choice = (await this.terminal.input()).toLowerCase().trim();
+        
+        if (choice === 'b' || choice === 'back') {
+            await this.enterSaloon();
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Trading system coming soon!' + ANSIParser.reset());
+            await this.terminal.sleep(2000);
+            await this.enterSaloon();
+        }
+    }
+    
+    async joinCompetitions() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔════ COMPETITIONS ════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║ Join the competition! ║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  ╚═══════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 Available Competitions:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Daily High Score Challenge' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Weekly Gold Rush Contest' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Monthly Sheriff Election' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [B] Back to Saloon' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        
+        const choice = (await this.terminal.input()).toLowerCase().trim();
+        
+        if (choice === 'b' || choice === 'back') {
+            await this.enterSaloon();
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Competition system coming soon!' + ANSIParser.reset());
+            await this.terminal.sleep(2000);
+            await this.enterSaloon();
+        }
+    }
+    
+    async socialActivities() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔════ SOCIAL ACTIVITIES ════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║ Mingle with other players! ║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  ╚═══════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎭 Social Activities:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Play Piano for Crowd' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Tell Tall Tales' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Help Other Players' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [4] Dance with Others' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [5] Serve Drinks' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [B] Back to Saloon' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        
+        const choice = (await this.terminal.input()).toLowerCase().trim();
+        
+        if (choice === 'b' || choice === 'back') {
+            await this.enterSaloon();
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Social activities coming soon!' + ANSIParser.reset());
+            await this.terminal.sleep(2000);
+            await this.enterSaloon();
+        }
+    }
 
     setupSocketListeners() {
         // Setup WebSocket listeners for real-time updates
