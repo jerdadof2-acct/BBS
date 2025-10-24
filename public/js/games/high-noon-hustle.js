@@ -4320,34 +4320,34 @@ class HighNoonHustle {
         const totalParticipants = sortedParticipants.length;
         const finalScore = sortedParticipants[playerIndex].score;
         
-        // Base rewards
-        let gold = Math.floor(finalScore / 10); // 1 gold per 10 points
-        let experience = Math.floor(finalScore / 5); // 1 XP per 5 points
-        let honor = Math.floor(finalScore / 20); // 1 honor per 20 points
+        // Base rewards (much more conservative)
+        let gold = Math.floor(finalScore / 50); // 1 gold per 50 points
+        let experience = Math.floor(finalScore / 100); // 1 XP per 100 points
+        let honor = Math.floor(finalScore / 200); // 1 honor per 200 points
         
-        // Position bonuses
+        // Position bonuses (reduced)
         let bonus = '';
         if (position === 1) {
-            gold += 100; // Winner bonus
-            experience += 50;
-            honor += 25;
+            gold += 25; // Winner bonus
+            experience += 10;
+            honor += 5;
             bonus = '🏆 TOURNAMENT CHAMPION!';
         } else if (position === 2) {
-            gold += 50; // Runner-up bonus
-            experience += 25;
-            honor += 15;
+            gold += 15; // Runner-up bonus
+            experience += 5;
+            honor += 3;
             bonus = '🥈 Runner-up!';
         } else if (position === 3) {
-            gold += 25; // Third place bonus
-            experience += 15;
-            honor += 10;
+            gold += 10; // Third place bonus
+            experience += 3;
+            honor += 2;
             bonus = '🥉 Third place!';
         }
         
-        // Participation bonus
-        gold += 10; // Everyone gets participation gold
-        experience += 5;
-        honor += 2;
+        // Participation bonus (minimal)
+        gold += 2; // Everyone gets participation gold
+        experience += 1;
+        honor += 1;
         
         return {
             position,
@@ -4565,16 +4565,16 @@ class HighNoonHustle {
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-green') + '  🎁 REWARDS SYSTEM:' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Base rewards: 1 gold per 10 points' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Experience: 1 XP per 5 points' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Honor: 1 honor per 20 points' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Base rewards: 1 gold per 50 points' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Experience: 1 XP per 100 points' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Honor: 1 honor per 200 points' + ANSIParser.reset());
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 POSITION BONUSES:' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  🥇 1st Place: +100 gold, +50 XP, +25 honor' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  🥈 2nd Place: +50 gold, +25 XP, +15 honor' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  🥉 3rd Place: +25 gold, +15 XP, +10 honor' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  🏃 Participation: +10 gold, +5 XP, +2 honor' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  🥇 1st Place: +25 gold, +10 XP, +5 honor' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  🥈 2nd Place: +15 gold, +5 XP, +3 honor' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  🥉 3rd Place: +10 gold, +3 XP, +2 honor' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  🏃 Participation: +2 gold, +1 XP, +1 honor' + ANSIParser.reset());
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  💡 TIP: Higher scores = better rewards!' + ANSIParser.reset());
