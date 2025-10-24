@@ -2442,8 +2442,11 @@ class FishingHole {
     }
 
     handleTournamentJoin(data) {
-        // Convert BBS handle to game username (for now, use the same name)
-        const gameUsername = data.player;
+        // Map BBS login names to game usernames for consistency
+        let gameUsername = data.player;
+        if (data.player === 'SysOp') {
+            gameUsername = 'Halley66'; // Map SysOp to Halley66 for consistency
+        }
         
         // Add new participant if they don't exist
         const existingParticipant = this.tournament.participants.find(p => p.name === gameUsername);
@@ -2482,12 +2485,18 @@ class FishingHole {
             return;
         }
         
+        // Map BBS login names to game usernames for consistency
+        let gameUsername = data.player;
+        if (data.player === 'SysOp') {
+            gameUsername = 'Halley66'; // Map SysOp to Halley66 for consistency
+        }
+        
         // Update participant data
-        let participant = this.tournament.participants.find(p => p.name === data.player);
+        let participant = this.tournament.participants.find(p => p.name === gameUsername);
         if (!participant) {
             // Add participant if they don't exist
             participant = {
-                name: data.player,
+                name: gameUsername,
                 totalWeight: 0,
                 fishCount: 0,
                 biggestCatch: 0
@@ -2514,11 +2523,46 @@ class FishingHole {
         
         // Update leaderboard
         this.updateTournamentLeaderboard();
+        
+        // Clean up any duplicate participants
+        this.cleanupDuplicateParticipants();
+    }
+
+    cleanupDuplicateParticipants() {
+        // Remove duplicate participants based on game username mapping
+        const uniqueParticipants = [];
+        const seenUsernames = new Set();
+        
+        this.tournament.participants.forEach(participant => {
+            let gameUsername = participant.name;
+            if (participant.name === 'SysOp') {
+                gameUsername = 'Halley66';
+            }
+            
+            if (!seenUsernames.has(gameUsername)) {
+                seenUsernames.add(gameUsername);
+                uniqueParticipants.push({
+                    name: gameUsername,
+                    totalWeight: participant.totalWeight,
+                    fishCount: participant.fishCount,
+                    biggestCatch: participant.biggestCatch
+                });
+            }
+        });
+        
+        this.tournament.participants = uniqueParticipants;
+        console.log('Cleaned up duplicate participants:', this.tournament.participants);
     }
 
     handleTournamentEnd(data) {
+        // Map BBS login names to game usernames for consistency
+        let hostGameUsername = data.host;
+        if (data.host === 'SysOp') {
+            hostGameUsername = 'Halley66'; // Map SysOp to Halley66 for consistency
+        }
+        
         // Don't process if we're the one who ended the tournament
-        if (data.host === this.player.gameUsername) {
+        if (hostGameUsername === this.player.gameUsername) {
             return;
         }
         
