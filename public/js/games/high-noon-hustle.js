@@ -2011,7 +2011,7 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-white') + '  [25] 25 gold' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  [50] 50 gold' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  [100] 100 gold' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [B] Back to Saloon' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [B] Back to Menu' + ANSIParser.reset());
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
@@ -2092,7 +2092,7 @@ class HighNoonHustle {
 
         await this.savePlayerData();
         await this.terminal.sleep(3000);
-        await this.enterSaloon();
+        return;
     }
 
     async beanCookingContest() {
@@ -2200,7 +2200,7 @@ class HighNoonHustle {
 
         await this.savePlayerData();
         await this.terminal.sleep(3000);
-        await this.enterSaloon();
+        return;
     }
 
     async goldPanningCompetition() {
@@ -2308,7 +2308,7 @@ class HighNoonHustle {
 
         await this.savePlayerData();
         await this.terminal.sleep(3000);
-        await this.enterSaloon();
+        return;
     }
 
     async practiceShootingRange() {
