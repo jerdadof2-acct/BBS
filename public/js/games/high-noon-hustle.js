@@ -178,31 +178,21 @@ class HighNoonHustle {
             const choice = (await this.terminal.input()).toLowerCase().trim();
             
             if (choice === '1') {
-                await this.pvpAction();
-            } else if (choice === '2') {
-                await this.coopMissions();
-            } else if (choice === '3') {
-                await this.enterSaloon();
-            } else if (choice === '4') {
-                await this.competitionsAndTournaments();
-            } else if (choice === '5') {
-                await this.tradingPost();
-            } else if (choice === '6') {
-                await this.multiplayerMiniGames();
-            } else if (choice === '7') {
                 await this.soloAdventures();
-            } else if (choice.toLowerCase() === 'g') {
+            } else if (choice === '2') {
                 await this.generalStore();
-            } else if (choice.toLowerCase() === 'm') {
+            } else if (choice === '3') {
                 await this.soloMiniGames();
-            } else if (choice.toLowerCase() === 'e') {
+            } else if (choice === '4') {
                 await this.energyRecovery();
-            } else if (choice === '8') {
+            } else if (choice === '5') {
                 await this.leaderboardsAndRankings();
-            } else if (choice === '9') {
+            } else if (choice === '6') {
                 await this.viewGazette();
-            } else if (choice.toLowerCase() === 'c') {
+            } else if (choice === '7') {
                 await this.characterManagement();
+            } else if (choice.toLowerCase() === 's' || choice === 'saloon') {
+                await this.enterSaloon();
             } else if (choice === 'q' || choice === 'quit') {
                 await this.savePlayerData();
                 return 'doors';
@@ -313,7 +303,7 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-white') + '  ═══════════════════════════════════════════════════════════════════════════' + ANSIParser.reset());
         this.terminal.println('');
         
-        // Online players - MUCH MORE PROMINENT
+        // Online players - Show who's in the saloon
         if (this.onlinePlayers.length > 0) {
             this.terminal.println(ANSIParser.fg('bright-yellow') + '  🤠 WHO\'S IN THE SALOON 🤠' + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-cyan') + '  ═══════════════════════════════════════════════════════════════════════════' + ANSIParser.reset());
@@ -324,27 +314,25 @@ class HighNoonHustle {
             });
             this.terminal.println(ANSIParser.fg('bright-cyan') + '  ═══════════════════════════════════════════════════════════════════════════' + ANSIParser.reset());
             this.terminal.println('');
+            this.terminal.println(ANSIParser.fg('bright-green') + '  💡 Tip: Press [S] to join them in the saloon for multiplayer fun!' + ANSIParser.reset());
+            this.terminal.println('');
         } else {
-            this.terminal.println(ANSIParser.fg('bright-red') + '  🏜️  SALOON IS EMPTY - You\'re the only one here!' + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Invite friends or wait for others to join!' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-red') + '  🏜️  SALOON IS EMPTY - No other players online' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Focus on solo adventures or invite friends to join!' + ANSIParser.reset());
             this.terminal.println('');
         }
         
-        // MULTIPLAYER-FIRST Menu - PvP & Co-op Emphasis
-        this.terminal.println(ANSIParser.fg('bright-red') + '  ⚔️  [1]' + ANSIParser.reset() + ' PvP ACTION (Duels, Heists, Bounties)');
-        this.terminal.println(ANSIParser.fg('bright-green') + '  🤝 [2]' + ANSIParser.reset() + ' CO-OP MISSIONS (Stagecoach, Town Defense)');
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🍺 [3]' + ANSIParser.reset() + ' Saloon (Telegraph & Social Hub)');
-        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏆 [4]' + ANSIParser.reset() + ' COMPETITIONS & TOURNAMENTS');
-            this.terminal.println(ANSIParser.fg('bright-magenta') + '  💰 [5]' + ANSIParser.reset() + ' Trading Post (Player Economy)');
-            this.terminal.println(ANSIParser.fg('bright-white') + '  🎮 [6]' + ANSIParser.reset() + ' Mini-Games (Multiplayer)');
-            this.terminal.println(ANSIParser.fg('bright-blue') + '  🏜️  [7]' + ANSIParser.reset() + ' Solo Adventures (When Alone)');
-            this.terminal.println(ANSIParser.fg('bright-cyan') + '  ⚔️  [G]' + ANSIParser.reset() + ' General Store (Equipment & Gear)');
-            this.terminal.println(ANSIParser.fg('bright-white') + '  🎮 [M]' + ANSIParser.reset() + ' Solo Mini-Games (Practice & Fun)');
-            this.terminal.println(ANSIParser.fg('bright-green') + '  ⚡ [E]' + ANSIParser.reset() + ' Energy Recovery (Rest & Recharge)');
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  📊 [8]' + ANSIParser.reset() + ' Leaderboards & Rankings');
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  📰 [9]' + ANSIParser.reset() + ' The Gazette (Community News)');
-            this.terminal.println(ANSIParser.fg('bright-cyan') + '  👤 [C]' + ANSIParser.reset() + ' Character Management');
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  [Q]' + ANSIParser.reset() + ' Quit to Door Games');
+        // SOLO ADVENTURES - Main Menu Focus
+        this.terminal.println(ANSIParser.fg('bright-blue') + '  🏜️  [1]' + ANSIParser.reset() + ' Solo Adventures (Story & Exploration)');
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ⚔️  [2]' + ANSIParser.reset() + ' General Store (Equipment & Gear)');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  🎮 [3]' + ANSIParser.reset() + ' Solo Mini-Games (Practice & Fun)');
+        this.terminal.println(ANSIParser.fg('bright-green') + '  ⚡ [4]' + ANSIParser.reset() + ' Energy Recovery (Rest & Recharge)');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  📊 [5]' + ANSIParser.reset() + ' Leaderboards & Rankings');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  📰 [6]' + ANSIParser.reset() + ' The Gazette (Community News)');
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  👤 [7]' + ANSIParser.reset() + ' Character Management');
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-red') + '  🍺 [S]' + ANSIParser.reset() + ' Enter Saloon (Multiplayer Hub)');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [Q]' + ANSIParser.reset() + ' Quit to Door Games');
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
@@ -366,7 +354,8 @@ class HighNoonHustle {
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  🍺 Welcome to the Saloon! 🍺' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  The heart of the Wild West - where all the action happens!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  The multiplayer hub of the Wild West - where all the social action happens!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Chat, duel, trade, and compete with other players!' + ANSIParser.reset());
         this.terminal.println('');
         
         // Show who's here
@@ -401,20 +390,20 @@ class HighNoonHustle {
         this.showSaloonMessages();
         this.terminal.println('');
         
-        // Saloon activities - ALL MULTIPLAYER FOCUSED
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🍺 Saloon Activities (All Multiplayer!):' + ANSIParser.reset());
+        // Saloon activities - PURE MULTIPLAYER & SOCIAL
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🍺 Saloon Activities (Multiplayer & Social Only!):' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  [1]' + ANSIParser.reset() + ' 💬 Send Telegraph Message');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [2]' + ANSIParser.reset() + ' 🎮 Join Multiplayer Games');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [3]' + ANSIParser.reset() + ' ⚔️  Challenge Someone to Duel');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [4]' + ANSIParser.reset() + ' 💰 Trade with Other Players');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [5]' + ANSIParser.reset() + ' 🎵 Social Activities (Energy Recovery)');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [5]' + ANSIParser.reset() + ' 🎵 Social Activities');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [6]' + ANSIParser.reset() + ' 🏆 Join Competitions');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [7]' + ANSIParser.reset() + ' 📢 View Events & Announcements');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [8]' + ANSIParser.reset() + ' 👥 Form a Posse');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [9]' + ANSIParser.reset() + ' 🏆 Tournaments (TRUE Multiplayer!)');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [S]' + ANSIParser.reset() + ' 📊 View Your Stats & Equipment');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [R]' + ANSIParser.reset() + ' 🔄 Refresh Saloon (Update Player List)');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [B]' + ANSIParser.reset() + ' Back to Main Menu');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [B]' + ANSIParser.reset() + ' Back to Main Menu (Solo Adventures)');
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
