@@ -2974,10 +2974,384 @@ class HighNoonHustle {
     }
 
     async leaderboardsAndRankings() {
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  📊 Leaderboards & Rankings!' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-cyan') + '  See who\'s the best in the West!' + ANSIParser.reset());
-        // TODO: Implement leaderboards
-        await this.terminal.sleep(2000);
+        while (true) {
+            this.terminal.clear();
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔═══════════════════════════════════════' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  📊 LEADERBOARDS & RANKINGS 📊' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+            this.terminal.println('');
+            
+            this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏆 Choose a leaderboard category:' + ANSIParser.reset());
+            this.terminal.println('');
+            
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [1]' + ANSIParser.reset() + ' 💰 Richest Outlaws (Gold)');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [2]' + ANSIParser.reset() + ' ⭐ Most Experienced (XP)');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [3]' + ANSIParser.reset() + ' ⚔️  Duel Champions (Wins)');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [4]' + ANSIParser.reset() + ' 🏆 Tournament Winners');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [5]' + ANSIParser.reset() + ' 🎯 Highest Level Players');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [6]' + ANSIParser.reset() + ' 🏅 Honor Score Leaders');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [7]' + ANSIParser.reset() + ' 🎮 Mini-Game Champions');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [8]' + ANSIParser.reset() + ' 📊 Overall Rankings');
+            this.terminal.println('');
+            
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [B]' + ANSIParser.reset() + ' Back to Main Menu');
+            this.terminal.println('');
+            
+            this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+            
+            const choice = (await this.terminal.input()).toLowerCase().trim();
+            
+            if (choice === 'b' || choice === 'back') {
+                return;
+            } else if (choice === '1') {
+                await this.showGoldLeaderboard();
+            } else if (choice === '2') {
+                await this.showExperienceLeaderboard();
+            } else if (choice === '3') {
+                await this.showDuelLeaderboard();
+            } else if (choice === '4') {
+                await this.showTournamentLeaderboard();
+            } else if (choice === '5') {
+                await this.showLevelLeaderboard();
+            } else if (choice === '6') {
+                await this.showHonorLeaderboard();
+            } else if (choice === '7') {
+                await this.showMiniGameLeaderboard();
+            } else if (choice === '8') {
+                await this.showOverallLeaderboard();
+            } else {
+                this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice! Try again.' + ANSIParser.reset());
+                await this.terminal.sleep(1000);
+            }
+        }
+    }
+
+    async showGoldLeaderboard() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔═══════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  💰 RICHEST OUTLAWS (GOLD) 💰' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        try {
+            const players = await this.getLeaderboardData('gold');
+            this.displayLeaderboard(players, 'gold', 'Gold');
+        } catch (error) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Error loading gold leaderboard: ' + error.message + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+    }
+
+    async showExperienceLeaderboard() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔═══════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ⭐ MOST EXPERIENCED PLAYERS ⭐' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        try {
+            const players = await this.getLeaderboardData('experience');
+            this.displayLeaderboard(players, 'experience', 'Experience');
+        } catch (error) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Error loading experience leaderboard: ' + error.message + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+    }
+
+    async showDuelLeaderboard() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔═══════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ⚔️  DUEL CHAMPIONS ⚔️' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        try {
+            const players = await this.getLeaderboardData('duel_wins');
+            this.displayLeaderboard(players, 'duel_wins', 'Duel Wins');
+        } catch (error) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Error loading duel leaderboard: ' + error.message + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+    }
+
+    async showTournamentLeaderboard() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔═══════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 TOURNAMENT WINNERS 🏆' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        try {
+            const players = await this.getLeaderboardData('tournament_wins');
+            this.displayLeaderboard(players, 'tournament_wins', 'Tournament Wins');
+        } catch (error) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Error loading tournament leaderboard: ' + error.message + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+    }
+
+    async showLevelLeaderboard() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔═══════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🎯 HIGHEST LEVEL PLAYERS 🎯' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        try {
+            const players = await this.getLeaderboardData('level');
+            this.displayLeaderboard(players, 'level', 'Level');
+        } catch (error) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Error loading level leaderboard: ' + error.message + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+    }
+
+    async showHonorLeaderboard() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔═══════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏅 HONOR SCORE LEADERS 🏅' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        try {
+            const players = await this.getLeaderboardData('honor_score');
+            this.displayLeaderboard(players, 'honor_score', 'Honor Score');
+        } catch (error) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Error loading honor leaderboard: ' + error.message + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+    }
+
+    async showMiniGameLeaderboard() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔═══════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🎮 MINI-GAME CHAMPIONS 🎮' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        try {
+            const players = await this.getLeaderboardData('mini_game_wins');
+            this.displayLeaderboard(players, 'mini_game_wins', 'Mini-Game Wins');
+        } catch (error) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Error loading mini-game leaderboard: ' + error.message + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+    }
+
+    async showOverallLeaderboard() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔═══════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  📊 OVERALL RANKINGS 📊' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        try {
+            const players = await this.getOverallRankings();
+            this.displayOverallRankings(players);
+        } catch (error) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Error loading overall rankings: ' + error.message + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+    }
+
+    async getLeaderboardData(category, limit = 10) {
+        try {
+            const response = await fetch('/api/leaderboard', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    game: 'high-noon-hustle',
+                    category: category,
+                    limit: limit
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.players || [];
+        } catch (error) {
+            console.error('Error fetching leaderboard data:', error);
+            // Return mock data for development
+            return this.getMockLeaderboardData(category, limit);
+        }
+    }
+
+    getMockLeaderboardData(category, limit) {
+        const mockPlayers = [
+            { username: 'Halley66', display_name: 'Halley66', character_class: 'sheriff', gold: 1250, experience: 850, level: 8, honor_score: 95, duel_wins: 12, tournament_wins: 3, mini_game_wins: 25 },
+            { username: 'SlowPoke', display_name: 'SlowPoke', character_class: 'outlaw', gold: 980, experience: 720, level: 6, honor_score: 78, duel_wins: 8, tournament_wins: 1, mini_game_wins: 18 },
+            { username: 'QuickDraw', display_name: 'QuickDraw', character_class: 'gunslinger', gold: 2100, experience: 1200, level: 10, honor_score: 120, duel_wins: 20, tournament_wins: 5, mini_game_wins: 35 },
+            { username: 'LuckyLuke', display_name: 'Lucky Luke', character_class: 'gambler', gold: 750, experience: 450, level: 4, honor_score: 45, duel_wins: 3, tournament_wins: 0, mini_game_wins: 12 },
+            { username: 'WildBill', display_name: 'Wild Bill', character_class: 'sheriff', gold: 1800, experience: 950, level: 9, honor_score: 110, duel_wins: 15, tournament_wins: 2, mini_game_wins: 28 },
+            { username: 'CalamityJane', display_name: 'Calamity Jane', character_class: 'outlaw', gold: 650, experience: 380, level: 3, honor_score: 35, duel_wins: 2, tournament_wins: 0, mini_game_wins: 8 },
+            { username: 'DocHolliday', display_name: 'Doc Holliday', character_class: 'gambler', gold: 1500, experience: 800, level: 7, honor_score: 85, duel_wins: 10, tournament_wins: 1, mini_game_wins: 22 },
+            { username: 'WyattEarp', display_name: 'Wyatt Earp', character_class: 'sheriff', gold: 2200, experience: 1100, level: 11, honor_score: 130, duel_wins: 18, tournament_wins: 4, mini_game_wins: 30 },
+            { username: 'BillyTheKid', display_name: 'Billy the Kid', character_class: 'outlaw', gold: 420, experience: 250, level: 2, honor_score: 20, duel_wins: 1, tournament_wins: 0, mini_game_wins: 5 },
+            { username: 'AnnieOakley', display_name: 'Annie Oakley', character_class: 'gunslinger', gold: 1100, experience: 680, level: 6, honor_score: 70, duel_wins: 7, tournament_wins: 1, mini_game_wins: 15 }
+        ];
+
+        // Sort by the specified category
+        const sortedPlayers = mockPlayers.sort((a, b) => {
+            if (category === 'gold' || category === 'experience' || category === 'level' || category === 'honor_score' || 
+                category === 'duel_wins' || category === 'tournament_wins' || category === 'mini_game_wins') {
+                return (b[category] || 0) - (a[category] || 0);
+            }
+            return 0;
+        });
+
+        return sortedPlayers.slice(0, limit);
+    }
+
+    displayLeaderboard(players, category, categoryName) {
+        if (players.length === 0) {
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  No players found in this category.' + ANSIParser.reset());
+            return;
+        }
+
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Top ${players.length} ${categoryName} Leaders:` + ANSIParser.reset());
+        this.terminal.println('');
+
+        players.forEach((player, index) => {
+            const rank = index + 1;
+            const isCurrentPlayer = player.username === this.player?.username;
+            const playerName = isCurrentPlayer ? `${player.display_name} (YOU)` : player.display_name;
+            const value = player[category] || 0;
+            
+            let rankColor = ANSIParser.fg('bright-white');
+            if (rank === 1) rankColor = ANSIParser.fg('bright-yellow');
+            else if (rank === 2) rankColor = ANSIParser.fg('bright-cyan');
+            else if (rank === 3) rankColor = ANSIParser.fg('bright-magenta');
+            
+            let nameColor = isCurrentPlayer ? ANSIParser.fg('bright-green') : ANSIParser.fg('bright-white');
+            
+            this.terminal.println(rankColor + `  ${rank}.` + ANSIParser.reset() + 
+                nameColor + ` ${playerName}` + ANSIParser.reset() + 
+                ANSIParser.fg('bright-cyan') + ` (${player.character_class})` + ANSIParser.reset() + 
+                ANSIParser.fg('bright-yellow') + ` - ${this.formatValue(value, category)}` + ANSIParser.reset());
+        });
+    }
+
+    formatValue(value, category) {
+        switch (category) {
+            case 'gold':
+                return `${value} gold`;
+            case 'experience':
+                return `${value} XP`;
+            case 'level':
+                return `Level ${value}`;
+            case 'honor_score':
+                return `${value} honor`;
+            case 'duel_wins':
+            case 'tournament_wins':
+            case 'mini_game_wins':
+                return `${value} wins`;
+            default:
+                return value.toString();
+        }
+    }
+
+    async getOverallRankings() {
+        try {
+            const response = await fetch('/api/overall-rankings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    game: 'high-noon-hustle'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.players || [];
+        } catch (error) {
+            console.error('Error fetching overall rankings:', error);
+            // Return mock data for development
+            return this.getMockOverallRankings();
+        }
+    }
+
+    getMockOverallRankings() {
+        const mockPlayers = [
+            { username: 'WyattEarp', display_name: 'Wyatt Earp', character_class: 'sheriff', overall_score: 95.5, gold: 2200, experience: 1100, level: 11, honor_score: 130, duel_wins: 18, tournament_wins: 4, mini_game_wins: 30 },
+            { username: 'QuickDraw', display_name: 'QuickDraw', character_class: 'gunslinger', overall_score: 92.3, gold: 2100, experience: 1200, level: 10, honor_score: 120, duel_wins: 20, tournament_wins: 5, mini_game_wins: 35 },
+            { username: 'WildBill', display_name: 'Wild Bill', character_class: 'sheriff', overall_score: 88.7, gold: 1800, experience: 950, level: 9, honor_score: 110, duel_wins: 15, tournament_wins: 2, mini_game_wins: 28 },
+            { username: 'Halley66', display_name: 'Halley66', character_class: 'sheriff', overall_score: 82.1, gold: 1250, experience: 850, level: 8, honor_score: 95, duel_wins: 12, tournament_wins: 3, mini_game_wins: 25 },
+            { username: 'DocHolliday', display_name: 'Doc Holliday', character_class: 'gambler', overall_score: 75.4, gold: 1500, experience: 800, level: 7, honor_score: 85, duel_wins: 10, tournament_wins: 1, mini_game_wins: 22 },
+            { username: 'SlowPoke', display_name: 'SlowPoke', character_class: 'outlaw', overall_score: 68.9, gold: 980, experience: 720, level: 6, honor_score: 78, duel_wins: 8, tournament_wins: 1, mini_game_wins: 18 },
+            { username: 'AnnieOakley', display_name: 'Annie Oakley', character_class: 'gunslinger', overall_score: 62.3, gold: 1100, experience: 680, level: 6, honor_score: 70, duel_wins: 7, tournament_wins: 1, mini_game_wins: 15 },
+            { username: 'LuckyLuke', display_name: 'Lucky Luke', character_class: 'gambler', overall_score: 45.2, gold: 750, experience: 450, level: 4, honor_score: 45, duel_wins: 3, tournament_wins: 0, mini_game_wins: 12 },
+            { username: 'CalamityJane', display_name: 'Calamity Jane', character_class: 'outlaw', overall_score: 38.7, gold: 650, experience: 380, level: 3, honor_score: 35, duel_wins: 2, tournament_wins: 0, mini_game_wins: 8 },
+            { username: 'BillyTheKid', display_name: 'Billy the Kid', character_class: 'outlaw', overall_score: 25.1, gold: 420, experience: 250, level: 2, honor_score: 20, duel_wins: 1, tournament_wins: 0, mini_game_wins: 5 }
+        ];
+
+        return mockPlayers;
+    }
+
+    displayOverallRankings(players) {
+        if (players.length === 0) {
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  No players found for overall rankings.' + ANSIParser.reset());
+            return;
+        }
+
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Overall Rankings (Top ${players.length}):` + ANSIParser.reset());
+        this.terminal.println('');
+
+        players.forEach((player, index) => {
+            const rank = index + 1;
+            const isCurrentPlayer = player.username === this.player?.username;
+            const playerName = isCurrentPlayer ? `${player.display_name} (YOU)` : player.display_name;
+            
+            let rankColor = ANSIParser.fg('bright-white');
+            if (rank === 1) rankColor = ANSIParser.fg('bright-yellow');
+            else if (rank === 2) rankColor = ANSIParser.fg('bright-cyan');
+            else if (rank === 3) rankColor = ANSIParser.fg('bright-magenta');
+            
+            let nameColor = isCurrentPlayer ? ANSIParser.fg('bright-green') : ANSIParser.fg('bright-white');
+            
+            this.terminal.println(rankColor + `  ${rank}.` + ANSIParser.reset() + 
+                nameColor + ` ${playerName}` + ANSIParser.reset() + 
+                ANSIParser.fg('bright-cyan') + ` (${player.character_class})` + ANSIParser.reset() + 
+                ANSIParser.fg('bright-yellow') + ` - Score: ${player.overall_score}` + ANSIParser.reset());
+            
+            // Show detailed stats
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `      Gold: ${player.gold} | XP: ${player.experience} | Level: ${player.level} | Honor: ${player.honor_score}` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `      Duels: ${player.duel_wins} | Tournaments: ${player.tournament_wins} | Mini-Games: ${player.mini_game_wins}` + ANSIParser.reset());
+            this.terminal.println('');
+        });
     }
 
     // MULTIPLAYER-FOCUSED METHODS
