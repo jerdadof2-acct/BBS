@@ -693,9 +693,9 @@ class FishingHole {
         const biggestCatch = parseFloat(this.player.biggestCatch) || 0;
         this.terminal.println(ANSIParser.fg('bright-green') + `  Biggest Catch: ${this.player.biggestCatchName} (${biggestCatch.toFixed(2)} lbs)` + ANSIParser.reset());
         this.terminal.println('');
-        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Rare Catches: ${this.player.rareCatches}` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-yellow') + `  Legendary Catches: ${this.player.legendaryCatches}` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-red') + `  Trophy Catches: ${this.player.trophyCatches}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Rare Catches: ${this.player.rareCatches || 0}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + `  Legendary Catches: ${this.player.legendaryCatches || 0}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-red') + `  Trophy Catches: ${(this.player.trophyCatches || []).length}` + ANSIParser.reset());
         this.terminal.println('');
         this.terminal.println(ANSIParser.fg('bright-white') + `  Money: $${this.player.money}` + ANSIParser.reset());
         this.terminal.println('');
@@ -1592,6 +1592,10 @@ class FishingHole {
                     
                     // Set game username (use BBS handle for now, but could be customized)
                     this.player.gameUsername = this.player.name;
+                    
+                    // Initialize rare and legendary catch counts if not set
+                    this.player.rareCatches = this.player.rareCatches || 0;
+                    this.player.legendaryCatches = this.player.legendaryCatches || 0;
                     
                     console.log('Data location exists:', !!data.player.location);
                     console.log('Data location value:', data.player.location);
@@ -2822,6 +2826,17 @@ class FishingHole {
                     position: this.getPlayerPosition(),
                     message: message
                 });
+            }
+            
+            // Update player's rare/legendary counts
+            if (fish.rarity === 'Rare' || fish.rarity === 'Epic') {
+                this.player.rareCatches = (this.player.rareCatches || 0) + 1;
+            }
+            if (fish.rarity === 'Legendary') {
+                this.player.legendaryCatches = (this.player.legendaryCatches || 0) + 1;
+            }
+            if (fish.rarity === 'Trophy') {
+                this.player.trophyCatches = (this.player.trophyCatches || 0) + 1;
             }
             
             // Show excitement for big catches
