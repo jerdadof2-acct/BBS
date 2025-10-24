@@ -2757,11 +2757,22 @@ class FishingHole {
         console.log('Fish caught:', caught); // Debug log
         
         if (caught) {
-            // Get participant data safely
+            // Get participant data safely - find current player's participant
             let participant = null;
             console.log('Tournament participants array:', this.tournament.participants); // Debug log
-            if (this.tournament.participants && this.tournament.participants.length > 0 && this.tournament.participants[0]) {
-                participant = this.tournament.participants[0];
+            if (this.tournament.participants && this.tournament.participants.length > 0) {
+                // Find the current player's participant data
+                participant = this.tournament.participants.find(p => p.name === this.player.gameUsername);
+                if (!participant) {
+                    // If not found, create one for the current player
+                    participant = {
+                        name: this.player.gameUsername,
+                        totalWeight: 0,
+                        fishCount: 0,
+                        biggestCatch: 0
+                    };
+                    this.tournament.participants.push(participant);
+                }
                 console.log('Before update - participant:', participant); // Debug log
                 participant.totalWeight = (participant.totalWeight || 0) + fish.weight;
                 participant.fishCount = (participant.fishCount || 0) + 1;
