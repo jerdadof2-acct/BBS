@@ -3780,6 +3780,13 @@ class HighNoonHustle {
                 }
             });
 
+            // Listen for tournament phase changes
+            this.socketClient.socket.on('tournament-phase-change', (data) => {
+                if (data.game === 'high-noon-hustle') {
+                    this.handleTournamentPhaseChange(data);
+                }
+            });
+
             // Socket listeners are set up, but join-game-room will be called separately
         }
     }
@@ -4351,6 +4358,24 @@ class HighNoonHustle {
             console.log('DEBUG: Is participant:', isParticipant);
             
             if (wasInJoiningPhase && isNowActive && isParticipant) {
+                this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 Tournament is starting! Joining now...' + ANSIParser.reset());
+                setTimeout(() => {
+                    this.runTournament();
+                }, 2000);
+            }
+        }
+    }
+
+    handleTournamentPhaseChange(data) {
+        console.log('DEBUG: Received tournament phase change:', data);
+        if (data.tournamentId === this.tournament.tournamentId && data.phase === 'active') {
+            console.log('DEBUG: Tournament phase changed to active, checking if we should join...');
+            const isParticipant = this.tournament.participants.some(p => p.id === this.player.username);
+            console.log('DEBUG: Is participant in phase change:', isParticipant);
+            
+            if (isParticipant) {
+                this.tournament.phase = 'active';
+                this.tournament.active = true;
                 this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 Tournament is starting! Joining now...' + ANSIParser.reset());
                 setTimeout(() => {
                     this.runTournament();

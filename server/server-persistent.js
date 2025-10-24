@@ -1851,6 +1851,15 @@ io.on('connection', (socket) => {
               tournaments: [tournament]
             });
             console.log('DEBUG: Broadcasted tournament start to all players');
+            
+            // Also broadcast a specific tournament-start event for phase change
+            io.emit('tournament-phase-change', {
+              game: 'high-noon-hustle',
+              tournamentId: tournamentId,
+              phase: 'active',
+              active: true
+            });
+            console.log('DEBUG: Broadcasted tournament phase change to active');
           }
         }, data.joinPeriod * 1000);
       }
