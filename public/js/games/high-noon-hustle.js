@@ -4014,8 +4014,14 @@ class HighNoonHustle {
     async playTournamentGame() {
         const startTime = Date.now();
         const duration = this.tournament.duration;
+        const roundDuration = 6000; // 6 seconds per round (5s for game + 1s for display)
+        const maxRounds = Math.floor(duration / roundDuration); // Calculate max rounds based on duration
         
-        while (Date.now() - startTime < duration) {
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎯 Tournament will run for ${maxRounds} rounds` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  All players get the same number of rounds!' + ANSIParser.reset());
+        await this.terminal.sleep(3000);
+        
+        for (let round = 1; round <= maxRounds && this.tournament.active; round++) {
             const remaining = Math.ceil((duration - (Date.now() - startTime)) / 1000);
             
             this.terminal.clear();
@@ -4024,16 +4030,16 @@ class HighNoonHustle {
             this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
             this.terminal.println('');
             
+            this.terminal.println(ANSIParser.fg('bright-yellow') + `  Round ${round}/${maxRounds}` + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-yellow') + `  Time remaining: ${remaining} seconds` + ANSIParser.reset());
             this.terminal.println('');
             
             // Show current leaderboard
             this.showTournamentLeaderboard();
+            this.terminal.println('');
             
-            // Play one round of the game
+            // Play one round of the game (with fixed timing)
             await this.playTournamentRound();
-            
-            await this.terminal.sleep(1000);
         }
     }
 
@@ -4078,7 +4084,9 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-cyan') + `  Score: ${score}` + ANSIParser.reset());
         
         this.updatePlayerScore(score);
-        await this.terminal.sleep(2000);
+        
+        // Fixed timing for fairness - all players get same time per round
+        await this.terminal.sleep(5000); // 5 seconds per round
     }
 
     async playTournamentDerbyRound() {
