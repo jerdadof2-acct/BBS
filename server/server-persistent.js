@@ -1838,30 +1838,64 @@ io.on('connection', (socket) => {
         });
         console.log('DEBUG: Stored tournament state:', activeTournaments.get(tournamentId));
         
-        // Schedule tournament to start after joining period
+        // Schedule tournament to start after joining period, but only if participants are ready
         setTimeout(() => {
           const tournament = activeTournaments.get(tournamentId);
           if (tournament && tournament.phase === 'joining') {
-            tournament.phase = 'active';
-            tournament.active = true;
-            tournament.startTime = Date.now();
-            console.log('DEBUG: Tournament starting automatically:', tournament);
-            
-            // Broadcast tournament start to all players
-            io.emit('tournament-state', {
-              game: 'high-noon-hustle',
-              tournaments: [tournament]
+            // Check if all participants are actually in the game room
+            const participantsInRoom = tournament.participants.filter(participant => {
+              // Find the socket for this participant
+              const participantSocket = Array.from(onlineUsers.entries()).find(([socketId, user]) => 
+                user.characterData?.username === participant.id
+              );
+              return participantSocket && participantSocket[1].currentLocation === 'Door Games';
             });
-            console.log('DEBUG: Broadcasted tournament start to all players');
             
-            // Also broadcast a specific tournament-start event for phase change
-            io.emit('tournament-phase-change', {
-              game: 'high-noon-hustle',
-              tournamentId: tournamentId,
-              phase: 'active',
-              active: true
-            });
-            console.log('DEBUG: Broadcasted tournament phase change to active');
+            console.log('DEBUG: Tournament join period ended. Participants in room:', participantsInRoom.length, 'of', tournament.participants.length);
+            
+            // Only start if all participants are in the game room
+            if (participantsInRoom.length === tournament.participants.length && tournament.participants.length > 1) {
+              tournament.phase = 'active';
+              tournament.active = true;
+              tournament.startTime = Date.now();
+              console.log('DEBUG: Tournament starting - all participants ready:', tournament);
+              
+              // Broadcast tournament start to all players
+              io.emit('tournament-state', {
+                game: 'high-noon-hustle',
+                tournaments: [tournament]
+              });
+              console.log('DEBUG: Broadcasted tournament start to all players');
+              
+              // Also broadcast a specific tournament-start event for phase change
+              io.emit('tournament-phase-change', {
+                game: 'high-noon-hustle',
+                tournamentId: tournamentId,
+                phase: 'active',
+                active: true
+              });
+              console.log('DEBUG: Broadcasted tournament phase change to active');
+            } else {
+              console.log('DEBUG: Tournament not starting - not all participants ready or not enough players');
+              // Extend the joining period or cancel tournament
+              if (tournament.participants.length < 2) {
+                console.log('DEBUG: Not enough participants, cancelling tournament');
+                activeTournaments.delete(tournamentId);
+                io.emit('tournament-cancelled', {
+                  game: 'high-noon-hustle',
+                  tournamentId: tournamentId,
+                  reason: 'Not enough participants'
+                });
+              } else {
+                console.log('DEBUG: Extending join period - not all participants in game room');
+                // Extend join period by another 30 seconds
+                tournament.joinEndTime = Date.now() + 30000;
+                io.emit('tournament-state', {
+                  game: 'high-noon-hustle',
+                  tournaments: [tournament]
+                });
+              }
+            }
           }
         }, data.joinPeriod * 1000);
       }

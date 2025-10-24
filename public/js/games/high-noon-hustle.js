@@ -3794,6 +3794,13 @@ class HighNoonHustle {
                 }
             });
 
+            // Listen for tournament cancellation
+            this.socketClient.socket.on('tournament-cancelled', (data) => {
+                if (data.game === 'high-noon-hustle') {
+                    this.handleTournamentCancelled(data);
+                }
+            });
+
             // Socket listeners are set up, but join-game-room will be called separately
         }
     }
@@ -4534,6 +4541,23 @@ class HighNoonHustle {
                 this.tournament.participants[participantIndex].score = data.score;
                 console.log('DEBUG: Updated score for', data.participantId, 'to', data.score);
             }
+        }
+    }
+
+    handleTournamentCancelled(data) {
+        console.log('DEBUG: Received tournament cancellation:', data);
+        if (data.tournamentId === this.tournament.tournamentId) {
+            this.tournament.active = false;
+            this.tournament.phase = 'cancelled';
+            this.inWaitingRoom = false;
+            
+            this.terminal.println(ANSIParser.fg('bright-red') + '  🏆 Tournament Cancelled!' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-yellow') + `  Reason: ${data.reason}` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + '  Returning to saloon...' + ANSIParser.reset());
+            
+            setTimeout(() => {
+                this.enterSaloon();
+            }, 3000);
         }
     }
 
