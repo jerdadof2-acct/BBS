@@ -1977,68 +1977,119 @@ class HighNoonHustle {
 
     async tumbleweedDerby() {
         this.terminal.clear();
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔════ TUMBLEWEED DERBY ════╗' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║ The Fastest Tumbleweed in the West ║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔════ SOLO TUMBLEWEED DERBY ════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║ Race Against the Wind & Time ║' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  ╚═══════════════════════════════════╝' + ANSIParser.reset());
         this.terminal.println('');
         
-        if (this.gameState.energy < 15) {
-            this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ Not enough energy! Need 15 energy to race.' + ANSIParser.reset());
+        if (this.gameState.energy < 10) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ Not enough energy! Need 10 energy to race.' + ANSIParser.reset());
             await this.terminal.sleep(2000);
             return;
         }
-
-        if (this.onlinePlayers.length < 2) {
-            this.terminal.println(ANSIParser.fg('bright-red') + '  Need at least 2 players for the derby!' + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Wait for others to join!' + ANSIParser.reset());
-            await this.terminal.sleep(2000);
-            return;
-        }
-
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🌪️  Racers in the Derby:' + ANSIParser.reset());
-        this.onlinePlayers.forEach((player, index) => {
-            const townTag = this.getTownTag(player.current_town);
-            this.terminal.println(ANSIParser.fg('bright-white') + `    ${index + 1}. ${townTag} ${player.display_name}` + ANSIParser.reset());
-        });
-        this.terminal.println('');
 
         this.terminal.println(ANSIParser.fg('bright-green') + `  💰 Your Gold: ${this.gameState.gold}` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-cyan') + `  ⚡ Energy Cost: 15` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  ⚡ Energy Cost: 10` + ANSIParser.reset());
         this.terminal.println('');
         
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Place your bet (minimum 10 gold):' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [10] 10 gold' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [25] 25 gold' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [50] 50 gold' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [100] 100 gold' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🌪️  You step up to the starting line...' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  The wind is howling across the desert!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press [ENTER] to start the race!' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  [B] Back to Menu' + ANSIParser.reset());
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
         
         const choice = (await this.terminal.input()).toLowerCase().trim();
-        let bet = 0;
         
-        if (choice === '10') bet = 10;
-        else if (choice === '25') bet = 25;
-        else if (choice === '50') bet = 50;
-        else if (choice === '100') bet = 100;
-        else if (choice === 'b' || choice === 'back') {
-            return;
-        }
-        else {
-            this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
-            await this.terminal.sleep(1000);
+        if (choice === 'b' || choice === 'back') {
             return;
         }
         
-        if (this.gameState.gold < bet) {
-            this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ Not enough gold!' + ANSIParser.reset());
-            await this.terminal.sleep(2000);
-            return;
-        }
+        // Start the solo race
+        await this.startSoloTumbleweedDerby();
+    }
+
+    async startSoloTumbleweedDerby() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🌪️  Starting Solo Tumbleweed Derby...' + ANSIParser.reset());
+        this.terminal.println('');
+
+        // Deduct energy
+        this.gameState.energy -= 10;
+
+        // Create AI competitors
+        const aiCompetitors = [
+            { name: 'Desert Wind', speed: Math.random() * 30 + 60 },
+            { name: 'Cactus Jack', speed: Math.random() * 30 + 55 },
+            { name: 'Dust Devil', speed: Math.random() * 30 + 50 },
+            { name: 'Sand Storm', speed: Math.random() * 30 + 45 }
+        ];
+
+        // Player's speed based on their stats and luck
+        const playerSpeed = Math.random() * 40 + 50 + (this.gameState.honorScore * 0.5);
         
-        await this.startMultiplayerTumbleweedDerby(bet);
+        // Add all racers to results
+        const raceResults = [
+            { name: this.player.display_name, speed: playerSpeed, isPlayer: true },
+            ...aiCompetitors
+        ];
+
+        // Sort by speed (highest first)
+        raceResults.sort((a, b) => b.speed - a.speed);
+
+        // Show race animation
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏁 The race begins!' + ANSIParser.reset());
+        await this.terminal.sleep(1000);
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🌪️  Tumbleweeds are rolling across the desert...' + ANSIParser.reset());
+        await this.terminal.sleep(1500);
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  💨 The wind is picking up!' + ANSIParser.reset());
+        await this.terminal.sleep(1000);
+
+        // Show race results
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏁 Race Results:' + ANSIParser.reset());
+        raceResults.forEach((result, index) => {
+            const position = index + 1;
+            const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : '🏃';
+            const isPlayer = result.isPlayer ? ' (YOU)' : '';
+            this.terminal.println(ANSIParser.fg('bright-white') + `  ${medal} ${position}. ${result.name}${isPlayer} - ${result.speed.toFixed(1)} mph` + ANSIParser.reset());
+        });
+        this.terminal.println('');
+
+        // Calculate rewards
+        const playerPosition = raceResults.findIndex(r => r.isPlayer) + 1;
+        let goldReward = 0;
+        let experienceReward = 0;
+        
+        if (playerPosition === 1) {
+            goldReward = 50;
+            experienceReward = 25;
+            this.terminal.println(ANSIParser.fg('bright-green') + `  🏆 YOU WIN! You won ${goldReward} gold!` + ANSIParser.reset());
+        } else if (playerPosition === 2) {
+            goldReward = 25;
+            experienceReward = 15;
+            this.terminal.println(ANSIParser.fg('bright-yellow') + `  🥈 Second place! You won ${goldReward} gold!` + ANSIParser.reset());
+        } else if (playerPosition === 3) {
+            goldReward = 10;
+            experienceReward = 10;
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  🥉 Third place! You won ${goldReward} gold!` + ANSIParser.reset());
+        } else {
+            experienceReward = 5;
+            this.terminal.println(ANSIParser.fg('bright-white') + `  🏃 You finished ${playerPosition}th place. Better luck next time!` + ANSIParser.reset());
+        }
+
+        // Apply rewards
+        this.gameState.gold += goldReward;
+        this.gameState.experience += experienceReward;
+
+        await this.showHumorMessage('racing');
+        await this.savePlayerData();
+        await this.terminal.sleep(3000);
+        return;
     }
 
     async startMultiplayerTumbleweedDerby(bet) {
@@ -2097,52 +2148,104 @@ class HighNoonHustle {
 
     async beanCookingContest() {
         this.terminal.clear();
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔════ BEAN COOKING CONTEST ════╗' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║ The Most Chaotic Cooking in the West ║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔════ SOLO BEAN COOKING CONTEST ════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║ Master the Art of Bean Cooking ║' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  ╚═══════════════════════════════════╝' + ANSIParser.reset());
         this.terminal.println('');
         
-        if (this.gameState.energy < 20) {
-            this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ Not enough energy! Need 20 energy to cook.' + ANSIParser.reset());
+        if (this.gameState.energy < 15) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ Not enough energy! Need 15 energy to cook.' + ANSIParser.reset());
             await this.terminal.sleep(2000);
             return;
         }
 
-        if (this.onlinePlayers.length < 2) {
-            this.terminal.println(ANSIParser.fg('bright-red') + '  Need at least 2 players for the cooking contest!' + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Wait for others to join!' + ANSIParser.reset());
-            await this.terminal.sleep(2000);
-            return;
-        }
-
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🍲 Cooks in the Contest:' + ANSIParser.reset());
-        this.onlinePlayers.forEach((player, index) => {
-            const townTag = this.getTownTag(player.current_town);
-            this.terminal.println(ANSIParser.fg('bright-white') + `    ${index + 1}. ${townTag} ${player.display_name}` + ANSIParser.reset());
-        });
-        this.terminal.println('');
-        
         this.terminal.println(ANSIParser.fg('bright-green') + `  💰 Your Gold: ${this.gameState.gold}` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-cyan') + `  ⚡ Energy Cost: 20` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  ⚡ Energy Cost: 15` + ANSIParser.reset());
         this.terminal.println('');
         
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [Y] Join Cooking Contest' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [B] Back to Saloon' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🍲 You step up to the cooking pot...' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Time to show off your bean cooking skills!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press [ENTER] to start cooking!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [B] Back to Menu' + ANSIParser.reset());
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
         
         const choice = (await this.terminal.input()).toLowerCase().trim();
         
-        if (choice === 'y' || choice === 'yes') {
-            await this.startMultiplayerBeanCooking();
-        } else if (choice === 'b' || choice === 'back') {
-            return;
-        } else {
-            this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
-            await this.terminal.sleep(1000);
+        if (choice === 'b' || choice === 'back') {
             return;
         }
+        
+        // Start the solo cooking contest
+        await this.startSoloBeanCooking();
+    }
+
+    async startSoloBeanCooking() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🍲 Starting Solo Bean Cooking Contest...' + ANSIParser.reset());
+        this.terminal.println('');
+
+        // Deduct energy
+        this.gameState.energy -= 15;
+
+        // Cooking mini-game
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🍲 Time to cook some beans!' + ANSIParser.reset());
+        await this.terminal.sleep(1000);
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  You heat up the pot and add the beans...' + ANSIParser.reset());
+        await this.terminal.sleep(1500);
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  The beans are simmering nicely...' + ANSIParser.reset());
+        await this.terminal.sleep(1000);
+
+        // Cooking skill check
+        const cookingSkill = Math.random() * 100 + (this.gameState.honorScore * 2);
+        let quality = 'Poor';
+        let goldReward = 0;
+        let experienceReward = 0;
+
+        if (cookingSkill >= 90) {
+            quality = 'Legendary';
+            goldReward = 40;
+            experienceReward = 20;
+            this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 LEGENDARY! Your beans are absolutely perfect!' + ANSIParser.reset());
+        } else if (cookingSkill >= 75) {
+            quality = 'Excellent';
+            goldReward = 30;
+            experienceReward = 15;
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  🥇 Excellent! Your beans are delicious!' + ANSIParser.reset());
+        } else if (cookingSkill >= 60) {
+            quality = 'Good';
+            goldReward = 20;
+            experienceReward = 10;
+            this.terminal.println(ANSIParser.fg('bright-cyan') + '  🥈 Good! Your beans are pretty tasty!' + ANSIParser.reset());
+        } else if (cookingSkill >= 40) {
+            quality = 'Average';
+            goldReward = 10;
+            experienceReward = 5;
+            this.terminal.println(ANSIParser.fg('bright-white') + '  🥉 Average! Your beans are edible.' + ANSIParser.reset());
+        } else {
+            quality = 'Poor';
+            goldReward = 0;
+            experienceReward = 2;
+            this.terminal.println(ANSIParser.fg('bright-red') + '  😅 Oops! Your beans are a bit... charred.' + ANSIParser.reset());
+        }
+
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Cooking Quality: ${quality} (${cookingSkill.toFixed(1)}/100)` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + `  Gold Earned: ${goldReward}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + `  Experience Gained: ${experienceReward}` + ANSIParser.reset());
+
+        // Apply rewards
+        this.gameState.gold += goldReward;
+        this.gameState.experience += experienceReward;
+
+        await this.showHumorMessage('cooking');
+        await this.savePlayerData();
+        await this.terminal.sleep(3000);
+        return;
     }
 
     async startMultiplayerBeanCooking() {
