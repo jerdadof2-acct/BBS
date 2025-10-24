@@ -1823,6 +1823,7 @@ io.on('connection', (socket) => {
           hostUserId: user.userId,
           gameType: data.gameType,
           tournamentId: tournamentId,
+          rounds: data.rounds || 10, // Store selected rounds or default to 10
           participants: [{
             id: user.characterData?.username || user.handle, // Use game username if available
             name: user.characterData?.display_name || user.handle, // Use game display name
@@ -1833,7 +1834,7 @@ io.on('connection', (socket) => {
           phase: 'joining',
           joinEndTime: Date.now() + (data.joinPeriod * 1000),
           startTime: null,
-          duration: 5 * 60 * 1000, // 5 minutes
+          duration: (data.rounds || 10) * 10 * 1000, // Calculate duration based on rounds (10 seconds per round)
           active: false
         });
         console.log('DEBUG: Stored tournament state:', activeTournaments.get(tournamentId));

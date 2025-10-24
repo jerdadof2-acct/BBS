@@ -3902,10 +3902,27 @@ class HighNoonHustle {
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-white') + '  Tournament Rules:' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + `  • 5 minutes to compete in ${gameType}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  • Compete in ${gameType} for multiple rounds` + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • Winner takes all the gold!' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • All BBS users will be notified' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • 60 seconds for players to join' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • 30 seconds for players to join' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Ask for number of rounds
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Choose tournament length:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Quick Tournament - 10 rounds (~2 minutes)' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Full Tournament - 20 rounds (~4 minutes)' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        let rounds = 10; // Default to quick tournament
+        const roundChoice = await this.terminal.input(ANSIParser.fg('bright-yellow') + '  Select rounds (1 or 2): ' + ANSIParser.reset());
+        
+        if (roundChoice === '2') {
+            rounds = 20;
+        }
+        
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-green') + `  Selected: ${rounds} rounds` + ANSIParser.reset());
         this.terminal.println('');
         
         const confirm = await this.terminal.input(ANSIParser.fg('bright-yellow') + '  Start tournament? (Y/N): ' + ANSIParser.reset());
@@ -3916,6 +3933,7 @@ class HighNoonHustle {
             this.tournament.phase = 'joining';
             this.tournament.joinEndTime = Date.now() + (30 * 1000); // 30 seconds
             this.tournament.gameType = gameType;
+            this.tournament.rounds = rounds;
             console.log('DEBUG: this.player object when starting tournament:', this.player);
             this.tournament.participants = [{
                 id: this.player.username, // Use username as unique identifier
@@ -3931,6 +3949,7 @@ class HighNoonHustle {
                     host: this.player.display_name,
                     gameType: gameType,
                     tournamentId: this.tournament.tournamentId,
+                    rounds: rounds,
                     joinPeriod: 30
                 });
                 this.socketClient.socket.emit('tournament-start', {
@@ -3938,6 +3957,7 @@ class HighNoonHustle {
                     host: this.player.display_name,
                     gameType: gameType,
                     tournamentId: this.tournament.tournamentId,
+                    rounds: rounds,
                     joinPeriod: 30
                 });
             } else {
@@ -4026,11 +4046,12 @@ class HighNoonHustle {
     }
 
     async playTournamentGame() {
-        const duration = this.tournament.duration;
+        const maxRounds = this.tournament.rounds || 10; // Use selected rounds or default to 10
         const roundDuration = 10000; // 10 seconds per round (7s for game + 3s for display)
-        const maxRounds = Math.floor(duration / roundDuration); // Calculate max rounds based on duration
+        const totalDuration = maxRounds * roundDuration;
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎯 Tournament will run for ${maxRounds} rounds` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  ⏱️  Estimated duration: ${Math.ceil(totalDuration / 60000)} minutes` + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  All players get the same number of rounds!' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  ⏳ Waiting for all players to be ready...' + ANSIParser.reset());
         
@@ -4602,7 +4623,8 @@ class HighNoonHustle {
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  🎮 HOW TO PLAY:' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Tournaments last 5 minutes (30 rounds)' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Quick Tournament: 10 rounds (~2 minutes)' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Full Tournament: 20 rounds (~4 minutes)' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • Players have 30 seconds to join' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • All players start simultaneously' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • 10 seconds per round (shows all hands)' + ANSIParser.reset());
