@@ -4068,7 +4068,7 @@ class HighNoonHustle {
             // Track current round for deterministic seeding
             this.tournament.currentRound = round;
             
-            const remaining = Math.ceil((duration - (Date.now() - startTime)) / 1000);
+            const remaining = Math.ceil((totalDuration - (Date.now() - startTime)) / 1000);
             
             this.terminal.clear();
             this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
