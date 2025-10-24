@@ -45,6 +45,7 @@ class MenuManager {
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  [P]' + ANSIParser.reset() + ' My Profile & Stats');
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  [B]' + ANSIParser.reset() + ' Bulletins');
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  [O]' + ANSIParser.reset() + ' One-Liners Wall');
+        this.terminal.println(ANSIParser.fg('bright-magenta') + '  [A]' + ANSIParser.reset() + ' ANSI Art Gallery');
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  [S]' + ANSIParser.reset() + ' Statistics/Info');
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  [H]' + ANSIParser.reset() + ' Chat with SysOp');
         this.terminal.println(ANSIParser.fg('bright-red') + '  [!]' + ANSIParser.reset() + ' SYSOp Control Panel');
@@ -82,20 +83,300 @@ class MenuManager {
         });
     }
 
-    getHeaderArt() {
+    async showAnsiArtGallery() {
+        this.terminal.clear();
+        
+        // Disable typing simulation for ANSI art
+        const wasSimulating = this.terminal.simulateSpeed;
+        this.terminal.setSimulateSpeed(false);
+        
+        // Show gallery header
+        this.terminal.println(ANSIParser.fg('bright-magenta') + this.getAnsiGalleryHeader() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Re-enable typing simulation
+        this.terminal.setSimulateSpeed(wasSimulating);
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Welcome to the ANSI Art Gallery!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Browse classic ANSI art from the golden age of BBS.' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Show menu options
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [1]' + ANSIParser.reset() + ' View Classic ANSI Art');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [2]' + ANSIParser.reset() + ' View BBS Art Collection');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [3]' + ANSIParser.reset() + ' View Gaming Art');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [4]' + ANSIParser.reset() + ' View ASCII Art');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [5]' + ANSIParser.reset() + ' Upload Your Own Art');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [6]' + ANSIParser.reset() + ' View User Submissions');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [7]' + ANSIParser.reset() + ' ANSI Art Contest');
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-red') + '  [B]' + ANSIParser.reset() + ' Back to Main Menu');
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        
+        const choice = await this.terminal.input();
+        
+        switch (choice.toLowerCase()) {
+            case '1':
+                await this.showClassicAnsiArt();
+                break;
+            case '2':
+                await this.showBbsArtCollection();
+                break;
+            case '3':
+                await this.showGamingArt();
+                break;
+            case '4':
+                await this.showAsciiArt();
+                break;
+            case '5':
+                await this.uploadAnsiArt();
+                break;
+            case '6':
+                await this.showUserSubmissions();
+                break;
+            case '7':
+                await this.showAnsiContest();
+                break;
+            case 'b':
+                return 'menu';
+            default:
+                this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
+                await this.terminal.sleep(1000);
+                await this.showAnsiArtGallery();
+        }
+        
+        return 'menu';
+    }
+
+    getAnsiGalleryHeader() {
         return `
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
-║   ██████╗ ███████╗████████╗██████╗  ██████╗      ██████╗ ██████╗ ███████╗    ║
-║   ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗    ██╔══██╗██╔══██╗██╔════╝    ║
-║   ██████╔╝█████╗     ██║   ██████╔╝██║   ██║    ██████╔╝██████╔╝███████╗    ║
-║   ██╔══██╗██╔══╝     ██║   ██╔══██╗██║   ██║    ██╔══██╗██╔══██╗╚════██║    ║
-║   ██║  ██║███████╗   ██║   ██║  ██║╚██████╔╝    ██████╔╝██████╔╝███████║    ║
-║   ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝     ╚═════╝ ╚═════╝ ╚══════╝    ║
+║   █████╗ ███╗   ██╗███████╗██╗    █████╗ ██████╗ ███████╗                    ║
+║  ██╔══██╗████╗  ██║██╔════╝██║   ██╔══██╗██╔══██╗██╔════╝                    ║
+║  ███████║██╔██╗ ██║███████╗██║   ███████║██████╔╝█████╗                      ║
+║  ██╔══██║██║╚██╗██║╚════██║██║   ██╔══██║██╔══██╗██╔══╝                      ║
+║  ██║  ██║██║ ╚████║███████║██║   ██║  ██║██████╔╝███████╗                    ║
+║  ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝   ╚═╝  ╚═╝╚═════╝ ╚══════╝                    ║
 ║                                                                              ║
-║                         Retro-BBS - Where Legends Connect                     ║
+║                    🎨 ART GALLERY - Where Pixels Meet Poetry 🎨              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 `;
+    }
+
+    async showClassicAnsiArt() {
+        this.terminal.clear();
+        
+        // Disable typing simulation for ANSI art
+        const wasSimulating = this.terminal.simulateSpeed;
+        this.terminal.setSimulateSpeed(false);
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║' + ANSIParser.reset() + ANSIParser.fg('bright-yellow') + '                        CLASSIC ANSI ART COLLECTION                        ' + ANSIParser.reset() + ANSIParser.fg('bright-cyan') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Show some classic ANSI art
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Welcome to the Matrix" by TheCracker' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + this.getMatrixArt() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "BBS Dragon" by ANSI Master' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + this.getDragonArt() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Retro Computer" by PixelWizard' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + this.getComputerArt() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Re-enable typing simulation
+        this.terminal.setSimulateSpeed(wasSimulating);
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+        await this.showAnsiArtGallery();
+    }
+
+    async showBbsArtCollection() {
+        this.terminal.clear();
+        
+        const wasSimulating = this.terminal.simulateSpeed;
+        this.terminal.setSimulateSpeed(false);
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║' + ANSIParser.reset() + ANSIParser.fg('bright-yellow') + '                          BBS ART COLLECTION                            ' + ANSIParser.reset() + ANSIParser.fg('bright-cyan') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "BBS Welcome Screen" by RetroSysOp' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + this.getBbsWelcomeArt() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Modem Connection" by DialUpArtist' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + this.getModemArt() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.setSimulateSpeed(wasSimulating);
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+        await this.showAnsiArtGallery();
+    }
+
+    async showGamingArt() {
+        this.terminal.clear();
+        
+        const wasSimulating = this.terminal.simulateSpeed;
+        this.terminal.setSimulateSpeed(false);
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║' + ANSIParser.reset() + ANSIParser.fg('bright-yellow') + '                            GAMING ART GALLERY                           ' + ANSIParser.reset() + ANSIParser.fg('bright-cyan') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Space Invaders" by PixelPirate' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + this.getSpaceInvadersArt() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Pac-Man" by ArcadeArtist' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + this.getPacManArt() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.setSimulateSpeed(wasSimulating);
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+        await this.showAnsiArtGallery();
+    }
+
+    async showAsciiArt() {
+        this.terminal.clear();
+        
+        const wasSimulating = this.terminal.simulateSpeed;
+        this.terminal.setSimulateSpeed(false);
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║' + ANSIParser.reset() + ANSIParser.fg('bright-yellow') + '                           ASCII ART COLLECTION                          ' + ANSIParser.reset() + ANSIParser.fg('bright-cyan') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "ASCII Cat" by TextArtist' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + this.getAsciiCatArt() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "ASCII Heart" by LoveArtist' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + this.getAsciiHeartArt() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.setSimulateSpeed(wasSimulating);
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+        await this.showAnsiArtGallery();
+    }
+
+    async uploadAnsiArt() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ║' + ANSIParser.reset() + ANSIParser.fg('bright-cyan') + '                            UPLOAD ANSI ART                              ' + ANSIParser.reset() + ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Share your ANSI art with the BBS community!' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Instructions:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  1. Create your ANSI art using any ANSI editor' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  2. Save it as a .ANS or .TXT file' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  3. Paste your art below (use Ctrl+V to paste)' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  4. Give it a title and description' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Art Title: ' + ANSIParser.reset());
+        const title = await this.terminal.input();
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Artist Name: ' + ANSIParser.reset());
+        const artist = await this.terminal.input();
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Description: ' + ANSIParser.reset());
+        const description = await this.terminal.input();
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Paste your ANSI art (end with a line containing just "END"):' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        let artContent = '';
+        let line;
+        while ((line = await this.terminal.input()) !== 'END') {
+            artContent += line + '\n';
+        }
+        
+        // Save the art (in a real implementation, this would save to a database)
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-green') + '  ✅ Art uploaded successfully!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Title: ${title}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Artist: ${artist}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Description: ${description}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Your art will be reviewed by the SysOp before being added to the gallery.' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+        await this.showAnsiArtGallery();
+    }
+
+    async showUserSubmissions() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ║' + ANSIParser.reset() + ANSIParser.fg('bright-cyan') + '                          USER SUBMISSIONS GALLERY                       ' + ANSIParser.reset() + ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Community-submitted ANSI art from our users:' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Show some example user submissions
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "My First ANSI" by NewUser123' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  "Just learning ANSI art, hope you like it!"' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + this.getUserArt1() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Retro Vibes" by PixelMaster' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  "Inspired by the golden age of BBS"' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + this.getUserArt2() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+        await this.showAnsiArtGallery();
+    }
+
+    async showAnsiContest() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔══════════════════════════════════════════════════════════════════════════════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ║' + ANSIParser.reset() + ANSIParser.fg('bright-cyan') + '                            ANSI ART CONTEST                             ' + ANSIParser.reset() + ANSIParser.fg('bright-yellow') + '║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╚══════════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + '  🏆 Current Contest: "Retro BBS Nostalgia"' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Theme: Create ANSI art that captures the spirit of classic BBS' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Deadline: December 31, 2024' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Prize: 1000 credits + Featured in gallery' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Rules:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Must be original work' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Maximum 80 characters wide' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Must relate to BBS/retro computing theme' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Submit via Upload Art option' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Current Entries: 12' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Days Remaining: 12' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+        await this.showAnsiArtGallery();
     }
 
     async handleMenuChoice(choice) {
@@ -118,6 +399,8 @@ class MenuManager {
                 return 'bulletins';
             case 'o':
                 return 'oneliners';
+            case 'a':
+                return 'ansi-art';
             case 's':
                 return 'stats';
             case 'h':
@@ -178,6 +461,286 @@ class MenuManager {
 ║                                                                              ║
 ║                      Thank you for calling!                                  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    // ANSI Art Collection Methods
+    getMatrixArt() {
+        return `
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║  ███╗   ███╗ █████╗ ████████╗██████╗ ██╗██╗  ██╗                            ║
+    ║  ████╗ ████║██╔══██╗╚══██╔══╝██╔══██╗██║╚██╗██╔╝                            ║
+    ║  ██╔████╔██║███████║   ██║   ██████╔╝██║ ╚███╔╝                             ║
+    ║  ██║╚██╔╝██║██╔══██║   ██║   ██╔══██╗██║ ██╔██╗                             ║
+    ║  ██║ ╚═╝ ██║██║  ██║   ██║   ██║  ██║██║██╔╝ ██╗                            ║
+    ║  ╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝                            ║
+    ║                                                                              ║
+    ║  ██╗  ██╗ ██████╗ ██╗     ██╗   ██╗███████╗                                 ║
+    ║  ██║  ██║██╔═══██╗██║     ██║   ██║██╔════╝                                 ║
+    ║  ███████║██║   ██║██║     ██║   ██║█████╗                                   ║
+    ║  ██╔══██║██║   ██║██║     ╚██╗ ██╔╝██╔══╝                                   ║
+    ║  ██║  ██║╚██████╔╝███████╗ ╚████╔╝ ███████╗                                 ║
+    ║  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝  ╚═══╝  ╚══════╝                                 ║
+    ║                                                                              ║
+    ║  "Welcome to the Matrix... Follow the white rabbit."                        ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    getDragonArt() {
+        return `
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║                    ██████╗ ██████╗  █████╗  ██████╗ ██████╗ ███╗   ██╗        ║
+    ║                    ██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔═══██╗████╗  ██║        ║
+    ║                    ██║  ██║██████╔╝███████║██║     ██║   ██║██╔██╗ ██║        ║
+    ║                    ██║  ██║██╔══██╗██╔══██║██║     ██║   ██║██║╚██╗██║        ║
+    ║                    ██████╔╝██║  ██║██║  ██║╚██████╗╚██████╔╝██║ ╚████║        ║
+    ║                    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝        ║
+    ║                                                                              ║
+    ║  ╔══════════════════════════════════════════════════════════════════════════╗ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    ██╗     ██╗   ██╗██╗   ██╗██╗  ██╗    ██╗  ██╗ ██████╗ ████████╗     ║ ║
+    ║  ║    ██║     ██║   ██║██║   ██║██║  ██║    ██║  ██║██╔═══██╗╚══██╔══╝     ║ ║
+    ║  ║    ██║     ██║   ██║██║   ██║██║  ██║    ███████║██║   ██║   ██║        ║ ║
+    ║  ║    ██║     ██║   ██║██║   ██║██║  ██║    ██╔══██║██║   ██║   ██║        ║ ║
+    ║  ║    ███████╗╚██████╔╝╚██████╔╝██████╔╝    ██║  ██║╚██████╔╝   ██║        ║ ║
+    ║  ║    ╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝     ╚═╝  ╚═╝ ╚═════╝    ╚═╝        ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ╚══════════════════════════════════════════════════════════════════════════╝ ║
+    ║                                                                              ║
+    ║  "The dragon awakens... Welcome to the realm of digital art!"               ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    getComputerArt() {
+        return `
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║  ██████╗ ███████╗████████╗██████╗  ██████╗     ██████╗ ██████╗ ███╗   ███╗   ║
+    ║  ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗   ██╔════╝██╔═══██╗████╗ ████║   ║
+    ║  ██████╔╝█████╗     ██║   ██████╔╝██║   ██║   ██║     ██║   ██║██╔████╔██║   ║
+    ║  ██╔══██╗██╔══╝     ██║   ██╔══██╗██║   ██║   ██║     ██║   ██║██║╚██╔╝██║   ║
+    ║  ██║  ██║███████╗   ██║   ██║  ██║╚██████╔╝   ╚██████╗╚██████╔╝██║ ╚═╝ ██║   ║
+    ║  ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝     ╚═════╝ ╚═════╝ ╚═╝     ╚═╝   ║
+    ║                                                                              ║
+    ║  ╔══════════════════════════════════════════════════════════════════════════╗ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    ┌─────────────────────────────────────────────────────────────┐      ║ ║
+    ║  ║    │  ███████╗ ██████╗ ██████╗ ██████╗ ███████╗ ██████╗ ███████╗ │      ║ ║
+    ║  ║    │  ██╔════╝██╔═══██╗██╔══██╗██╔══██╗██╔════╝██╔═══██╗██╔════╝ │      ║ ║
+    ║  ║    │  ███████╗██║   ██║██████╔╝██████╔╝█████╗  ██║   ██║███████╗ │      ║ ║
+    ║  ║    │  ╚════██║██║   ██║██╔══██╗██╔═══╝ ██╔══╝  ██║   ██║╚════██║ │      ║ ║
+    ║  ║    │  ███████║╚██████╔╝██║  ██║██║     ███████╗╚██████╔╝███████║ │      ║ ║
+    ║  ║    │  ╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚══════╝ ╚═════╝ ╚══════╝ │      ║ ║
+    ║  ║    └─────────────────────────────────────────────────────────────┘      ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ╚══════════════════════════════════════════════════════════════════════════╝ ║
+    ║                                                                              ║
+    ║  "The golden age of computing... Where it all began!"                       ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    getBbsWelcomeArt() {
+        return `
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║  ██████╗ ██████╗ ███████╗    ██╗    ██╗███████╗██╗     ███████╗ ██████╗     ║
+    ║  ██╔══██╗██╔══██╗██╔════╝    ██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗    ║
+    ║  ██████╔╝██████╔╝███████╗    ██║ █╗ ██║█████╗  ██║     █████╗  ██║   ██║    ║
+    ║  ██╔══██╗██╔══██╗╚════██║    ██║███╗██║██╔══╝  ██║     ██╔══╝  ██║   ██║    ║
+    ║  ██║  ██║██████╔╝███████║    ╚███╔███╔╝███████╗███████╗███████╗╚██████╔╝    ║
+    ║  ╚═╝  ╚═╝╚═════╝ ╚══════╝     ╚══╝╚══╝ ╚══════╝╚══════╝╚══════╝ ╚═════╝     ║
+    ║                                                                              ║
+    ║  ╔══════════════════════════════════════════════════════════════════════════╗ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    ██╗  ██╗ ██████╗ ██╗   ██╗███████╗███████╗███████╗                    ║ ║
+    ║  ║    ██║  ██║██╔═══██╗██║   ██║██╔════╝██╔════╝██╔════╝                    ║ ║
+    ║  ║    ███████║██║   ██║██║   ██║█████╗  █████╗  █████╗                      ║ ║
+    ║  ║    ██╔══██║██║   ██║╚██╗ ██╔╝██╔══╝  ██╔══╝  ██╔══╝                      ║ ║
+    ║  ║    ██║  ██║╚██████╔╝ ╚████╔╝ ███████╗██║     ███████╗                    ║ ║
+    ║  ║    ╚═╝  ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝     ╚══════╝                    ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ╚══════════════════════════════════════════════════════════════════════════╝ ║
+    ║                                                                              ║
+    ║  "Welcome to the digital frontier... Your adventure begins here!"            ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    getModemArt() {
+        return `
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║  ███╗   ███╗ ██████╗ ██████╗ ███████╗███╗   ███╗                            ║
+    ║  ████╗ ████║██╔═══██╗██╔══██╗██╔════╝████╗ ████║                            ║
+    ║  ██╔████╔██║██║   ██║██║  ██║█████╗  ██╔████╔██║                            ║
+    ║  ██║╚██╔╝██║██║   ██║██║  ██║██╔══╝  ██║╚██╔╝██║                            ║
+    ║  ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗██║ ╚═╝ ██║                            ║
+    ║  ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝     ╚═╝                            ║
+    ║                                                                              ║
+    ║  ╔══════════════════════════════════════════════════════════════════════════╗ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    ┌─────────────────────────────────────────────────────────────┐      ║ ║
+    ║  ║    │  ██████╗ ██████╗ ███╗   ██╗███╗   ██╗███████╗ ██████╗ ███████╗ │      ║ ║
+    ║  ║    │  ██╔══██╗██╔══██╗████╗  ██║████╗  ██║██╔════╝██╔═══██╗██╔════╝ │      ║ ║
+    ║  ║    │  ██████╔╝██████╔╝██╔██╗ ██║██╔██╗ ██║█████╗  ██║   ██║███████╗ │      ║ ║
+    ║  ║    │  ██╔═══╝ ██╔══██╗██║╚██╗██║██║╚██╗██║██╔══╝  ██║   ██║╚════██║ │      ║ ║
+    ║  ║    │  ██║     ██║  ██║██║ ╚████║██║ ╚████║███████╗╚██████╔╝███████║ │      ║ ║
+    ║  ║    │  ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝ │      ║ ║
+    ║  ║    └─────────────────────────────────────────────────────────────┘      ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ╚══════════════════════════════════════════════════════════════════════════╝ ║
+    ║                                                                              ║
+    ║  "Connecting to the digital world... One beep at a time!"                   ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    getSpaceInvadersArt() {
+        return `
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║  ███████╗██████╗  █████╗  ██████╗███████╗    ██╗██╗   ██╗ █████╗ ██████╗    ║
+    ║  ██╔════╝██╔══██╗██╔══██╗██╔════╝██╔════╝    ██║██║   ██║██╔══██╗██╔══██╗   ║
+    ║  ███████╗██████╔╝███████║██║     █████╗      ██║██║   ██║███████║██║  ██║   ║
+    ║  ╚════██║██╔═══╝ ██╔══██║██║     ██╔══╝      ╚═╝╚██╗ ██╔╝██╔══██║██║  ██║   ║
+    ║  ███████║██║     ██║  ██║╚██████╗███████╗    ██╗ ╚████╔╝ ██║  ██║██████╔╝   ║
+    ║  ╚══════╝╚═╝     ╚═╝  ╚═╝ ╚═════╝╚══════╝    ╚═╝  ╚═══╝  ╚═╝  ╚═╝╚═════╝    ║
+    ║                                                                              ║
+    ║  ╔══════════════════════════════════════════════════════════════════════════╗ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    ██████╗  ██████╗ ██████╗ ██████╗ ██████╗ ██████╗ ██████╗ ██████╗     ║ ║
+    ║  ║    ██╔══██╗██╔═══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗    ║ ║
+    ║  ║    ██████╔╝██║   ██║██████╔╝██████╔╝██████╔╝██████╔╝██████╔╝██████╔╝    ║ ║
+    ║  ║    ██╔══██╗██║   ██║██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗    ║ ║
+    ║  ║    ██║  ██║╚██████╔╝██║  ██║██████╔╝██████╔╝██████╔╝██████╔╝██████╔╝    ║ ║
+    ║  ║    ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═════╝ ╚═════╝ ╚═════╝ ╚═════╝     ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ╚══════════════════════════════════════════════════════════════════════════╝ ║
+    ║                                                                              ║
+    ║  "The aliens are coming! Defend Earth!"                                     ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    getPacManArt() {
+        return `
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║  ██████╗  █████╗  ██████╗███╗   ███╗ █████╗ ███╗   ██╗                      ║
+    ║  ██╔══██╗██╔══██╗██╔════╝████╗ ████║██╔══██╗████╗  ██║                      ║
+    ║  ██████╔╝███████║██║     ██╔████╔██║███████║██╔██╗ ██║                      ║
+    ║  ██╔═══╝ ██╔══██║██║     ██║╚██╔╝██║██╔══██║██║╚██╗██║                      ║
+    ║  ██║     ██║  ██║╚██████╗██║ ╚═╝ ██║██║  ██║██║ ╚████║                      ║
+    ║  ╚═╝     ╚═╝  ╚═╝ ╚═════╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝                      ║
+    ║                                                                              ║
+    ║  ╔══════════════════════════════════════════════════════════════════════════╗ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    ██████╗  █████╗  ██████╗███╗   ███╗ █████╗ ███╗   ██╗                ║ ║
+    ║  ║    ██╔══██╗██╔══██╗██╔════╝████╗ ████║██╔══██╗████╗  ██║                ║ ║
+    ║  ║    ██████╔╝███████║██║     ██╔████╔██║███████║██╔██╗ ██║                ║ ║
+    ║  ║    ██╔═══╝ ██╔══██║██║     ██║╚██╔╝██║██╔══██║██║╚██╗██║                ║ ║
+    ║  ║    ██║     ██║  ██║╚██████╗██║ ╚═╝ ██║██║  ██║██║ ╚████║                ║ ║
+    ║  ║    ╚═╝     ╚═╝  ╚═╝ ╚═════╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝                ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ╚══════════════════════════════════════════════════════════════════════════╝ ║
+    ║                                                                              ║
+    ║  "Waka waka waka! Eat all the dots!"                                        ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    getAsciiCatArt() {
+        return `
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║  ╔══════════════════════════════════════════════════════════════════════════╗ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    /\\_/\\                                                               ║ ║
+    ║  ║   (  o.o  )                                                             ║ ║
+    ║  ║    > ^ <                                                                ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    ██████╗  █████╗ ████████╗                                            ║ ║
+    ║  ║    ██╔══██╗██╔══██╗╚══██╔══╝                                            ║ ║
+    ║  ║    ██████╔╝███████║   ██║                                               ║ ║
+    ║  ║    ██╔═══╝ ██╔══██║   ██║                                               ║ ║
+    ║  ║    ██║     ██║  ██║   ██║                                               ║ ║
+    ║  ║    ╚═╝     ╚═╝  ╚═╝   ╚═╝                                               ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ╚══════════════════════════════════════════════════════════════════════════╝ ║
+    ║                                                                              ║
+    ║  "Meow! ASCII art is purr-fect!"                                            ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    getAsciiHeartArt() {
+        return `
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║  ╔══════════════════════════════════════════════════════════════════════════╗ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    ██╗  ██╗███████╗ █████╗ ██████╗ ███████╗                             ║ ║
+    ║  ║    ██║  ██║██╔════╝██╔══██╗██╔══██╗██╔════╝                             ║ ║
+    ║  ║    ███████║█████╗  ███████║██████╔╝█████╗                               ║ ║
+    ║  ║    ██╔══██║██╔══╝  ██╔══██║██╔══██╗██╔══╝                               ║ ║
+    ║  ║    ██║  ██║███████╗██║  ██║██║  ██║███████╗                             ║ ║
+    ║  ║    ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝                             ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ╚══════════════════════════════════════════════════════════════════════════╝ ║
+    ║                                                                              ║
+    ║  "Love is the greatest art of all!"                                          ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    getUserArt1() {
+        return `
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║  ╔══════════════════════════════════════════════════════════════════════════╗ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    ██╗  ██╗ ██████╗ ██╗   ██╗███████╗                                   ║ ║
+    ║  ║    ██║  ██║██╔═══██╗██║   ██║██╔════╝                                   ║ ║
+    ║  ║    ███████║██║   ██║██║   ██║█████╗                                     ║ ║
+    ║  ║    ██╔══██║██║   ██║╚██╗ ██╔╝██╔══╝                                     ║ ║
+    ║  ║    ██║  ██║╚██████╔╝ ╚████╔╝ ███████╗                                   ║ ║
+    ║  ║    ╚═╝  ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝                                   ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    "My first attempt at ANSI art!"                                       ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ╚══════════════════════════════════════════════════════════════════════════╝ ║
+    ║                                                                              ║
+    ║  "Great start! Keep practicing!"                                            ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    getUserArt2() {
+        return `
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║  ╔══════════════════════════════════════════════════════════════════════════╗ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    ██████╗ ███████╗████████╗██████╗  ██████╗                             ║ ║
+    ║  ║    ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗                            ║ ║
+    ║  ║    ██████╔╝█████╗     ██║   ██████╔╝██║   ██║                            ║ ║
+    ║  ║    ██╔══██╗██╔══╝     ██║   ██╔══██╗██║   ██║                            ║ ║
+    ║  ║    ██║  ██║███████╗   ██║   ██║  ██║╚██████╔╝                            ║ ║
+    ║  ║    ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝                             ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ║    "Inspired by the golden age of BBS!"                                  ║ ║
+    ║  ║                                                                          ║ ║
+    ║  ╚══════════════════════════════════════════════════════════════════════════╝ ║
+    ║                                                                              ║
+    ║  "Excellent work! Very retro!"                                              ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
 `;
     }
 }

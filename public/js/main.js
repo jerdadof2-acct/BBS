@@ -285,6 +285,10 @@ class BBSApplication {
             } else if (nextScreen === 'oneliners') {
                 this.socketClient.updateLocation('One-Liners');
                 await this.showOneLiners();
+            } else if (nextScreen === 'ansi-art') {
+                this.socketClient.updateLocation('ANSI Art Gallery');
+                const result = await this.menuManager.showAnsiArtGallery();
+                if (result === 'menu') continue;
             } else if (nextScreen === 'stats') {
                 this.socketClient.updateLocation('Statistics');
                 await this.showStats();
