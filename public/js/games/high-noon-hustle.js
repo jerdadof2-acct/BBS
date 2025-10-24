@@ -4027,7 +4027,7 @@ class HighNoonHustle {
 
     async playTournamentGame() {
         const duration = this.tournament.duration;
-        const roundDuration = 6000; // 6 seconds per round (5s for game + 1s for display)
+        const roundDuration = 10000; // 10 seconds per round (7s for game + 3s for display)
         const maxRounds = Math.floor(duration / roundDuration); // Calculate max rounds based on duration
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎯 Tournament will run for ${maxRounds} rounds` + ANSIParser.reset());
@@ -4111,30 +4111,75 @@ class HighNoonHustle {
         
         // Use tournament round number for deterministic seeding
         const roundNumber = this.tournament.currentRound || 1;
-        const seed = this.tournament.tournamentId + roundNumber;
+        const baseSeed = this.tournament.tournamentId + roundNumber;
         
-        // Deal 5 cards with deterministic seed
-        const hand = this.dealPokerHandWithSeed(seed);
+        // Deal hands for all participants
+        const playerHands = [];
+        for (let i = 0; i < this.tournament.participants.length; i++) {
+            const participant = this.tournament.participants[i];
+            const participantSeed = baseSeed + i; // Each participant gets a different seed
+            const hand = this.dealPokerHandWithSeed(participantSeed);
+            const handValue = this.evaluatePokerHand(hand);
+            const handName = this.pokerHands[handValue];
+            const score = (handValue + 1) * 20; // 20-200 points based on hand strength
+            
+            playerHands.push({
+                participant: participant,
+                hand: hand,
+                handValue: handValue,
+                handName: handName,
+                score: score
+            });
+        }
         
-        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Your hand:' + ANSIParser.reset());
-        this.displayPokerHand(hand);
+        // Display all players' hands
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🃏 All Players\' Hands:' + ANSIParser.reset());
         this.terminal.println('');
         
-        // Evaluate hand
-        const handValue = this.evaluatePokerHand(hand);
-        const handName = this.pokerHands[handValue];
+        for (let i = 0; i < playerHands.length; i++) {
+            const playerHand = playerHands[i];
+            const isYou = playerHand.participant.id === this.player.username;
+            const playerLabel = isYou ? `${playerHand.participant.name} (YOU)` : playerHand.participant.name;
+            
+            this.terminal.println(ANSIParser.fg('bright-white') + `  ${playerLabel}:` + ANSIParser.reset());
+            this.displayPokerHand(playerHand.hand);
+            this.terminal.println(ANSIParser.fg('bright-green') + `    ${playerHand.handName} (${playerHand.score} points)` + ANSIParser.reset());
+            this.terminal.println('');
+            
+            // Add a small delay between each player's hand display
+            await this.terminal.sleep(1000);
+        }
         
-        this.terminal.println(ANSIParser.fg('bright-green') + `  Hand: ${handName}` + ANSIParser.reset());
+        // Update scores for all participants
+        for (const playerHand of playerHands) {
+            // Find the participant in our tournament and update their score
+            const participantIndex = this.tournament.participants.findIndex(p => p.id === playerHand.participant.id);
+            if (participantIndex !== -1) {
+                this.tournament.participants[participantIndex].score += playerHand.score;
+                
+                // Broadcast score update to other players
+                if (this.socketClient && this.socketClient.socket) {
+                    this.socketClient.socket.emit('tournament-score-update', {
+                        game: 'high-noon-hustle',
+                        tournamentId: this.tournament.tournamentId,
+                        participantId: playerHand.participant.id,
+                        score: this.tournament.participants[participantIndex].score
+                    });
+                }
+            }
+        }
         
-        // Score based on hand strength (better hands = higher score)
-        const score = (handValue + 1) * 20; // 20-200 points based on hand strength
+        // Show round summary
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  📊 Round Summary:' + ANSIParser.reset());
+        for (const playerHand of playerHands) {
+            const isYou = playerHand.participant.id === this.player.username;
+            const playerLabel = isYou ? `${playerHand.participant.name} (YOU)` : playerHand.participant.name;
+            this.terminal.println(ANSIParser.fg('bright-white') + `    ${playerLabel}: ${playerHand.handName} (+${playerHand.score} points)` + ANSIParser.reset());
+        }
+        this.terminal.println('');
         
-        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Score: ${score}` + ANSIParser.reset());
-        
-        this.updatePlayerScore(score);
-        
-        // Fixed timing for fairness - all players get same time per round
-        await this.terminal.sleep(5000); // 5 seconds per round
+        // Slower pace for better viewing
+        await this.terminal.sleep(3000); // 3 seconds to view results
     }
 
     dealPokerHandWithSeed(seed) {
@@ -4557,10 +4602,10 @@ class HighNoonHustle {
         this.terminal.println('');
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  🎮 HOW TO PLAY:' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Tournaments last 5 minutes (50 rounds)' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Tournaments last 5 minutes (30 rounds)' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • Players have 30 seconds to join' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • All players start simultaneously' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • 5 seconds per round (fair timing)' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • 10 seconds per round (shows all hands)' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • Real-time leaderboard updates' + ANSIParser.reset());
         this.terminal.println('');
         
