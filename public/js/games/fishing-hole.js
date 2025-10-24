@@ -2828,17 +2828,6 @@ class FishingHole {
                 });
             }
             
-            // Update player's rare/legendary counts
-            if (fish.rarity === 'Rare' || fish.rarity === 'Epic') {
-                this.player.rareCatches = (this.player.rareCatches || 0) + 1;
-            }
-            if (fish.rarity === 'Legendary') {
-                this.player.legendaryCatches = (this.player.legendaryCatches || 0) + 1;
-            }
-            if (fish.rarity === 'Trophy') {
-                this.player.trophyCatches = (this.player.trophyCatches || 0) + 1;
-            }
-            
             // Show excitement for big catches
             if (fish.weight > 10) {
                 this.terminal.println(ANSIParser.fg('bright-yellow') + `  🐟 HUGE CATCH! ${fish.name} (${fish.weight.toFixed(2)} lbs)!` + ANSIParser.reset());
