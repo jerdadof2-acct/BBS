@@ -200,16 +200,20 @@ class MenuManager {
         this.terminal.println('');
         
         // Show some classic ANSI art
-        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Welcome to the Matrix" by TheCracker' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + this.getMatrixArt() + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Spectacular ANSI Collection #1" by ColorMaster' + ANSIParser.reset());
+        this.terminal.println(this.getSpectacularAnsiArt1());
         this.terminal.println('');
         
-        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "BBS Dragon" by ANSI Master' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + this.getDragonArt() + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Colorful Masterpiece #2" by PixelArtist' + ANSIParser.reset());
+        this.terminal.println(this.getSpectacularAnsiArt2());
         this.terminal.println('');
         
-        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Retro Computer" by PixelWizard' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + this.getComputerArt() + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Digital Art Revolution #3" by ANSI Wizard' + ANSIParser.reset());
+        this.terminal.println(this.getSpectacularAnsiArt3());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Golden Age ANSI #4" by RetroMaster' + ANSIParser.reset());
+        this.terminal.println(this.getSpectacularAnsiArt4());
         this.terminal.println('');
         
         // Re-enable typing simulation
@@ -239,6 +243,14 @@ class MenuManager {
         this.terminal.println(ANSIParser.fg('bright-white') + this.getModemArt() + ANSIParser.reset());
         this.terminal.println('');
         
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Spectacular BBS Art #1" by ColorMaster' + ANSIParser.reset());
+        this.terminal.println(this.getSpectacularAnsiArt1());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Spectacular BBS Art #2" by PixelArtist' + ANSIParser.reset());
+        this.terminal.println(this.getSpectacularAnsiArt2());
+        this.terminal.println('');
+        
         this.terminal.setSimulateSpeed(wasSimulating);
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to continue...' + ANSIParser.reset());
@@ -263,6 +275,14 @@ class MenuManager {
         
         this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Pac-Man" by ArcadeArtist' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + this.getPacManArt() + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Gaming Spectacular #1" by ColorMaster' + ANSIParser.reset());
+        this.terminal.println(this.getSpectacularAnsiArt3());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎨 "Gaming Spectacular #2" by PixelArtist' + ANSIParser.reset());
+        this.terminal.println(this.getSpectacularAnsiArt4());
         this.terminal.println('');
         
         this.terminal.setSimulateSpeed(wasSimulating);
@@ -488,24 +508,24 @@ class MenuManager {
     // ANSI Art Collection Methods
     getMatrixArt() {
         return `
-    ╔══════════════════════════════════════════════════════════════════════════════╗
-    ║                                                                              ║
-    ║  ███╗   ███╗ █████╗ ████████╗██████╗ ██╗██╗  ██╗                            ║
-    ║  ████╗ ████║██╔══██╗╚══██╔══╝██╔══██╗██║╚██╗██╔╝                            ║
-    ║  ██╔████╔██║███████║   ██║   ██████╔╝██║ ╚███╔╝                             ║
-    ║  ██║╚██╔╝██║██╔══██║   ██║   ██╔══██╗██║ ██╔██╗                             ║
-    ║  ██║ ╚═╝ ██║██║  ██║   ██║   ██║  ██║██║██╔╝ ██╗                            ║
-    ║  ╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝                            ║
-    ║                                                                              ║
-    ║  ██╗  ██╗ ██████╗ ██╗     ██╗   ██╗███████╗                                 ║
-    ║  ██║  ██║██╔═══██╗██║     ██║   ██║██╔════╝                                 ║
-    ║  ███████║██║   ██║██║     ██║   ██║█████╗                                   ║
-    ║  ██╔══██║██║   ██║██║     ╚██╗ ██╔╝██╔══╝                                   ║
-    ║  ██║  ██║╚██████╔╝███████╗ ╚████╔╝ ███████╗                                 ║
-    ║  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝  ╚═══╝  ╚══════╝                                 ║
-    ║                                                                              ║
-    ║  "Welcome to the Matrix... Follow the white rabbit."                        ║
-    ╚══════════════════════════════════════════════════════════════════════════════╝
+${ANSIParser.fg('bright-green')}    ╔══════════════════════════════════════════════════════════════════════════════╗${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-white')}  ███╗   ███╗ █████╗ ████████╗██████╗ ██╗██╗  ██╗                            ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-white')}  ████╗ ████║██╔══██╗╚══██╔══╝██╔══██╗██║╚██╗██╔╝                            ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-white')}  ██╔████╔██║███████║   ██║   ██████╔╝██║ ╚███╔╝                             ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-white')}  ██║╚██╔╝██║██╔══██║   ██║   ██╔══██╗██║ ██╔██╗                             ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-white')}  ██║ ╚═╝ ██║██║  ██║   ██║   ██║  ██║██║██╔╝ ██╗                            ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-white')}  ╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝                            ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}  ██╗  ██╗ ██████╗ ██╗     ██╗   ██╗███████╗                                 ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}  ██║  ██║██╔═══██╗██║     ██║   ██║██╔════╝                                 ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}  ███████║██║   ██║██║     ██║   ██║█████╗                                   ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}  ██╔══██║██║   ██║██║     ╚██╗ ██╔╝██╔══╝                                   ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}  ██║  ██║╚██████╔╝███████╗ ╚████╔╝ ███████╗                                 ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝  ╚═══╝  ╚══════╝                                 ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}  "Welcome to the Matrix... Follow the white rabbit."                        ${ANSIParser.reset()}${ANSIParser.fg('bright-green')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-green')}    ╚══════════════════════════════════════════════════════════════════════════════╝${ANSIParser.reset()}
 `;
     }
 
@@ -762,6 +782,99 @@ class MenuManager {
     ║                                                                              ║
     ║  "Excellent work! Very retro!"                                              ║
     ╚══════════════════════════════════════════════════════════════════════════════╝
+`;
+    }
+
+    // SPECTACULAR COLORFUL ANSI ART COLLECTION
+    getSpectacularAnsiArt1() {
+        return `
+${ANSIParser.fg('bright-cyan')}    ╔══════════════════════════════════════════════════════════════════════════════╗${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ███████╗██╗   ██╗██╗  ████████╗███████╗██████╗  ██████╗ ███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ██╔════╝██║   ██║██║  ╚══██╔══╝██╔════╝██╔══██╗██╔═══██╗██╔════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ███████╗██║   ██║██║     ██║   █████╗  ██████╔╝██║   ██║███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ╚════██║██║   ██║██║     ██║   ██╔══╝  ██╔══██╗██║   ██║╚════██║    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ███████║╚██████╔╝██║     ██║   ███████╗██║  ██║╚██████╔╝███████║    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ╚══════╝ ╚═════╝ ╚═╝     ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ██████╗ ██████╗ ██╗     ██╗   ██╗███████╗███████╗███████╗███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ██╔══██╗██╔══██╗██║     ██║   ██║██╔════╝██╔════╝██╔════╝██╔════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ██████╔╝██████╔╝██║     ██║   ██║█████╗  ███████╗█████╗  ███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ██╔══██╗██╔══██╗██║     ╚██╗ ██╔╝██╔══╝  ╚════██║██╔══╝  ╚════██║    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ██║  ██║██║  ██║███████╗ ╚████╔╝ ███████╗███████║███████╗███████║    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝  ╚═══╝  ╚══════╝╚══════╝╚══════╝╚══════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}    "Spectacular ANSI Art Collection - Where Colors Meet Creativity!"        ${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-cyan')}    ╚══════════════════════════════════════════════════════════════════════════════╝${ANSIParser.reset()}
+`;
+    }
+
+    getSpectacularAnsiArt2() {
+        return `
+${ANSIParser.fg('bright-red')}    ╔══════════════════════════════════════════════════════════════════════════════╗${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ██╗  ██╗ ██████╗ ██╗     ██╗   ██╗███████╗███████╗███████╗███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ██║  ██║██╔═══██╗██║     ██║   ██║██╔════╝██╔════╝██╔════╝██╔════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ███████║██║   ██║██║     ██║   ██║█████╗  ███████╗█████╗  ███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ██╔══██║██║   ██║██║     ╚██╗ ██╔╝██╔══╝  ╚════██║██╔══╝  ╚════██║    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ██║  ██║╚██████╔╝███████╗ ╚████╔╝ ███████╗███████║███████╗███████║    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ╚═╝  ╚═╝ ╚═════╝ ╚══════╝  ╚═══╝  ╚══════╝╚══════╝╚══════╝╚══════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ███████╗██╗   ██╗██╗  ████████╗███████╗██████╗  ██████╗ ███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ██╔════╝██║   ██║██║  ╚══██╔══╝██╔════╝██╔══██╗██╔═══██╗██╔════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ███████╗██║   ██║██║     ██║   █████╗  ██████╔╝██║   ██║███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ╚════██║██║   ██║██║     ██║   ██╔══╝  ██╔══██╗██║   ██║╚════██║    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ███████║╚██████╔╝██║     ██║   ███████╗██║  ██║╚██████╔╝███████║    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ╚══════╝ ╚═════╝ ╚═╝     ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}    "Colorful Masterpiece - The Art of Digital Expression!"                ${ANSIParser.reset()}${ANSIParser.fg('bright-red')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-red')}    ╚══════════════════════════════════════════════════════════════════════════════╝${ANSIParser.reset()}
+`;
+    }
+
+    getSpectacularAnsiArt3() {
+        return `
+${ANSIParser.fg('bright-magenta')}    ╔══════════════════════════════════════════════════════════════════════════════╗${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}    ███████╗██╗   ██╗██╗  ████████╗███████╗██████╗  ██████╗ ███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}    ██╔════╝██║   ██║██║  ╚══██╔══╝██╔════╝██╔══██╗██╔═══██╗██╔════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}    ███████╗██║   ██║██║     ██║   █████╗  ██████╔╝██║   ██║███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}    ╚════██║██║   ██║██║     ██║   ██╔══╝  ██╔══██╗██║   ██║╚════██║    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}    ███████║╚██████╔╝██║     ██║   ███████╗██║  ██║╚██████╔╝███████║    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}    ╚══════╝ ╚═════╝ ╚═╝     ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ███████╗██╗   ██╗██╗  ████████╗███████╗██████╗  ██████╗ ███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ██╔════╝██║   ██║██║  ╚══██╔══╝██╔════╝██╔══██╗██╔═══██╗██╔════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ███████╗██║   ██║██║     ██║   █████╗  ██████╔╝██║   ██║███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ╚════██║██║   ██║██║     ██║   ██╔══╝  ██╔══██╗██║   ██║╚════██║    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ███████║╚██████╔╝██║     ██║   ███████╗██║  ██║╚██████╔╝███████║    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-green')}    ╚══════╝ ╚═════╝ ╚═╝     ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    "Digital Art Revolution - Where Pixels Become Poetry!"                  ${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-magenta')}    ╚══════════════════════════════════════════════════════════════════════════════╝${ANSIParser.reset()}
+`;
+    }
+
+    getSpectacularAnsiArt4() {
+        return `
+${ANSIParser.fg('bright-yellow')}    ╔══════════════════════════════════════════════════════════════════════════════╗${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ███████╗██╗   ██╗██╗  ████████╗███████╗██████╗  ██████╗ ███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ██╔════╝██║   ██║██║  ╚══██╔══╝██╔════╝██╔══██╗██╔═══██╗██╔════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ███████╗██║   ██║██║     ██║   █████╗  ██████╔╝██║   ██║███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ╚════██║██║   ██║██║     ██║   ██╔══╝  ██╔══██╗██║   ██║╚════██║    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ███████║╚██████╔╝██║     ██║   ███████╗██║  ██║╚██████╔╝███████║    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}    ╚══════╝ ╚═════╝ ╚═╝     ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ███████╗██╗   ██╗██╗  ████████╗███████╗██████╗  ██████╗ ███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ██╔════╝██║   ██║██║  ╚══██╔══╝██╔════╝██╔══██╗██╔═══██╗██╔════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ███████╗██║   ██║██║     ██║   █████╗  ██████╔╝██║   ██║███████╗    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ╚════██║██║   ██║██║     ██║   ██╔══╝  ██╔══██╗██║   ██║╚════██║    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ███████║╚██████╔╝██║     ██║   ███████╗██║  ██║╚██████╔╝███████║    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-cyan')}    ╚══════╝ ╚═════╝ ╚═╝     ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝    ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-red')}                                                                              ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ║${ANSIParser.reset()}${ANSIParser.fg('bright-magenta')}    "Golden Age of ANSI - Where Art Meets Technology!"                     ${ANSIParser.reset()}${ANSIParser.fg('bright-yellow')}║${ANSIParser.reset()}
+${ANSIParser.fg('bright-yellow')}    ╚══════════════════════════════════════════════════════════════════════════════╝${ANSIParser.reset()}
 `;
     }
 }
