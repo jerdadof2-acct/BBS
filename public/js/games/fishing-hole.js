@@ -2469,10 +2469,23 @@ class FishingHole {
     handleTournamentSync(data) {
         // Sync tournament participants with current state
         if (data.participants && data.participants.length > 0) {
-            // Only sync if we have actual participants data
-            this.tournament.participants = data.participants;
+            // Map BBS login names to game usernames for consistency
+            const mappedParticipants = data.participants.map(participant => {
+                let gameUsername = participant.name;
+                if (participant.name === 'SysOp') {
+                    gameUsername = 'Halley66'; // Map SysOp to Halley66 for consistency
+                }
+                return {
+                    name: gameUsername,
+                    totalWeight: participant.totalWeight || 0,
+                    fishCount: participant.fishCount || 0,
+                    biggestCatch: participant.biggestCatch || 0
+                };
+            });
+            
+            this.tournament.participants = mappedParticipants;
             this.updateTournamentLeaderboard();
-            console.log('Synced tournament participants:', data.participants);
+            console.log('Synced tournament participants:', mappedParticipants);
         } else {
             // Don't overwrite existing participants with empty array
             console.log('Sync received empty participants, keeping existing:', this.tournament.participants);
@@ -2513,7 +2526,8 @@ class FishingHole {
         // Show other player's catch if they caught a fish
         if (data.fishName && data.fishWeight) {
             const rarityColor = this.getRarityColor(data.fishRarity);
-            this.terminal.println(rarityColor + `  🎣 ${data.player} caught: ${data.fishName} (${data.fishWeight.toFixed(2)} lbs) [${data.fishRarity}]` + ANSIParser.reset());
+            // Use the mapped game username for display
+            this.terminal.println(rarityColor + `  🎣 ${gameUsername} caught: ${data.fishName} (${data.fishWeight.toFixed(2)} lbs) [${data.fishRarity}]` + ANSIParser.reset());
         }
         
         // Add to tournament messages

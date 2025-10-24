@@ -2410,11 +2410,21 @@ io.on('connection', (socket) => {
     const user = onlineUsers.get(socket.id);
     if (user) {
       console.log('Tournament sync requested by:', user.handle);
-      // For now, just acknowledge the sync request
-      // In a full implementation, we'd store tournament state on the server
+      
+      // Get all online users in the fishing game
+      const fishingPlayers = Array.from(onlineUsers.values()).filter(u => u.currentGame === 'fishing-hole');
+      
+      // Create participants list with game usernames
+      const participants = fishingPlayers.map(player => ({
+        name: player.handle === 'SysOp' ? 'Halley66' : player.handle, // Map SysOp to Halley66
+        totalWeight: 0,
+        fishCount: 0,
+        biggestCatch: 0
+      }));
+      
       socket.emit('fishing-tournament-sync', {
         tournamentId: data.tournamentId,
-        participants: [] // Empty for now, will be populated by other players
+        participants: participants
       });
     }
   });
