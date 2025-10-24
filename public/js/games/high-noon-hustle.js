@@ -4125,7 +4125,8 @@ class HighNoonHustle {
 
     dealPokerHandWithSeed(seed) {
         // Create a deterministic deck based on seed
-        const deck = this.createPokerDeck();
+        this.createPokerDeck();
+        const deck = [...this.pokerDeck]; // Copy the deck
         
         // Simple seeded shuffle
         let currentSeed = seed;
