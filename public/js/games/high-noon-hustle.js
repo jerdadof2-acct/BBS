@@ -480,39 +480,44 @@ class HighNoonHustle {
         // Equipment
         this.terminal.println(ANSIParser.fg('bright-magenta') + '  ⚔️  EQUIPMENT:' + ANSIParser.reset());
         
-        // Weapon
-        const weapon = this.weapons.find(w => w.id === this.gameState.equipment.weapon);
-        if (weapon) {
-            this.terminal.println(ANSIParser.fg('bright-white') + `    🔫 Weapon: ${weapon.name} (+${weapon.accuracy} Accuracy)` + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${weapon.description}` + ANSIParser.reset());
-        }
-        
-        // Horse
-        const horse = this.horses.find(h => h.id === this.gameState.equipment.horse);
-        if (horse) {
-            this.terminal.println(ANSIParser.fg('bright-white') + `    🐎 Horse: ${horse.name} (${horse.travelCost}% Travel Cost)` + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${horse.description}` + ANSIParser.reset());
-        }
-        
-        // Boots
-        const boots = this.boots.find(b => b.id === this.gameState.equipment.boots);
-        if (boots) {
-            this.terminal.println(ANSIParser.fg('bright-white') + `    👢 Boots: ${boots.name} (+${boots.agility} Agility)` + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${boots.description}` + ANSIParser.reset());
-        }
-        
-        // Clothes
-        const clothes = this.clothes.find(c => c.id === this.gameState.equipment.clothes);
-        if (clothes) {
-            this.terminal.println(ANSIParser.fg('bright-white') + `    👕 Clothes: ${clothes.name} (+${clothes.charisma} Charisma)` + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${clothes.description}` + ANSIParser.reset());
-        }
-        
-        // Accessory
-        const accessory = this.accessories.find(a => a.id === this.gameState.equipment.accessory);
-        if (accessory) {
-            this.terminal.println(ANSIParser.fg('bright-white') + `    🍀 Accessory: ${accessory.name} (+${accessory.luck} Luck)` + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${accessory.description}` + ANSIParser.reset());
+        // Check if equipment data is loaded
+        if (this.equipmentData && this.equipmentData.weapons) {
+            // Weapon
+            const weapon = this.equipmentData.weapons[this.gameState.equipment.weapon];
+            if (weapon) {
+                this.terminal.println(ANSIParser.fg('bright-white') + `    🔫 Weapon: ${weapon.name} (+${weapon.accuracy} Accuracy)` + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${weapon.description}` + ANSIParser.reset());
+            }
+            
+            // Horse
+            const horse = this.equipmentData.horses[this.gameState.equipment.horse];
+            if (horse) {
+                this.terminal.println(ANSIParser.fg('bright-white') + `    🐎 Horse: ${horse.name} (${horse.travelCost}% Travel Cost)` + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${horse.description}` + ANSIParser.reset());
+            }
+            
+            // Boots
+            const boots = this.equipmentData.boots[this.gameState.equipment.boots];
+            if (boots) {
+                this.terminal.println(ANSIParser.fg('bright-white') + `    👢 Boots: ${boots.name} (+${boots.agility} Agility)` + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${boots.description}` + ANSIParser.reset());
+            }
+            
+            // Clothes
+            const clothes = this.equipmentData.clothes[this.gameState.equipment.clothes];
+            if (clothes) {
+                this.terminal.println(ANSIParser.fg('bright-white') + `    👕 Clothes: ${clothes.name} (+${clothes.charisma} Charisma)` + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${clothes.description}` + ANSIParser.reset());
+            }
+            
+            // Accessory
+            const accessory = this.equipmentData.accessories[this.gameState.equipment.accessory];
+            if (accessory) {
+                this.terminal.println(ANSIParser.fg('bright-white') + `    🍀 Accessory: ${accessory.name} (+${accessory.luck} Luck)` + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${accessory.description}` + ANSIParser.reset());
+            }
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '    Equipment data not loaded yet...' + ANSIParser.reset());
         }
         
         this.terminal.println('');
@@ -528,9 +533,19 @@ class HighNoonHustle {
             }
         }
         
-        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to return to the saloon...' + ANSIParser.reset());
-        await this.terminal.input();
-        await this.enterSaloon();
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  [B] Back to Saloon' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        
+        const choice = (await this.terminal.input()).toLowerCase().trim();
+        
+        if (choice === 'b' || choice === 'back') {
+            await this.enterSaloon();
+        } else {
+            // Any other key also goes back to saloon
+            await this.enterSaloon();
+        }
     }
 
     async multiplayerMiniGames() {
