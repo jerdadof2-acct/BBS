@@ -4251,7 +4251,22 @@ class HighNoonHustle {
             
             this.terminal.println(ANSIParser.fg('bright-green') + '  Joined tournament!' + ANSIParser.reset());
             await this.terminal.sleep(2000);
-            await this.tournamentMenu();
+            
+            // Check if tournament is already active or if we should wait for it to start
+            if (this.tournament.active) {
+                // Tournament is already running, join it
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  Tournament is already active! Joining now...' + ANSIParser.reset());
+                await this.terminal.sleep(1000);
+                await this.runTournament();
+            } else if (this.tournament.phase === 'joining') {
+                // Tournament is still in joining phase, wait for it to start
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  Waiting for tournament to start...' + ANSIParser.reset());
+                await this.terminal.sleep(1000);
+                await this.tournamentMenu();
+            } else {
+                // Fallback to tournament menu
+                await this.tournamentMenu();
+            }
         } else {
             await this.tournamentMenu();
         }
@@ -4310,12 +4325,23 @@ class HighNoonHustle {
         if (data.tournaments && data.tournaments.length > 0) {
             // Update local tournament state with server data
             const serverTournament = data.tournaments[0]; // Take the first active tournament
+            const wasInJoiningPhase = this.tournament.phase === 'joining';
+            const isNowActive = serverTournament.phase === 'active';
+            
             this.tournament = {
                 ...this.tournament,
                 ...serverTournament,
                 active: serverTournament.phase === 'active' || serverTournament.phase === 'joining'
             };
             console.log('DEBUG: Updated tournament state from server:', this.tournament);
+            
+            // If tournament just started and we're a participant, join it
+            if (wasInJoiningPhase && isNowActive && this.tournament.participants.some(p => p.id === this.player.username)) {
+                this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 Tournament is starting! Joining now...' + ANSIParser.reset());
+                setTimeout(() => {
+                    this.runTournament();
+                }, 2000);
+            }
         }
     }
 
