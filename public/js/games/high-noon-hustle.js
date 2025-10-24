@@ -3226,7 +3226,7 @@ class HighNoonHustle {
             }, 30000); // 30 second timeout
 
             // Listen for duel response
-            const handleDuelResponse = (data) => {
+            const handleDuelResponse = async (data) => {
                 if (data.targetPlayer === this.player.id) {
                     clearTimeout(timeout);
                     this.socketClient.socket.off('duel-response', handleDuelResponse);
