@@ -3799,6 +3799,7 @@ class HighNoonHustle {
                 game: 'high-noon-hustle',
                 player: {
                     id: this.player.id,
+                    username: this.player.username, // Add username field
                     name: this.player.display_name,
                     display_name: this.player.display_name,
                     character_class: this.player.character_class,
