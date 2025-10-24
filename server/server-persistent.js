@@ -290,6 +290,49 @@ const onlineUsers = new Map(); // socketId -> { userId, handle, accessLevel, las
 // Tournament state management
 const activeTournaments = new Map(); // tournamentId -> { game, host, gameType, participants, phase, startTime, etc. }
 
+// Server-side card generation for tournaments
+function generateTournamentCards(tournament, roundNumber) {
+  // Create a standard 52-card deck
+  const suits = ['♠', '♥', '♦', '♣'];
+  const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  const deck = [];
+  
+  for (let suit of suits) {
+    for (let rank of ranks) {
+      deck.push({ rank, suit });
+    }
+  }
+  
+  // Shuffle deck with deterministic seed
+  const seed = tournament.tournamentId + roundNumber;
+  let currentSeed = seed;
+  for (let i = deck.length - 1; i > 0; i--) {
+    currentSeed = (currentSeed * 9301 + 49297) % 233280;
+    const j = Math.floor((currentSeed / 233280) * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  
+  // Sort participants by ID for consistent dealing
+  const sortedParticipants = [...tournament.participants].sort((a, b) => a.id.localeCompare(b.id));
+  
+  // Deal 5 cards to each participant
+  const playerHands = [];
+  let cardIndex = 0;
+  
+  for (let participant of sortedParticipants) {
+    const hand = deck.slice(cardIndex, cardIndex + 5);
+    cardIndex += 5;
+    
+    playerHands.push({
+      participantId: participant.id,
+      participantName: participant.name,
+      cards: hand
+    });
+  }
+  
+  return playerHands;
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -1980,6 +2023,29 @@ io.on('connection', (socket) => {
       // Broadcast score update to all players
       io.to('high-noon-hustle').emit('tournament-score-update', data);
       console.log('DEBUG: Broadcasted score update to all players');
+    }
+  });
+
+  // New event: Server generates and broadcasts tournament round cards
+  socket.on('tournament-round-request', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Tournament round request for round', data.roundNumber);
+      
+      const tournament = activeTournaments.get(data.tournamentId);
+      if (tournament) {
+        // Generate cards server-side
+        const roundCards = generateTournamentCards(tournament, data.roundNumber);
+        
+        // Broadcast cards to all players in the tournament
+        io.to('high-noon-hustle').emit('tournament-round-cards', {
+          game: 'high-noon-hustle',
+          tournamentId: data.tournamentId,
+          roundNumber: data.roundNumber,
+          cards: roundCards
+        });
+        
+        console.log('DEBUG: Broadcasted tournament round cards to all players');
+      }
     }
   });
 

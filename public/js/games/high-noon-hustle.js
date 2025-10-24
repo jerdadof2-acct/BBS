@@ -4130,41 +4130,43 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  🃏 Poker Round - 5 Card Draw!' + ANSIParser.reset());
         this.terminal.println('');
         
-        // Use tournament round number for deterministic seeding - SAME SEED FOR ALL PLAYERS
+        // Request cards from server for this round
         const roundNumber = this.tournament.currentRound || 1;
-        const sharedSeed = this.tournament.tournamentId + roundNumber;
         
-        // Create a shared deck and deal cards in order to all participants
-        this.createPokerDeck();
-        const sharedDeck = [...this.pokerDeck];
-        
-        // Shuffle the deck with the shared seed
-        let currentSeed = sharedSeed;
-        for (let i = sharedDeck.length - 1; i > 0; i--) {
-            currentSeed = (currentSeed * 9301 + 49297) % 233280;
-            const j = Math.floor((currentSeed / 233280) * (i + 1));
-            [sharedDeck[i], sharedDeck[j]] = [sharedDeck[j], sharedDeck[i]];
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.emit('tournament-round-request', {
+                game: 'high-noon-hustle',
+                tournamentId: this.tournament.tournamentId,
+                roundNumber: roundNumber
+            });
         }
         
-        // Sort participants by ID to ensure consistent ordering across all clients
-        const sortedParticipants = [...this.tournament.participants].sort((a, b) => a.id.localeCompare(b.id));
+        // Wait for server to send the cards
+        const roundCards = await this.waitForTournamentCards(roundNumber);
         
-        // Deal hands for all participants from the same shuffled deck
+        if (!roundCards) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Error: Could not get tournament cards' + ANSIParser.reset());
+            return;
+        }
+        
+        // Process the server-generated cards
         const playerHands = [];
-        let cardIndex = 0;
-        
-        for (let i = 0; i < sortedParticipants.length; i++) {
-            const participant = sortedParticipants[i];
-            // Deal 5 cards from the shared deck
-            const hand = sharedDeck.slice(cardIndex, cardIndex + 5);
-            cardIndex += 5;
+        for (const playerCard of roundCards) {
+            // Convert server cards to our format
+            const hand = playerCard.cards.map(card => ({
+                rank: card.rank,
+                suit: card.suit
+            }));
             
             const handValue = this.evaluatePokerHand(hand);
             const handName = this.pokerHands[handValue];
             const score = (handValue + 1) * 20; // 20-200 points based on hand strength
             
             playerHands.push({
-                participant: participant,
+                participant: {
+                    id: playerCard.participantId,
+                    name: playerCard.participantName
+                },
                 hand: hand,
                 handValue: handValue,
                 handName: handName,
@@ -4220,6 +4222,28 @@ class HighNoonHustle {
         
         // Slower pace for better viewing
         await this.terminal.sleep(3000); // 3 seconds to view results
+    }
+
+    async waitForTournamentCards(roundNumber) {
+        return new Promise((resolve) => {
+            const timeout = setTimeout(() => {
+                console.log('DEBUG: Timeout waiting for tournament cards');
+                resolve(null);
+            }, 10000); // 10 second timeout
+            
+            const handleTournamentCards = (data) => {
+                if (data.game === 'high-noon-hustle' && 
+                    data.tournamentId === this.tournament.tournamentId && 
+                    data.roundNumber === roundNumber) {
+                    clearTimeout(timeout);
+                    this.socketClient.socket.off('tournament-round-cards', handleTournamentCards);
+                    console.log('DEBUG: Received tournament cards from server:', data.cards);
+                    resolve(data.cards);
+                }
+            };
+            
+            this.socketClient.socket.on('tournament-round-cards', handleTournamentCards);
+        });
     }
 
     dealPokerHandWithSeed(seed) {
