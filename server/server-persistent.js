@@ -1745,6 +1745,7 @@ io.on('connection', (socket) => {
       // Store the player's character data in the onlineUsers map FIRST
       if (playerData) {
         user.characterData = {
+          username: playerData.username || user.handle, // Store game username
           character_class: playerData.character_class || 'gunslinger',
           current_town: playerData.current_town || 'tumbleweed_junction'
         };
@@ -1822,7 +1823,7 @@ io.on('connection', (socket) => {
           gameType: data.gameType,
           tournamentId: tournamentId,
           participants: [{
-            id: user.handle, // Use handle as ID to match client
+            id: user.characterData?.username || user.handle, // Use game username if available
             name: user.handle,
             display_name: user.handle,
             score: 0,
@@ -1884,10 +1885,11 @@ io.on('connection', (socket) => {
         const user = onlineUsers.get(socket.id);
         if (user) {
           // Check if player already in tournament
-          const existingParticipant = tournament.participants.find(p => p.id === user.handle);
+          const gameUsername = user.characterData?.username || user.handle;
+          const existingParticipant = tournament.participants.find(p => p.id === gameUsername);
           if (!existingParticipant) {
             tournament.participants.push({
-              id: user.handle, // Use handle as ID to match client
+              id: gameUsername, // Use game username if available
               name: user.handle,
               display_name: user.handle,
               score: 0,
