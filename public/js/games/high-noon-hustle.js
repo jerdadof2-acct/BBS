@@ -4240,12 +4240,7 @@ class HighNoonHustle {
                 this.socketClient.socket.emit('tournament-join', {
                     game: 'high-noon-hustle',
                     tournamentId: this.tournament.tournamentId,
-                    participant: {
-                        id: this.player.id,
-                        name: this.player.display_name,
-                        score: 0,
-                        gold: 0
-                    }
+                    participant: newParticipant // Use the same participant data we created
                 });
             }
             
@@ -4337,6 +4332,18 @@ class HighNoonHustle {
                 ...serverTournament,
                 active: serverTournament.phase === 'active' || serverTournament.phase === 'joining'
             };
+            
+            // Remove duplicate participants based on ID
+            const uniqueParticipants = [];
+            const seenIds = new Set();
+            for (const participant of this.tournament.participants) {
+                if (!seenIds.has(participant.id)) {
+                    seenIds.add(participant.id);
+                    uniqueParticipants.push(participant);
+                }
+            }
+            this.tournament.participants = uniqueParticipants;
+            
             console.log('DEBUG: Updated tournament state from server:', this.tournament);
             
             // If tournament just started and we're a participant, join it

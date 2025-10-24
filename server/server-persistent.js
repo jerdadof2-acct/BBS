@@ -1822,7 +1822,7 @@ io.on('connection', (socket) => {
           gameType: data.gameType,
           tournamentId: tournamentId,
           participants: [{
-            id: user.userId,
+            id: user.handle, // Use handle as ID to match client
             name: user.handle,
             display_name: user.handle,
             score: 0,
@@ -1875,10 +1875,10 @@ io.on('connection', (socket) => {
         const user = onlineUsers.get(socket.id);
         if (user) {
           // Check if player already in tournament
-          const existingParticipant = tournament.participants.find(p => p.id === user.userId);
+          const existingParticipant = tournament.participants.find(p => p.id === user.handle);
           if (!existingParticipant) {
             tournament.participants.push({
-              id: user.userId,
+              id: user.handle, // Use handle as ID to match client
               name: user.handle,
               display_name: user.handle,
               score: 0,
