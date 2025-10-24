@@ -1,0 +1,37 @@
+{
+    "name": "Retro BBS - Classic Door Games & Social Bulletin Board System",
+    "short_name": "Retro BBS",
+    "description": "Experience the golden age of BBS with classic door games, multiplayer tournaments, and social chat. Play High Noon Hustle, TradeWars, LORD, and more!",
+    "start_url": "/",
+    "display": "fullscreen",
+    "background_color": "#000000",
+    "theme_color": "#00ff00",
+    "orientation": "portrait",
+    "categories": ["games", "entertainment", "social"],
+    "lang": "en-US",
+    "icons": [
+        {
+            "src": "/favicon-16x16.png",
+            "sizes": "16x16",
+            "type": "image/png"
+        },
+        {
+            "src": "/favicon-32x32.png",
+            "sizes": "32x32",
+            "type": "image/png"
+        },
+        {
+            "src": "/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/images/bbs-screenshot-1.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide"
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://bbs-production-329b.up.railway.app/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Allow all content - this is a public BBS
+Disallow: /admin/
+Disallow: /private/
+Disallow: /temp/
+
+# Allow all game content and public areas
+Allow: /js/
+Allow: /css/
+Allow: /images/
+Allow: /games/
