@@ -1985,7 +1985,6 @@ class HighNoonHustle {
         if (this.gameState.energy < 15) {
             this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ Not enough energy! Need 15 energy to race.' + ANSIParser.reset());
             await this.terminal.sleep(2000);
-            await this.enterSaloon();
             return;
         }
 
@@ -1993,7 +1992,6 @@ class HighNoonHustle {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Need at least 2 players for the derby!' + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-yellow') + '  Wait for others to join!' + ANSIParser.reset());
             await this.terminal.sleep(2000);
-            await this.enterSaloon();
             return;
         }
 
@@ -2026,20 +2024,17 @@ class HighNoonHustle {
         else if (choice === '50') bet = 50;
         else if (choice === '100') bet = 100;
         else if (choice === 'b' || choice === 'back') {
-            await this.enterSaloon();
             return;
         }
         else {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
             await this.terminal.sleep(1000);
-            await this.enterSaloon();
             return;
         }
         
         if (this.gameState.gold < bet) {
             this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ Not enough gold!' + ANSIParser.reset());
             await this.terminal.sleep(2000);
-            await this.enterSaloon();
             return;
         }
         
@@ -2110,7 +2105,6 @@ class HighNoonHustle {
         if (this.gameState.energy < 20) {
             this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ Not enough energy! Need 20 energy to cook.' + ANSIParser.reset());
             await this.terminal.sleep(2000);
-            await this.enterSaloon();
             return;
         }
 
@@ -2118,7 +2112,6 @@ class HighNoonHustle {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Need at least 2 players for the cooking contest!' + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-yellow') + '  Wait for others to join!' + ANSIParser.reset());
             await this.terminal.sleep(2000);
-            await this.enterSaloon();
             return;
         }
 
@@ -2144,11 +2137,11 @@ class HighNoonHustle {
         if (choice === 'y' || choice === 'yes') {
             await this.startMultiplayerBeanCooking();
         } else if (choice === 'b' || choice === 'back') {
-            await this.enterSaloon();
+            return;
         } else {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
             await this.terminal.sleep(1000);
-            await this.enterSaloon();
+            return;
         }
     }
 
@@ -2220,7 +2213,6 @@ class HighNoonHustle {
         if (this.gameState.energy < 25) {
             this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ Not enough energy! Need 25 energy to pan.' + ANSIParser.reset());
             await this.terminal.sleep(2000);
-            await this.enterSaloon();
             return;
         }
 
@@ -2228,7 +2220,6 @@ class HighNoonHustle {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Need at least 2 players for the gold panning competition!' + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-yellow') + '  Wait for others to join!' + ANSIParser.reset());
             await this.terminal.sleep(2000);
-            await this.enterSaloon();
             return;
         }
 
@@ -2254,11 +2245,11 @@ class HighNoonHustle {
         if (choice === 'y' || choice === 'yes') {
             await this.startMultiplayerGoldPanning();
         } else if (choice === 'b' || choice === 'back') {
-            await this.enterSaloon();
+            return;
         } else {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
             await this.terminal.sleep(1000);
-            await this.enterSaloon();
+            return;
         }
     }
 
