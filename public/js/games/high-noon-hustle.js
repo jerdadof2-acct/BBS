@@ -3990,6 +3990,20 @@ class HighNoonHustle {
     }
 
     async runTournament() {
+        console.log('DEBUG: runTournament() called for player:', this.player.username);
+        console.log('DEBUG: Current tournament state:', {
+            active: this.tournament.active,
+            running: this.tournament.running,
+            phase: this.tournament.phase
+        });
+        
+        // Prevent multiple tournament runs
+        if (this.tournament.running) {
+            console.log('DEBUG: Tournament already running, ignoring duplicate call');
+            return;
+        }
+        
+        this.tournament.running = true;
         this.tournament.active = true;
         this.tournament.phase = 'active';
         this.tournament.startTime = Date.now();
@@ -4254,6 +4268,7 @@ class HighNoonHustle {
     async endTournament() {
         this.tournament.active = false;
         this.tournament.phase = 'ended';
+        this.tournament.running = false;
         
         // Calculate rewards based on final standings
         const rewards = this.calculateTournamentRewards();
@@ -4696,6 +4711,7 @@ class HighNoonHustle {
         if (data.tournamentId === this.tournament.tournamentId) {
             this.tournament.active = false;
             this.tournament.phase = 'cancelled';
+            this.tournament.running = false;
             this.inWaitingRoom = false;
             
             this.terminal.println(ANSIParser.fg('bright-red') + '  🏆 Tournament Cancelled!' + ANSIParser.reset());
