@@ -4307,9 +4307,27 @@ class HighNoonHustle {
                     const timeLeft = Math.max(0, this.tournament.joinEndTime - now);
                     const secondsLeft = Math.ceil(timeLeft / 1000);
                     
-                    // Update the countdown line
-                    this.terminal.moveCursor(0, this.terminal.cursorY - 1);
-                    this.terminal.clearLine();
+                    // Update the countdown line by clearing and reprinting
+                    this.terminal.clear();
+                    this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏆 TOURNAMENT WAITING ROOM 🏆' + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    this.terminal.println('');
+                    
+                    this.terminal.println(ANSIParser.fg('bright-white') + `  Tournament: ${this.tournament.gameType.toUpperCase()}` + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-white') + `  Participants: ${this.tournament.participants.length}` + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-white') + `  Status: ${this.tournament.phase.toUpperCase()}` + ANSIParser.reset());
+                    this.terminal.println('');
+                    
+                    // Show current participants
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  Current Participants:' + ANSIParser.reset());
+                    this.tournament.participants.forEach((participant, index) => {
+                        const isYou = participant.id === this.player.username ? ' (YOU)' : '';
+                        this.terminal.println(ANSIParser.fg('bright-white') + `    ${index + 1}. ${participant.name}${isYou}` + ANSIParser.reset());
+                    });
+                    this.terminal.println('');
+                    
+                    this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
                     this.terminal.println(ANSIParser.fg('bright-cyan') + `  Time remaining: ${secondsLeft} seconds` + ANSIParser.reset());
                     this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
                     
@@ -4443,6 +4461,8 @@ class HighNoonHustle {
             // If tournament just started and we're a participant, join it
             const isParticipant = this.tournament.participants.some(p => p.id === this.player.username);
             console.log('DEBUG: Is participant:', isParticipant);
+            console.log('DEBUG: Looking for participant with id:', this.player.username);
+            console.log('DEBUG: Available participant IDs:', this.tournament.participants.map(p => p.id));
             
             if (wasInJoiningPhase && isNowActive && isParticipant) {
                 // If we're in the waiting room, the waiting room will handle the transition
@@ -4466,6 +4486,8 @@ class HighNoonHustle {
             console.log('DEBUG: Tournament phase changed to active, checking if we should join...');
             const isParticipant = this.tournament.participants.some(p => p.id === this.player.username);
             console.log('DEBUG: Is participant in phase change:', isParticipant);
+            console.log('DEBUG: Looking for participant with id:', this.player.username);
+            console.log('DEBUG: Available participant IDs in phase change:', this.tournament.participants.map(p => p.id));
             
             if (isParticipant) {
                 this.tournament.phase = 'active';
