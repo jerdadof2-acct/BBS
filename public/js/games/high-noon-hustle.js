@@ -4012,16 +4012,27 @@ class HighNoonHustle {
     }
 
     async playTournamentGame() {
-        const startTime = Date.now();
         const duration = this.tournament.duration;
         const roundDuration = 6000; // 6 seconds per round (5s for game + 1s for display)
         const maxRounds = Math.floor(duration / roundDuration); // Calculate max rounds based on duration
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎯 Tournament will run for ${maxRounds} rounds` + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  All players get the same number of rounds!' + ANSIParser.reset());
-        await this.terminal.sleep(3000);
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ⏳ Waiting for all players to be ready...' + ANSIParser.reset());
+        
+        // Wait for all participants to be ready and synchronized
+        await this.waitForAllPlayersReady();
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  ✅ All players ready! Starting tournament...' + ANSIParser.reset());
+        await this.terminal.sleep(2000);
+        
+        // Use server-synchronized timing
+        const startTime = this.tournament.startTime;
         
         for (let round = 1; round <= maxRounds && this.tournament.active; round++) {
+            // Track current round for deterministic seeding
+            this.tournament.currentRound = round;
+            
             const remaining = Math.ceil((duration - (Date.now() - startTime)) / 1000);
             
             this.terminal.clear();
@@ -4041,6 +4052,25 @@ class HighNoonHustle {
             // Play one round of the game (with fixed timing)
             await this.playTournamentRound();
         }
+    }
+
+    async waitForAllPlayersReady() {
+        return new Promise((resolve) => {
+            const checkReady = () => {
+                // Wait for tournament to be active and all participants confirmed ready
+                if (this.tournament.active && this.tournament.phase === 'active') {
+                    // Additional check: ensure we have the expected number of participants
+                    if (this.tournament.participants.length >= 2) {
+                        resolve();
+                    } else {
+                        setTimeout(checkReady, 100);
+                    }
+                } else {
+                    setTimeout(checkReady, 100);
+                }
+            };
+            checkReady();
+        });
     }
 
     async playTournamentRound() {
@@ -4065,8 +4095,12 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  🃏 Poker Round - 5 Card Draw!' + ANSIParser.reset());
         this.terminal.println('');
         
-        // Deal 5 cards
-        const hand = this.dealPokerHand();
+        // Use tournament round number for deterministic seeding
+        const roundNumber = this.tournament.currentRound || 1;
+        const seed = this.tournament.tournamentId + roundNumber;
+        
+        // Deal 5 cards with deterministic seed
+        const hand = this.dealPokerHandWithSeed(seed);
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  Your hand:' + ANSIParser.reset());
         this.displayPokerHand(hand);
@@ -4087,6 +4121,21 @@ class HighNoonHustle {
         
         // Fixed timing for fairness - all players get same time per round
         await this.terminal.sleep(5000); // 5 seconds per round
+    }
+
+    dealPokerHandWithSeed(seed) {
+        // Create a deterministic deck based on seed
+        const deck = this.createPokerDeck();
+        
+        // Simple seeded shuffle
+        let currentSeed = seed;
+        for (let i = deck.length - 1; i > 0; i--) {
+            currentSeed = (currentSeed * 9301 + 49297) % 233280;
+            const j = Math.floor((currentSeed / 233280) * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        
+        return deck.slice(0, 5);
     }
 
     async playTournamentDerbyRound() {
