@@ -412,6 +412,7 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-white') + '  [7]' + ANSIParser.reset() + ' 📢 View Events & Announcements');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [8]' + ANSIParser.reset() + ' 👥 Form a Posse');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [9]' + ANSIParser.reset() + ' 🏆 Tournaments (TRUE Multiplayer!)');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [S]' + ANSIParser.reset() + ' 📊 View Your Stats & Equipment');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [R]' + ANSIParser.reset() + ' 🔄 Refresh Saloon (Update Player List)');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [B]' + ANSIParser.reset() + ' Back to Main Menu');
         this.terminal.println('');
@@ -440,6 +441,8 @@ class HighNoonHustle {
             await this.tournamentMode();
         } else if (choice === 'tournament' || choice === 't') {
             await this.tournamentMode();
+        } else if (choice === 's' || choice === 'stats') {
+            await this.showPlayerStats();
         } else if (choice === 'r' || choice === 'refresh') {
             await this.enterSaloon(); // Refresh the saloon display
         } else if (choice === 'b' || choice === 'back') {
@@ -449,6 +452,85 @@ class HighNoonHustle {
             await this.terminal.sleep(1000);
             await this.enterSaloon(); // Return to saloon instead of exiting
         }
+    }
+
+    async showPlayerStats() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔═══════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  📊 YOUR CHARACTER STATS & EQUIPMENT 📊' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Character Info
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🤠 CHARACTER INFO:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `    Name: ${this.player.display_name}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `    Class: ${this.player.character_class}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `    Town: ${this.towns[this.currentTown].name}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Core Stats
+        this.terminal.println(ANSIParser.fg('bright-green') + '  💪 CORE STATS:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `    Level: ${this.gameState.level}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `    Experience: ${this.gameState.experience} XP` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `    Energy: ${this.gameState.energy}/${this.gameState.maxEnergy}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `    Gold: ${this.gameState.gold}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `    Honor Score: ${this.gameState.honorScore}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Equipment
+        this.terminal.println(ANSIParser.fg('bright-magenta') + '  ⚔️  EQUIPMENT:' + ANSIParser.reset());
+        
+        // Weapon
+        const weapon = this.weapons.find(w => w.id === this.gameState.equipment.weapon);
+        if (weapon) {
+            this.terminal.println(ANSIParser.fg('bright-white') + `    🔫 Weapon: ${weapon.name} (+${weapon.accuracy} Accuracy)` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${weapon.description}` + ANSIParser.reset());
+        }
+        
+        // Horse
+        const horse = this.horses.find(h => h.id === this.gameState.equipment.horse);
+        if (horse) {
+            this.terminal.println(ANSIParser.fg('bright-white') + `    🐎 Horse: ${horse.name} (${horse.travelCost}% Travel Cost)` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${horse.description}` + ANSIParser.reset());
+        }
+        
+        // Boots
+        const boots = this.boots.find(b => b.id === this.gameState.equipment.boots);
+        if (boots) {
+            this.terminal.println(ANSIParser.fg('bright-white') + `    👢 Boots: ${boots.name} (+${boots.agility} Agility)` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${boots.description}` + ANSIParser.reset());
+        }
+        
+        // Clothes
+        const clothes = this.clothes.find(c => c.id === this.gameState.equipment.clothes);
+        if (clothes) {
+            this.terminal.println(ANSIParser.fg('bright-white') + `    👕 Clothes: ${clothes.name} (+${clothes.charisma} Charisma)` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${clothes.description}` + ANSIParser.reset());
+        }
+        
+        // Accessory
+        const accessory = this.accessories.find(a => a.id === this.gameState.equipment.accessory);
+        if (accessory) {
+            this.terminal.println(ANSIParser.fg('bright-white') + `    🍀 Accessory: ${accessory.name} (+${accessory.luck} Luck)` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `        ${accessory.description}` + ANSIParser.reset());
+        }
+        
+        this.terminal.println('');
+        
+        // Tournament Stats (if available)
+        if (this.tournament && this.tournament.participants && this.tournament.participants.length > 0) {
+            const myParticipant = this.tournament.participants.find(p => p.id === this.player.username);
+            if (myParticipant) {
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 CURRENT TOURNAMENT:' + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-white') + `    Score: ${myParticipant.score}` + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-white') + `    Gold Earned: ${myParticipant.gold || 0}` + ANSIParser.reset());
+                this.terminal.println('');
+            }
+        }
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press any key to return to the saloon...' + ANSIParser.reset());
+        await this.terminal.input();
+        await this.enterSaloon();
     }
 
     async multiplayerMiniGames() {
