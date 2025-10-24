@@ -541,7 +541,7 @@ class FishingHole {
             if (this.socketClient && this.socketClient.socket) {
                 const fishData = {
                     userId: this.authManager.getCurrentUser().id,
-                    handle: this.player.name,
+                    handle: this.player.gameUsername,
                     fishName: caughtFish.name,
                     weight: weight,
                     location: this.location.name,
