@@ -3787,6 +3787,13 @@ class HighNoonHustle {
                 }
             });
 
+            // Listen for tournament score updates
+            this.socketClient.socket.on('tournament-score-update', (data) => {
+                if (data.game === 'high-noon-hustle') {
+                    this.handleTournamentScoreUpdate(data);
+                }
+            });
+
             // Socket listeners are set up, but join-game-room will be called separately
         }
     }
@@ -4149,6 +4156,16 @@ class HighNoonHustle {
         const playerIndex = this.tournament.participants.findIndex(p => p.id === this.player.username);
         if (playerIndex !== -1) {
             this.tournament.participants[playerIndex].score += score;
+            
+            // Broadcast score update to other players
+            if (this.socketClient && this.socketClient.socket) {
+                this.socketClient.socket.emit('tournament-score-update', {
+                    game: 'high-noon-hustle',
+                    tournamentId: this.tournament.tournamentId,
+                    participantId: this.player.username,
+                    score: this.tournament.participants[playerIndex].score
+                });
+            }
         }
     }
 
@@ -4505,6 +4522,17 @@ class HighNoonHustle {
                 setTimeout(() => {
                     this.runTournament();
                 }, 2000);
+            }
+        }
+    }
+
+    handleTournamentScoreUpdate(data) {
+        console.log('DEBUG: Received tournament score update:', data);
+        if (data.tournamentId === this.tournament.tournamentId) {
+            const participantIndex = this.tournament.participants.findIndex(p => p.id === data.participantId);
+            if (participantIndex !== -1) {
+                this.tournament.participants[participantIndex].score = data.score;
+                console.log('DEBUG: Updated score for', data.participantId, 'to', data.score);
             }
         }
     }

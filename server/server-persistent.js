@@ -1746,6 +1746,7 @@ io.on('connection', (socket) => {
       if (playerData) {
         user.characterData = {
           username: playerData.username || user.handle, // Store game username
+          display_name: playerData.display_name || user.handle, // Store game display name
           character_class: playerData.character_class || 'gunslinger',
           current_town: playerData.current_town || 'tumbleweed_junction'
         };
@@ -1824,8 +1825,8 @@ io.on('connection', (socket) => {
           tournamentId: tournamentId,
           participants: [{
             id: user.characterData?.username || user.handle, // Use game username if available
-            name: user.handle,
-            display_name: user.handle,
+            name: user.characterData?.display_name || user.handle, // Use game display name
+            display_name: user.characterData?.display_name || user.handle, // Use game display name
             score: 0,
             gold: 0
           }],
@@ -1890,8 +1891,8 @@ io.on('connection', (socket) => {
           if (!existingParticipant) {
             tournament.participants.push({
               id: gameUsername, // Use game username if available
-              name: user.handle,
-              display_name: user.handle,
+              name: user.characterData?.display_name || user.handle, // Use game display name
+              display_name: user.characterData?.display_name || user.handle, // Use game display name
               score: 0,
               gold: 0
             });
@@ -1924,6 +1925,26 @@ io.on('connection', (socket) => {
       }
       // Broadcast tournament end to all BBS users
       io.emit('tournament-end', data);
+    }
+  });
+
+  socket.on('tournament-score-update', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      console.log('DEBUG: Received tournament score update:', data);
+      
+      // Update server-side tournament state
+      const tournament = activeTournaments.get(data.tournamentId);
+      if (tournament) {
+        const participant = tournament.participants.find(p => p.id === data.participantId);
+        if (participant) {
+          participant.score = data.score;
+          console.log('DEBUG: Updated server-side score for', data.participantId, 'to', data.score);
+        }
+      }
+      
+      // Broadcast score update to all players
+      io.to('high-noon-hustle').emit('tournament-score-update', data);
+      console.log('DEBUG: Broadcasted score update to all players');
     }
   });
 
