@@ -4254,36 +4254,108 @@ class HighNoonHustle {
         this.tournament.active = false;
         this.tournament.phase = 'ended';
         
-        // Sort final results
-        const sorted = [...this.tournament.participants].sort((a, b) => b.score - a.score);
-        const winner = sorted[0];
+        // Calculate rewards based on final standings
+        const rewards = this.calculateTournamentRewards();
         
         this.terminal.clear();
-        this.terminal.println(ANSIParser.fg('bright-green') + '  ════════════════════════════════════════' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 TOURNAMENT RESULTS 🏆' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-green') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 TOURNAMENT COMPLETE! 🏆' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
         this.terminal.println('');
         
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Final Leaderboard:' + ANSIParser.reset());
-        sorted.forEach((participant, index) => {
-            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏃';
-            const isYou = participant.id === this.player.id ? ' (YOU)' : '';
-            this.terminal.println(ANSIParser.fg('bright-white') + `  ${medal} ${participant.name}${isYou}: ${participant.score.toFixed(1)}` + ANSIParser.reset());
-        });
+        // Show final leaderboard
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏆 FINAL RESULTS 🏆' + ANSIParser.reset());
+        this.terminal.println('');
+        this.showTournamentLeaderboard();
         this.terminal.println('');
         
-        if (winner.id === this.player.id) {
-            this.terminal.println(ANSIParser.fg('bright-green') + `  🎉 YOU WON THE TOURNAMENT!` + ANSIParser.reset());
-            this.gameState.gold += 200; // Tournament winner bonus
-            this.gameState.experience += 100;
-        } else {
-            this.terminal.println(ANSIParser.fg('bright-yellow') + `  🎯 ${winner.name} wins the tournament!` + ANSIParser.reset());
-            this.gameState.experience += 25; // Participation bonus
+        // Show rewards
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎁 TOURNAMENT REWARDS 🎁' + ANSIParser.reset());
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Your Final Score: ${rewards.finalScore}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Your Position: ${rewards.position}${rewards.position === 1 ? 'st' : rewards.position === 2 ? 'nd' : rewards.position === 3 ? 'rd' : 'th'}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + `  💰 Gold Earned: +${rewards.gold}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + `  ⭐ Experience: +${rewards.experience}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + `  🏆 Honor Score: +${rewards.honor}` + ANSIParser.reset());
+        
+        if (rewards.bonus) {
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎯 Bonus: ${rewards.bonus}` + ANSIParser.reset());
         }
         
-        await this.savePlayerData();
-        await this.terminal.sleep(3000);
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Press any key to return to the saloon...' + ANSIParser.reset());
+        
+        // Apply rewards to player
+        await this.applyTournamentRewards(rewards);
+        
+        // Wait for user input
+        await this.terminal.getInput();
+        
         await this.enterSaloon();
+    }
+
+    calculateTournamentRewards() {
+        // Sort participants by score to determine position
+        const sortedParticipants = [...this.tournament.participants].sort((a, b) => b.score - a.score);
+        const playerIndex = sortedParticipants.findIndex(p => p.id === this.player.username);
+        const position = playerIndex + 1;
+        const totalParticipants = sortedParticipants.length;
+        const finalScore = sortedParticipants[playerIndex].score;
+        
+        // Base rewards
+        let gold = Math.floor(finalScore / 10); // 1 gold per 10 points
+        let experience = Math.floor(finalScore / 5); // 1 XP per 5 points
+        let honor = Math.floor(finalScore / 20); // 1 honor per 20 points
+        
+        // Position bonuses
+        let bonus = '';
+        if (position === 1) {
+            gold += 100; // Winner bonus
+            experience += 50;
+            honor += 25;
+            bonus = '🏆 TOURNAMENT CHAMPION!';
+        } else if (position === 2) {
+            gold += 50; // Runner-up bonus
+            experience += 25;
+            honor += 15;
+            bonus = '🥈 Runner-up!';
+        } else if (position === 3) {
+            gold += 25; // Third place bonus
+            experience += 15;
+            honor += 10;
+            bonus = '🥉 Third place!';
+        }
+        
+        // Participation bonus
+        gold += 10; // Everyone gets participation gold
+        experience += 5;
+        honor += 2;
+        
+        return {
+            position,
+            finalScore,
+            gold,
+            experience,
+            honor,
+            bonus: bonus || null
+        };
+    }
+
+    async applyTournamentRewards(rewards) {
+        // Update player stats
+        this.gameState.gold += rewards.gold;
+        this.gameState.experience += rewards.experience;
+        this.gameState.honorScore += rewards.honor;
+        
+        // Save player data
+        try {
+            await this.savePlayerData();
+            console.log('DEBUG: Tournament rewards applied and saved:', rewards);
+        } catch (error) {
+            console.error('DEBUG: Error saving tournament rewards:', error);
+        }
     }
 
     async joinActiveTournament() {
@@ -4464,15 +4536,32 @@ class HighNoonHustle {
     async showTournamentRules() {
         this.terminal.clear();
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  📋 TOURNAMENT RULES 📋' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  📋 TOURNAMENT RULES & REWARDS 📋' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  ════════════════════════════════════════' + ANSIParser.reset());
         this.terminal.println('');
         
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Tournaments last 5 minutes' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Players have 60 seconds to join' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • Winner takes all the gold!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🎮 HOW TO PLAY:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Tournaments last 5 minutes (50 rounds)' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Players have 30 seconds to join' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • All players start simultaneously' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • 5 seconds per round (fair timing)' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-white') + '  • Real-time leaderboard updates' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  • All BBS users are notified' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🎁 REWARDS SYSTEM:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Base rewards: 1 gold per 10 points' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Experience: 1 XP per 5 points' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  • Honor: 1 honor per 20 points' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏆 POSITION BONUSES:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  🥇 1st Place: +100 gold, +50 XP, +25 honor' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  🥈 2nd Place: +50 gold, +25 XP, +15 honor' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  🥉 3rd Place: +25 gold, +15 XP, +10 honor' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  🏃 Participation: +10 gold, +5 XP, +2 honor' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  💡 TIP: Higher scores = better rewards!' + ANSIParser.reset());
         this.terminal.println('');
         
         await this.terminal.input(ANSIParser.fg('bright-yellow') + '  Press any key to continue...' + ANSIParser.reset());
