@@ -4130,16 +4130,35 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  🃏 Poker Round - 5 Card Draw!' + ANSIParser.reset());
         this.terminal.println('');
         
-        // Use tournament round number for deterministic seeding
+        // Use tournament round number for deterministic seeding - SAME SEED FOR ALL PLAYERS
         const roundNumber = this.tournament.currentRound || 1;
-        const baseSeed = this.tournament.tournamentId + roundNumber;
+        const sharedSeed = this.tournament.tournamentId + roundNumber;
         
-        // Deal hands for all participants
+        // Create a shared deck and deal cards in order to all participants
+        this.createPokerDeck();
+        const sharedDeck = [...this.pokerDeck];
+        
+        // Shuffle the deck with the shared seed
+        let currentSeed = sharedSeed;
+        for (let i = sharedDeck.length - 1; i > 0; i--) {
+            currentSeed = (currentSeed * 9301 + 49297) % 233280;
+            const j = Math.floor((currentSeed / 233280) * (i + 1));
+            [sharedDeck[i], sharedDeck[j]] = [sharedDeck[j], sharedDeck[i]];
+        }
+        
+        // Sort participants by ID to ensure consistent ordering across all clients
+        const sortedParticipants = [...this.tournament.participants].sort((a, b) => a.id.localeCompare(b.id));
+        
+        // Deal hands for all participants from the same shuffled deck
         const playerHands = [];
-        for (let i = 0; i < this.tournament.participants.length; i++) {
-            const participant = this.tournament.participants[i];
-            const participantSeed = baseSeed + i; // Each participant gets a different seed
-            const hand = this.dealPokerHandWithSeed(participantSeed);
+        let cardIndex = 0;
+        
+        for (let i = 0; i < sortedParticipants.length; i++) {
+            const participant = sortedParticipants[i];
+            // Deal 5 cards from the shared deck
+            const hand = sharedDeck.slice(cardIndex, cardIndex + 5);
+            cardIndex += 5;
+            
             const handValue = this.evaluatePokerHand(hand);
             const handName = this.pokerHands[handValue];
             const score = (handValue + 1) * 20; // 20-200 points based on hand strength
