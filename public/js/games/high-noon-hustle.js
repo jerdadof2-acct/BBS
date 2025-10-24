@@ -4260,16 +4260,103 @@ class HighNoonHustle {
                 this.terminal.println(ANSIParser.fg('bright-yellow') + '  Tournament is already active! Joining now...' + ANSIParser.reset());
                 await this.terminal.sleep(1000);
                 await this.runTournament();
-            } else if (this.tournament.phase === 'joining') {
-                // Tournament is still in joining phase, wait for it to start
-                this.terminal.println(ANSIParser.fg('bright-cyan') + '  Waiting for tournament to start...' + ANSIParser.reset());
-                await this.terminal.sleep(1000);
-                await this.tournamentMenu();
             } else {
-                // Fallback to tournament menu
-                await this.tournamentMenu();
+                // Enter waiting room instead of returning to menu
+                await this.tournamentWaitingRoom();
             }
         } else {
+            await this.tournamentMenu();
+        }
+    }
+
+    async tournamentWaitingRoom() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏆 TOURNAMENT WAITING ROOM 🏆' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Tournament: ${this.tournament.gameType.toUpperCase()}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Participants: ${this.tournament.participants.length}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Status: ${this.tournament.phase.toUpperCase()}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Show current participants
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Current Participants:' + ANSIParser.reset());
+        this.tournament.participants.forEach((participant, index) => {
+            const isYou = participant.id === this.player.username ? ' (YOU)' : '';
+            this.terminal.println(ANSIParser.fg('bright-white') + `    ${index + 1}. ${participant.name}${isYou}` + ANSIParser.reset());
+        });
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Waiting for tournament to start...' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+        
+        // Set up a flag to track if we should exit the waiting room
+        this.inWaitingRoom = true;
+        
+        // Start a countdown display
+        let countdownInterval;
+        const startCountdown = () => {
+            if (this.tournament.joinEndTime) {
+                const updateCountdown = () => {
+                    if (!this.inWaitingRoom) return;
+                    
+                    const now = Date.now();
+                    const timeLeft = Math.max(0, this.tournament.joinEndTime - now);
+                    const secondsLeft = Math.ceil(timeLeft / 1000);
+                    
+                    // Update the countdown line
+                    this.terminal.moveCursor(0, this.terminal.cursorY - 1);
+                    this.terminal.clearLine();
+                    this.terminal.println(ANSIParser.fg('bright-cyan') + `  Time remaining: ${secondsLeft} seconds` + ANSIParser.reset());
+                    this.terminal.println(ANSIParser.fg('bright-cyan') + '  ════════════════════════════════════════' + ANSIParser.reset());
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownInterval);
+                    }
+                };
+                
+                updateCountdown();
+                countdownInterval = setInterval(updateCountdown, 1000);
+            }
+        };
+        
+        startCountdown();
+        
+        // Wait for tournament to start or user to press a key
+        const waitForStart = async () => {
+            return new Promise((resolve) => {
+                const checkTournament = () => {
+                    if (!this.inWaitingRoom) {
+                        resolve();
+                        return;
+                    }
+                    
+                    if (this.tournament.active && this.tournament.phase === 'active') {
+                        clearInterval(countdownInterval);
+                        this.inWaitingRoom = false;
+                        resolve();
+                        return;
+                    }
+                    
+                    setTimeout(checkTournament, 100);
+                };
+                checkTournament();
+            });
+        };
+        
+        await waitForStart();
+        
+        if (this.tournament.active && this.tournament.phase === 'active') {
+            this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 Tournament is starting! Joining now...' + ANSIParser.reset());
+            await this.terminal.sleep(2000);
+            await this.runTournament();
+        } else {
+            // Tournament was cancelled or something went wrong
+            this.terminal.println(ANSIParser.fg('bright-red') + '  Tournament was cancelled or ended.' + ANSIParser.reset());
+            await this.terminal.sleep(2000);
             await this.tournamentMenu();
         }
     }
@@ -4358,6 +4445,13 @@ class HighNoonHustle {
             console.log('DEBUG: Is participant:', isParticipant);
             
             if (wasInJoiningPhase && isNowActive && isParticipant) {
+                // If we're in the waiting room, the waiting room will handle the transition
+                if (this.inWaitingRoom) {
+                    console.log('DEBUG: In waiting room, letting waiting room handle transition');
+                    return;
+                }
+                
+                // If not in waiting room, handle the transition directly
                 this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 Tournament is starting! Joining now...' + ANSIParser.reset());
                 setTimeout(() => {
                     this.runTournament();
@@ -4376,6 +4470,14 @@ class HighNoonHustle {
             if (isParticipant) {
                 this.tournament.phase = 'active';
                 this.tournament.active = true;
+                
+                // If we're in the waiting room, the waiting room will handle the transition
+                if (this.inWaitingRoom) {
+                    console.log('DEBUG: In waiting room, letting waiting room handle transition');
+                    return;
+                }
+                
+                // If not in waiting room, handle the transition directly
                 this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 Tournament is starting! Joining now...' + ANSIParser.reset());
                 setTimeout(() => {
                     this.runTournament();
