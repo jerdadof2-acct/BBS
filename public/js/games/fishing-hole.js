@@ -1589,6 +1589,10 @@ class FishingHole {
                 console.log('Raw response from server:', JSON.stringify(data, null, 2));
                 if (data.player) {
                     this.player = data.player;
+                    
+                    // Set game username (use BBS handle for now, but could be customized)
+                    this.player.gameUsername = this.player.name;
+                    
                     console.log('Data location exists:', !!data.player.location);
                     console.log('Data location value:', data.player.location);
                     // Set location from saved data
@@ -1969,7 +1973,7 @@ class FishingHole {
             // Broadcast tournament start to all BBS users
             if (this.socketClient && this.socketClient.socket) {
                 this.socketClient.socket.emit('fishing-tournament-start', {
-                    host: this.player.name,
+                    host: this.player.gameUsername,
                     duration: this.tournament.duration / (60 * 1000), // Convert to minutes
                     durationText: durationText,
                     tournamentId: this.tournament.tournamentId,
@@ -2010,7 +2014,7 @@ class FishingHole {
             this.terminal.println('');
             
             this.terminal.println(ANSIParser.fg('bright-white') + `  Tournament ID: ${this.tournament.tournamentId}` + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-white') + `  Host: ${this.player.name}` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + `  Host: ${this.player.gameUsername}` + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-white') + `  Duration: ${this.tournament.duration / (60 * 1000)} minutes` + ANSIParser.reset());
             this.terminal.println(ANSIParser.fg('bright-white') + `  Participants: ${this.tournament.participants.length}` + ANSIParser.reset());
             this.terminal.println('');
@@ -2237,7 +2241,7 @@ class FishingHole {
         if (!this.tournament.participants || this.tournament.participants.length === 0) {
             console.log('runTournament - creating new participants array'); // Debug log
             this.tournament.participants = [{
-                name: this.player.name,
+                name: this.player.gameUsername,
                 totalWeight: 0,
                 fishCount: 0,
                 biggestCatch: 0
@@ -2245,10 +2249,10 @@ class FishingHole {
         } else {
             console.log('runTournament - using existing participants, adding player if needed'); // Debug log
             // For joining existing tournaments, add this player if not already present
-            const existingPlayer = this.tournament.participants.find(p => p.name === this.player.name);
+            const existingPlayer = this.tournament.participants.find(p => p.name === this.player.gameUsername);
             if (!existingPlayer) {
                 this.tournament.participants.push({
-                    name: this.player.name,
+                    name: this.player.gameUsername,
                     totalWeight: 0,
                     fishCount: 0,
                     biggestCatch: 0
@@ -2268,7 +2272,7 @@ class FishingHole {
             // Request current tournament state
             this.socketClient.socket.emit('fishing-tournament-sync', {
                 tournamentId: this.tournament.tournamentId,
-                player: this.player.name
+                player: this.player.gameUsername
             });
         }
         
@@ -2387,7 +2391,7 @@ class FishingHole {
             }
             
             // Highlight current player
-            const isCurrentPlayer = player.name === this.player.name;
+            const isCurrentPlayer = player.name === this.player.gameUsername;
             const playerColor = isCurrentPlayer ? ANSIParser.fg('bright-green') : color;
             
             this.terminal.println(playerColor + `  ${positionIcon} ${position}. ${player.name}: ${player.totalWeight.toFixed(2)} lbs (${player.fishCount} fish)` + ANSIParser.reset());
@@ -2438,18 +2442,21 @@ class FishingHole {
     }
 
     handleTournamentJoin(data) {
+        // Convert BBS handle to game username (for now, use the same name)
+        const gameUsername = data.player;
+        
         // Add new participant if they don't exist
-        const existingParticipant = this.tournament.participants.find(p => p.name === data.player);
+        const existingParticipant = this.tournament.participants.find(p => p.name === gameUsername);
         if (!existingParticipant) {
             this.tournament.participants.push({
-                name: data.player,
+                name: gameUsername,
                 totalWeight: 0,
                 fishCount: 0,
                 biggestCatch: 0
             });
-            console.log('Added tournament participant:', data.player);
+            console.log('Added tournament participant:', gameUsername);
         } else {
-            console.log('Participant already exists:', data.player);
+            console.log('Participant already exists:', gameUsername);
         }
         
         // Update leaderboard
@@ -2471,7 +2478,7 @@ class FishingHole {
 
     handleTournamentUpdate(data) {
         // Don't process updates from ourselves
-        if (data.player === this.player.name) {
+        if (data.player === this.player.gameUsername) {
             return;
         }
         
@@ -2511,7 +2518,7 @@ class FishingHole {
 
     handleTournamentEnd(data) {
         // Don't process if we're the one who ended the tournament
-        if (data.host === this.player.name) {
+        if (data.host === this.player.gameUsername) {
             return;
         }
         
@@ -2532,7 +2539,7 @@ class FishingHole {
             else if (index === 1) color = ANSIParser.fg('bright-cyan');
             else if (index === 2) color = ANSIParser.fg('bright-green');
             
-            const isYou = result.player === this.player.name ? ' (YOU)' : '';
+            const isYou = result.player === this.player.gameUsername ? ' (YOU)' : '';
             this.terminal.println(color + `  ${result.position}. ${result.player}${isYou}: ${result.weight.toFixed(2)} lbs (${result.fishCount} fish)` + ANSIParser.reset());
         });
         
@@ -2595,7 +2602,7 @@ class FishingHole {
         this.tournament.stats.tournamentsPlayed++;
         
         // Safely access participant data - find current player's data
-        const currentPlayerParticipant = this.tournament.participants.find(p => p.name === this.player.name);
+        const currentPlayerParticipant = this.tournament.participants.find(p => p.name === this.player.gameUsername);
         if (currentPlayerParticipant) {
             console.log('End tournament - participant data:', currentPlayerParticipant); // Debug log
             this.tournament.stats.totalTournamentWeight += currentPlayerParticipant.totalWeight || 0;
@@ -2621,7 +2628,7 @@ class FishingHole {
         }));
         
         // Check if player won
-        if (results[0] && results[0].player === this.player.name) {
+        if (results[0] && results[0].player === this.player.gameUsername) {
             this.tournament.stats.tournamentsWon++;
         }
         
@@ -2711,14 +2718,14 @@ class FishingHole {
             // Only broadcast massive fish catches (50+ lbs) during tournaments
             let message = '';
             if (fish.weight >= 50) {
-                message = `🔥 ${this.player.name} caught a MASSIVE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
+                message = `🔥 ${this.player.gameUsername} caught a MASSIVE ${fish.name} (${fish.weight.toFixed(2)} lbs)!`;
                 this.tournament.tournamentMessages.push(message);
                 
                 // Also broadcast to other players in the fishing game
                 if (this.socketClient && this.socketClient.socket) {
                     const fishData = {
                         userId: this.authManager.getCurrentUser().id,
-                        handle: this.player.name,
+                        handle: this.player.gameUsername,
                         fishName: fish.name,
                         weight: fish.weight,
                         location: this.location.name,
@@ -2736,7 +2743,7 @@ class FishingHole {
             if (this.socketClient && this.socketClient.socket && participant) {
                 this.socketClient.socket.emit('fishing-tournament-update', {
                     tournamentId: this.tournament.tournamentId,
-                    player: this.player.name,
+                    player: this.player.gameUsername,
                     totalWeight: participant.totalWeight,
                     fishCount: participant.fishCount,
                     biggestCatch: participant.biggestCatch,
@@ -2801,7 +2808,7 @@ class FishingHole {
             return 1;
         }
         
-        const playerIndex = this.tournament.leaderboard.findIndex(p => p.name === this.player.name);
+        const playerIndex = this.tournament.leaderboard.findIndex(p => p.name === this.player.gameUsername);
         return playerIndex >= 0 ? playerIndex + 1 : this.tournament.leaderboard.length + 1;
     }
 
