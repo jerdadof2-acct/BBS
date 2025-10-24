@@ -4307,7 +4307,7 @@ class HighNoonHustle {
         await this.applyTournamentRewards(rewards);
         
         // Wait for user input
-        await this.terminal.getInput();
+        await this.terminal.input();
         
         await this.enterSaloon();
     }
