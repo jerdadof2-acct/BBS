@@ -1835,6 +1835,24 @@ io.on('connection', (socket) => {
           active: false
         });
         console.log('DEBUG: Stored tournament state:', activeTournaments.get(tournamentId));
+        
+        // Schedule tournament to start after joining period
+        setTimeout(() => {
+          const tournament = activeTournaments.get(tournamentId);
+          if (tournament && tournament.phase === 'joining') {
+            tournament.phase = 'active';
+            tournament.active = true;
+            tournament.startTime = Date.now();
+            console.log('DEBUG: Tournament starting automatically:', tournament);
+            
+            // Broadcast tournament start to all players
+            io.emit('tournament-state', {
+              game: 'high-noon-hustle',
+              tournaments: [tournament]
+            });
+            console.log('DEBUG: Broadcasted tournament start to all players');
+          }
+        }, data.joinPeriod * 1000);
       }
       
       console.log('DEBUG: Broadcasting to all BBS users...');

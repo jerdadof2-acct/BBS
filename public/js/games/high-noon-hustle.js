@@ -4328,6 +4328,10 @@ class HighNoonHustle {
             const wasInJoiningPhase = this.tournament.phase === 'joining';
             const isNowActive = serverTournament.phase === 'active';
             
+            console.log('DEBUG: Tournament phase change - wasInJoiningPhase:', wasInJoiningPhase, 'isNowActive:', isNowActive);
+            console.log('DEBUG: Current player username:', this.player.username);
+            console.log('DEBUG: Tournament participants:', serverTournament.participants);
+            
             this.tournament = {
                 ...this.tournament,
                 ...serverTournament,
@@ -4336,7 +4340,10 @@ class HighNoonHustle {
             console.log('DEBUG: Updated tournament state from server:', this.tournament);
             
             // If tournament just started and we're a participant, join it
-            if (wasInJoiningPhase && isNowActive && this.tournament.participants.some(p => p.id === this.player.username)) {
+            const isParticipant = this.tournament.participants.some(p => p.id === this.player.username);
+            console.log('DEBUG: Is participant:', isParticipant);
+            
+            if (wasInJoiningPhase && isNowActive && isParticipant) {
                 this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 Tournament is starting! Joining now...' + ANSIParser.reset());
                 setTimeout(() => {
                     this.runTournament();
