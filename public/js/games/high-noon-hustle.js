@@ -200,6 +200,7 @@ class HighNoonHustle {
         
         while (true) {
             console.log('DEBUG: Main play() loop iteration starting...');
+            console.log('DEBUG: About to clear terminal and show main menu...');
             this.terminal.clear();
             await this.showMainMenu();
             
@@ -485,6 +486,7 @@ class HighNoonHustle {
             console.log('DEBUG: Updated locations, calling updatePlayerStatus...');
             await this.updatePlayerStatus();
             console.log('DEBUG: updatePlayerStatus completed, returning from enterSaloon...');
+            console.log('DEBUG: About to return from enterSaloon()...');
             return; // Return to main play() loop
         } else {
             console.log('DEBUG: Invalid choice in saloon:', choice);
