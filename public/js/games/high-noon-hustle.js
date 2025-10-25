@@ -6231,10 +6231,13 @@ class HighNoonHustle {
                         // Use a more reliable refresh approach
                         setTimeout(async () => {
                             console.log('DEBUG: Timeout fired - currentLocation:', this.currentLocation);
-                            if (this.currentLocation === 'saloon') {
-                            console.log('DEBUG: Refreshing saloon display...');
-                            this.terminal.clear();
-                            await this.enterSaloon();
+                            // Double-check we're still in saloon before refreshing
+                            if (this.currentLocation === 'saloon' && this.gameState.currentLocation === 'saloon') {
+                                console.log('DEBUG: Refreshing saloon display...');
+                                this.terminal.clear();
+                                await this.enterSaloon();
+                            } else {
+                                console.log('DEBUG: No longer in saloon, skipping refresh');
                             }
                         }, 1000);
                     } else {
