@@ -6341,6 +6341,11 @@ class HighNoonHustle {
         // Join the high-noon-hustle room with player data
         console.log('DEBUG: Emitting join-game-room for high-noon-hustle');
         if (this.player) {
+            // Reset currentLocation to main_menu when joining game room
+            // Players should only appear in saloon when they actually enter it
+            this.gameState.currentLocation = 'main_menu';
+            this.currentLocation = 'main_menu';
+            
             const playerData = {
                 game: 'high-noon-hustle',
                 player: {
@@ -6350,7 +6355,7 @@ class HighNoonHustle {
                     display_name: this.player.display_name,
                     character_class: this.player.character_class,
                     current_town: this.currentTown,
-                    current_location: this.gameState.currentLocation || 'main_menu'
+                    current_location: 'main_menu' // Always start in main_menu when joining
                 }
             };
             console.log('DEBUG: Sending player data:', playerData);
