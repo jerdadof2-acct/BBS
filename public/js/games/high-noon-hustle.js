@@ -510,8 +510,15 @@ class HighNoonHustle {
             
             console.log('DEBUG: Updated locations, calling updatePlayerStatus...');
             await this.updatePlayerStatus();
-            console.log('DEBUG: updatePlayerStatus completed, returning from saloon...');
-            console.log('DEBUG: About to return from enterSaloon() function...');
+            console.log('DEBUG: updatePlayerStatus completed, showing exit message...');
+            
+            // Show exit message and wait for user to press any key
+            this.terminal.clear();
+            this.terminal.println(ANSIParser.fg('bright-green') + '  👋 You left the saloon!' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to return to the main menu...' + ANSIParser.reset());
+            await this.terminal.input();
+            
+            console.log('DEBUG: User pressed key, returning to main menu...');
             return; // Return to main play() loop
         } else {
             console.log('DEBUG: Invalid choice in saloon:', choice);
