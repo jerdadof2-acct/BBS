@@ -59,6 +59,7 @@ class HighNoonHustle {
         this.onlinePlayers = [];
         this.activeEvents = [];
         this.miniGames = [];
+        this.saloonNeedsRefresh = false;
         
         // Tournament system for true multiplayer
         this.tournament = {
@@ -389,6 +390,12 @@ class HighNoonHustle {
         
         // Main saloon loop - simple and clean
         while (true) {
+            // Check if we need to refresh due to player changes
+            if (this.saloonNeedsRefresh) {
+                this.saloonNeedsRefresh = false;
+                // Continue to refresh the display
+            }
+            
             // Display saloon
             this.terminal.clear();
             this.terminal.println(ANSIParser.fg('bright-yellow') + `  ╔════ ${this.towns[this.currentTown].saloon} (Telegraph Line) ════╗` + ANSIParser.reset());
@@ -442,6 +449,11 @@ class HighNoonHustle {
             this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
             
             const choice = (await this.terminal.input()).toLowerCase().trim();
+            
+            // Handle empty input
+            if (!choice) {
+                continue; // Just refresh the display
+            }
             
             if (choice === '1') {
                 await this.sendTelegraphMessage();
@@ -6197,13 +6209,14 @@ class HighNoonHustle {
                         console.log('DEBUG: Updated onlinePlayers:', this.onlinePlayers);
                     }
                     
-                    // Don't auto-refresh saloon - let user manually refresh if needed
-                    console.log('DEBUG: Player joined - currentLocation:', this.currentLocation);
-                    if (this.currentLocation === 'saloon') {
-                        console.log('DEBUG: Player in saloon, but not auto-refreshing');
-                    } else {
-                        console.log('DEBUG: Player not in saloon, no refresh needed');
-                    }
+        // Auto-refresh saloon if player is in saloon
+        console.log('DEBUG: Player joined - currentLocation:', this.currentLocation);
+        if (this.currentLocation === 'saloon') {
+            console.log('DEBUG: Player in saloon, setting refresh flag...');
+            this.saloonNeedsRefresh = true;
+        } else {
+            console.log('DEBUG: Player not in saloon, no refresh needed');
+        }
                 }
             });
 
@@ -6212,14 +6225,10 @@ class HighNoonHustle {
                     this.onlinePlayers = this.onlinePlayers.filter(p => p.id !== data.player.id);
                     this.terminal.println(ANSIParser.fg('bright-yellow') + `  👋 ${data.player.name} rode off into the sunset` + ANSIParser.reset());
                     
-                    // Automatically refresh the saloon display if we're currently in the saloon
+                    // Auto-refresh saloon if player is in saloon
                     if (this.currentLocation === 'saloon') {
-                        setTimeout(() => {
-                            if (this.currentLocation === 'saloon') {
-                                this.terminal.clear();
-                                this.enterSaloon();
-                            }
-                        }, 1000);
+                        console.log('DEBUG: Player left, setting refresh flag...');
+                        this.saloonNeedsRefresh = true;
                     }
                 }
             });
