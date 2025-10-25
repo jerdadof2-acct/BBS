@@ -382,12 +382,6 @@ class HighNoonHustle {
     }
 
     async enterSaloon() {
-        // Prevent recursive calls only when waiting for user input
-        if (this.waitingForSaloonInput) {
-            console.log('DEBUG: enterSaloon() waiting for input, skipping...');
-            return;
-        }
-        
         console.log('DEBUG: enterSaloon() called');
         console.log('DEBUG: enterSaloon() - onlinePlayers length:', this.onlinePlayers.length);
         console.log('DEBUG: enterSaloon() - onlinePlayers:', this.onlinePlayers);
@@ -457,8 +451,6 @@ class HighNoonHustle {
         
         this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
         
-        // Set flag to prevent recursive calls while waiting for input
-        this.waitingForSaloonInput = true;
         const choice = (await this.terminal.input()).toLowerCase().trim();
         console.log('DEBUG: Saloon choice received:', choice, 'type:', typeof choice);
         
@@ -495,7 +487,6 @@ class HighNoonHustle {
             await this.updatePlayerStatus();
             console.log('DEBUG: updatePlayerStatus completed, returning from enterSaloon...');
             console.log('DEBUG: About to return from enterSaloon()...');
-            this.waitingForSaloonInput = false; // Reset flag before returning
             return; // Return to main play() loop
         } else {
             console.log('DEBUG: Invalid choice in saloon:', choice);
@@ -503,9 +494,6 @@ class HighNoonHustle {
             await this.terminal.sleep(1000);
             await this.enterSaloon(); // Return to saloon instead of exiting
         }
-        
-        // Reset the flag at the very end of the function
-        this.waitingForSaloonInput = false;
     }
 
     async showPlayerStats() {
