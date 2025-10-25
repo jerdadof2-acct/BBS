@@ -182,12 +182,14 @@ class HighNoonHustle {
         // Initialize database connection
         await this.initializeDatabase();
         
-        // Try to load existing player data first
+        // Try to load existing player data first using BBS username
         await this.loadPlayerData();
         
         // Check if player needs character creation
         if (!this.player) {
             await this.createCharacter();
+            // After character creation, try to load again with the character username
+            await this.loadPlayerData();
         }
         
         // Set up socket listeners now that player data is loaded
@@ -5713,7 +5715,7 @@ class HighNoonHustle {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        username: this.authManager?.getCurrentUser()?.username || 'guest'
+                        username: this.player?.username || this.authManager?.getCurrentUser()?.username || 'guest'
                     })
                 });
                 
@@ -5763,7 +5765,8 @@ class HighNoonHustle {
             } else {
                 // Development: Load from localStorage
                 console.log('Using localStorage fallback'); // Debug
-                const savedData = localStorage.getItem('highNoonHustle_player');
+                const characterUsername = this.player?.username || this.authManager?.getCurrentUser()?.username || 'guest';
+                const savedData = localStorage.getItem(`highNoonHustle_player_${characterUsername}`);
                 console.log('Loading from localStorage:', savedData); // Debug
                 if (savedData) {
                     const data = JSON.parse(savedData);
@@ -5859,7 +5862,7 @@ class HighNoonHustle {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        username: this.authManager?.getCurrentUser()?.username || 'guest',
+                        username: this.player?.username || this.authManager?.getCurrentUser()?.username || 'guest',
                         ...dataToSave
                     })
                 });
@@ -5868,13 +5871,15 @@ class HighNoonHustle {
                     this.terminal.println(ANSIParser.fg('bright-green') + '  💾 Progress saved to PostgreSQL frontier database!' + ANSIParser.reset());
                     
                     // Also save to localStorage as backup
-                    localStorage.setItem('highNoonHustle_player', JSON.stringify(dataToSave));
+                    const characterUsername = this.player?.username || this.authManager?.getCurrentUser()?.username || 'guest';
+                    localStorage.setItem(`highNoonHustle_player_${characterUsername}`, JSON.stringify(dataToSave));
                 } else {
                     throw new Error('Failed to save to PostgreSQL');
                 }
             } else {
                 // Development: Save to localStorage
-                localStorage.setItem('highNoonHustle_player', JSON.stringify(dataToSave));
+                const characterUsername = this.player?.username || this.authManager?.getCurrentUser()?.username || 'guest';
+                localStorage.setItem(`highNoonHustle_player_${characterUsername}`, JSON.stringify(dataToSave));
                 console.log('Saving to localStorage:', dataToSave); // Debug
                 this.terminal.println(ANSIParser.fg('bright-green') + '  💾 Progress saved to local frontier records!' + ANSIParser.reset());
             }
@@ -5911,7 +5916,8 @@ class HighNoonHustle {
             }
             
             // Check if we have local data to sync
-            const localData = localStorage.getItem('highNoonHustle_player');
+            const characterUsername = this.player?.username || this.authManager?.getCurrentUser()?.username || 'guest';
+            const localData = localStorage.getItem(`highNoonHustle_player_${characterUsername}`);
             if (!localData) return;
             
             const data = JSON.parse(localData);
@@ -5923,7 +5929,7 @@ class HighNoonHustle {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    username: this.authManager?.getCurrentUser()?.username || 'guest',
+                    username: this.player?.username || this.authManager?.getCurrentUser()?.username || 'guest',
                     ...data
                 })
             });
