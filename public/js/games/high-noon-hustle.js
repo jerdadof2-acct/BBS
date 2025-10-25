@@ -382,6 +382,13 @@ class HighNoonHustle {
     }
 
     async enterSaloon() {
+        // Prevent recursive calls
+        if (this.enteringSaloon) {
+            console.log('DEBUG: enterSaloon() already in progress, skipping...');
+            return;
+        }
+        this.enteringSaloon = true;
+        
         console.log('DEBUG: enterSaloon() called');
         console.log('DEBUG: enterSaloon() - onlinePlayers length:', this.onlinePlayers.length);
         console.log('DEBUG: enterSaloon() - onlinePlayers:', this.onlinePlayers);
@@ -454,6 +461,9 @@ class HighNoonHustle {
         const choice = (await this.terminal.input()).toLowerCase().trim();
         console.log('DEBUG: Saloon choice received:', choice, 'type:', typeof choice);
         
+        // Reset the flag after getting user input
+        this.enteringSaloon = false;
+        
         if (choice === '1') {
             await this.sendTelegraphMessage();
         } else if (choice === '2') {
@@ -487,6 +497,7 @@ class HighNoonHustle {
             await this.updatePlayerStatus();
             console.log('DEBUG: updatePlayerStatus completed, returning from enterSaloon...');
             console.log('DEBUG: About to return from enterSaloon()...');
+            this.enteringSaloon = false; // Reset flag before returning
             return; // Return to main play() loop
         } else {
             console.log('DEBUG: Invalid choice in saloon:', choice);
