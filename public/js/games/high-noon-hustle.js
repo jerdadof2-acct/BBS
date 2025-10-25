@@ -199,10 +199,13 @@ class HighNoonHustle {
         this.joinGameRoom();
         
         while (true) {
+            console.log('DEBUG: Main play() loop iteration starting...');
             this.terminal.clear();
             await this.showMainMenu();
             
+            console.log('DEBUG: About to wait for user input...');
             const choice = (await this.terminal.input()).toLowerCase().trim();
+            console.log('DEBUG: User input received:', choice);
             
             if (choice === '1') {
                 this.gameState.currentLocation = 'solo_adventures';
@@ -475,9 +478,12 @@ class HighNoonHustle {
             await this.enterSaloon(); // Refresh the saloon display
         } else if (choice === 'b' || choice === 'back') {
             // Update status when leaving saloon
+            console.log('DEBUG: User pressed b, leaving saloon...');
             this.gameState.currentLocation = 'main_menu';
             this.currentLocation = 'main_menu';
+            console.log('DEBUG: Updated locations, calling updatePlayerStatus...');
             await this.updatePlayerStatus();
+            console.log('DEBUG: updatePlayerStatus completed, returning from enterSaloon...');
             return; // Return to main play() loop
         } else {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
