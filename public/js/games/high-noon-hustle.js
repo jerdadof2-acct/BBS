@@ -237,10 +237,6 @@ class HighNoonHustle {
                 await this.characterManagement();
             } else if (choice.toLowerCase() === 's' || choice === 'saloon') {
                 await this.enterSaloon();
-                console.log('DEBUG: Returned from enterSaloon(), continuing main loop...');
-                console.log('DEBUG: About to start new main loop iteration...');
-                // Don't wait for input - just continue the loop to show main menu again
-                continue;
             } else if (choice === 'q' || choice === 'quit') {
                 await this.savePlayerData();
                 return 'doors';
@@ -498,30 +494,11 @@ class HighNoonHustle {
             console.log('DEBUG: Refreshing saloon display...');
             return await this.enterSaloon();
         } else if (choice === 'b' || choice === 'B' || choice === 'back' || choice === 'Back') {
-            // Update status when leaving saloon
-            console.log('DEBUG: User pressed b/B/back, leaving saloon...');
+            // Simple exit - just update status and return
             this.gameState.currentLocation = 'main_menu';
             this.currentLocation = 'main_menu';
-            
-            // Cancel any pending saloon refresh timeout
-            if (this.saloonRefreshTimeout) {
-                clearTimeout(this.saloonRefreshTimeout);
-                this.saloonRefreshTimeout = null;
-                console.log('DEBUG: Cancelled pending saloon refresh timeout');
-            }
-            
-            console.log('DEBUG: Updated locations, calling updatePlayerStatus...');
             await this.updatePlayerStatus();
-            console.log('DEBUG: updatePlayerStatus completed, showing exit message...');
-            
-            // Show exit message and wait for user to press any key
-            this.terminal.clear();
-            this.terminal.println(ANSIParser.fg('bright-green') + '  👋 You left the saloon!' + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Press any key to return to the main menu...' + ANSIParser.reset());
-            await this.terminal.input();
-            
-            console.log('DEBUG: User pressed key, returning to main menu...');
-            return; // Return to main play() loop
+            return;
         } else {
             console.log('DEBUG: Invalid choice in saloon:', choice);
             this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
