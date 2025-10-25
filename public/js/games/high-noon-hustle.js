@@ -390,6 +390,9 @@ class HighNoonHustle {
         this.currentLocation = 'saloon'; // Make sure both are set
         await this.updatePlayerStatus();
         
+        // Reset the exit flag
+        this.shouldExitSaloon = false;
+        
         // Show saloon welcome
         this.terminal.clear();
         this.terminal.println(ANSIParser.fg('bright-yellow') + `  ╔════ ${this.towns[this.currentTown].saloon} (Telegraph Line) ════╗` + ANSIParser.reset());
@@ -486,14 +489,20 @@ class HighNoonHustle {
             this.currentLocation = 'main_menu';
             console.log('DEBUG: Updated locations, calling updatePlayerStatus...');
             await this.updatePlayerStatus();
-            console.log('DEBUG: updatePlayerStatus completed, returning from enterSaloon...');
-            console.log('DEBUG: About to return from enterSaloon()...');
+            console.log('DEBUG: updatePlayerStatus completed, setting exit flag...');
+            this.shouldExitSaloon = true;
             return; // Return to main play() loop
         } else {
             console.log('DEBUG: Invalid choice in saloon:', choice);
             this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
             await this.terminal.sleep(1000);
             await this.enterSaloon(); // Return to saloon instead of exiting
+        }
+        
+        // Check if we should exit the saloon
+        if (this.shouldExitSaloon) {
+            console.log('DEBUG: Exit flag set, returning from enterSaloon...');
+            return;
         }
     }
 
