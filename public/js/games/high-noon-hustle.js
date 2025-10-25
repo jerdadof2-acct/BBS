@@ -451,6 +451,7 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
         
         const choice = (await this.terminal.input()).toLowerCase().trim();
+        console.log('DEBUG: Saloon choice received:', choice, 'type:', typeof choice);
         
         if (choice === '1') {
             await this.sendTelegraphMessage();
@@ -476,9 +477,9 @@ class HighNoonHustle {
             await this.showPlayerStats();
         } else if (choice === 'r' || choice === 'refresh') {
             await this.enterSaloon(); // Refresh the saloon display
-        } else if (choice === 'b' || choice === 'back') {
+        } else if (choice === 'b' || choice === 'B' || choice === 'back' || choice === 'Back') {
             // Update status when leaving saloon
-            console.log('DEBUG: User pressed b, leaving saloon...');
+            console.log('DEBUG: User pressed b/B/back, leaving saloon...');
             this.gameState.currentLocation = 'main_menu';
             this.currentLocation = 'main_menu';
             console.log('DEBUG: Updated locations, calling updatePlayerStatus...');
@@ -486,6 +487,7 @@ class HighNoonHustle {
             console.log('DEBUG: updatePlayerStatus completed, returning from enterSaloon...');
             return; // Return to main play() loop
         } else {
+            console.log('DEBUG: Invalid choice in saloon:', choice);
             this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
             await this.terminal.sleep(1000);
             await this.enterSaloon(); // Return to saloon instead of exiting
