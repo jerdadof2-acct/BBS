@@ -238,6 +238,7 @@ class HighNoonHustle {
             } else if (choice.toLowerCase() === 's' || choice === 'saloon') {
                 await this.enterSaloon();
                 console.log('DEBUG: Returned from enterSaloon(), continuing main loop...');
+                console.log('DEBUG: About to start new main loop iteration...');
             } else if (choice === 'q' || choice === 'quit') {
                 await this.savePlayerData();
                 return 'doors';
