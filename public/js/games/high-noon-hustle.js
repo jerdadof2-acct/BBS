@@ -20,7 +20,7 @@ class HighNoonHustle {
             level: 1,
             honorScore: 0,
             currentActivity: null,
-            currentLocation: 'saloon',
+            currentLocation: 'main_menu',
             equipment: {
                 weapon: 'rusty_colt',
                 horse: 'old_paint',
