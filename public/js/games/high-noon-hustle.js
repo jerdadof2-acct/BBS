@@ -388,14 +388,10 @@ class HighNoonHustle {
         this.currentLocation = 'saloon';
         await this.updatePlayerStatus();
         
+        // No interval needed - we'll check the flag in the loop
+        
         // Main saloon loop - simple and clean
         while (true) {
-            // Check if we need to refresh due to player changes
-            if (this.saloonNeedsRefresh) {
-                this.saloonNeedsRefresh = false;
-                // Continue to refresh the display
-            }
-            
             // Display saloon
             this.terminal.clear();
             this.terminal.println(ANSIParser.fg('bright-yellow') + `  ╔════ ${this.towns[this.currentTown].saloon} (Telegraph Line) ════╗` + ANSIParser.reset());
@@ -448,6 +444,8 @@ class HighNoonHustle {
             
             this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
             
+            // No refresh flag check needed - using direct refresh
+            
             const choice = (await this.terminal.input()).toLowerCase().trim();
             
             // Handle empty input
@@ -485,6 +483,9 @@ class HighNoonHustle {
                 this.gameState.currentLocation = 'main_menu';
                 this.currentLocation = 'main_menu';
                 await this.updatePlayerStatus();
+                
+                // No cleanup needed
+                
                 break; // Exit the while loop
             } else {
                 this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
@@ -6212,8 +6213,15 @@ class HighNoonHustle {
         // Auto-refresh saloon if player is in saloon
         console.log('DEBUG: Player joined - currentLocation:', this.currentLocation);
         if (this.currentLocation === 'saloon') {
-            console.log('DEBUG: Player in saloon, setting refresh flag...');
-            this.saloonNeedsRefresh = true;
+            console.log('DEBUG: Player in saloon, triggering immediate refresh...');
+            // Trigger immediate refresh by calling enterSaloon again
+            // This will refresh the display immediately
+            setTimeout(() => {
+                if (this.currentLocation === 'saloon') {
+                    this.terminal.clear();
+                    this.enterSaloon();
+                }
+            }, 100);
         } else {
             console.log('DEBUG: Player not in saloon, no refresh needed');
         }
@@ -6227,8 +6235,14 @@ class HighNoonHustle {
                     
                     // Auto-refresh saloon if player is in saloon
                     if (this.currentLocation === 'saloon') {
-                        console.log('DEBUG: Player left, setting refresh flag...');
-                        this.saloonNeedsRefresh = true;
+                        console.log('DEBUG: Player left, triggering immediate refresh...');
+                        // Trigger immediate refresh by calling enterSaloon again
+                        setTimeout(() => {
+                            if (this.currentLocation === 'saloon') {
+                                this.terminal.clear();
+                                this.enterSaloon();
+                            }
+                        }, 100);
                     }
                 }
             });
