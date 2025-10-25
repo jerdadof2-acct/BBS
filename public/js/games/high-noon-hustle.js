@@ -3313,14 +3313,14 @@ class HighNoonHustle {
         
         this.terminal.println(ANSIParser.fg('bright-cyan') + '  📊 Adventure Summary:' + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-green') + `  💰 Gold Found: ${adventure.goldFound}` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-yellow') + `  ⭐ Experience Gained: ${adventure.experienceGained}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + `  ⭐ Experience Gained: ${adventure.experienceGained} (added to your total XP)` + ANSIParser.reset());
         
         if (adventure.itemsFound.length > 0) {
             this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎁 Items Found: ${adventure.itemsFound.join(', ')}` + ANSIParser.reset());
         }
         
         this.terminal.println(ANSIParser.fg('bright-white') + `  ❤️  Health Remaining: ${adventure.health}/100` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-blue') + `  ⚖️  Honor Score: ${this.gameState.honorScore}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-blue') + `  ⚖️  Honor Score: ${this.gameState.honorScore} (affects all High Noon Hustle games)` + ANSIParser.reset());
         this.terminal.println('');
         
         // Apply rewards
@@ -3341,9 +3341,13 @@ class HighNoonHustle {
             this.terminal.println(ANSIParser.fg('bright-red') + '  ⚠️  Your reputation precedes you...' + ANSIParser.reset());
         }
         
+        this.terminal.println('');
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press [ENTER] to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+        
         await this.showHumorMessage('adventure');
         await this.savePlayerData();
-        await this.terminal.sleep(3000);
+        await this.terminal.sleep(2000);
         return;
     }
 
