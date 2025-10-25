@@ -1831,6 +1831,7 @@ io.on('connection', (socket) => {
       
       // Send current players to the new joiner
       console.log('DEBUG: Sending current-players to', user.handle, ':', roomPlayers);
+      console.log('DEBUG: Number of players in saloon:', roomPlayers.length);
       socket.emit('current-players', {
         game: 'high-noon-hustle',
         players: roomPlayers
@@ -1838,6 +1839,8 @@ io.on('connection', (socket) => {
       
       // Only send player-joined event if the player is actually in the saloon
       const storedData = user.characterData || {};
+      console.log('DEBUG: Player joined game room, storedData:', storedData);
+      console.log('DEBUG: Player current_location:', storedData.current_location);
       if (storedData.current_location === 'saloon') {
         const playerTown = storedData.current_town || 'tumbleweed_junction';
         const characterClass = storedData.character_class || 'gunslinger';
@@ -1857,6 +1860,7 @@ io.on('connection', (socket) => {
         io.to(room).emit('player-joined', playerJoinedData);
       } else {
         console.log('DEBUG: Player joined game but not in saloon, not broadcasting player-joined event');
+        console.log('DEBUG: Player location was:', storedData.current_location, 'expected: saloon');
       }
     } else {
       // Generic player join notification
