@@ -1805,8 +1805,8 @@ io.on('connection', (socket) => {
         console.log('DEBUG: Building current players list for', u.handle, 'stored data:', storedPlayerData);
         return {
           id: u.userId,
-          name: u.handle,
-          display_name: u.handle,
+          name: storedPlayerData.username || u.handle,
+          display_name: storedPlayerData.display_name || u.handle,
           character_class: storedPlayerData.character_class || 'gunslinger',
           current_town: storedPlayerData.current_town || 'tumbleweed_junction',
           socketId: u.socketId
@@ -1830,8 +1830,8 @@ io.on('connection', (socket) => {
         game: 'high-noon-hustle',
         player: {
           id: user.userId,
-          name: user.handle,
-          display_name: user.handle,
+          name: storedData.username || user.handle,
+          display_name: storedData.display_name || user.handle,
           character_class: characterClass,
           current_town: playerTown,
           socketId: socket.id

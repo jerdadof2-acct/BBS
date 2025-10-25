@@ -43,10 +43,27 @@ router.post('/player/load', async (req, res) => {
         
         console.log('HNH Load: Attempting to load player:', username);
         
+        // Get user ID from session or find by username
+        let userId;
+        if (req.session && req.session.userId) {
+            userId = req.session.userId;
+        } else {
+            // Fallback: try to find user by username
+            const userResult = await db.query(
+                'SELECT id FROM users WHERE handle = $1',
+                [username]
+            );
+            if (userResult.rows.length > 0) {
+                userId = userResult.rows[0].id;
+            } else {
+                return res.json({ player: null });
+            }
+        }
+        
         // Use existing game_states table
         const gameStateResult = await db.query(
             'SELECT game_data FROM game_states WHERE user_id = $1 AND game_name = $2',
-            [1, 'high-noon-hustle']
+            [userId, 'high-noon-hustle']
         );
         
         console.log('HNH Load: Game state query result:', gameStateResult);
@@ -92,23 +109,40 @@ router.post('/player/save', async (req, res) => {
             timestamp: Date.now()
         };
         
+        // Get user ID from session or find by username
+        let userId;
+        if (req.session && req.session.userId) {
+            userId = req.session.userId;
+        } else {
+            // Fallback: try to find user by username
+            const userResult = await db.query(
+                'SELECT id FROM users WHERE handle = $1',
+                [username]
+            );
+            if (userResult.rows.length > 0) {
+                userId = userResult.rows[0].id;
+            } else {
+                return res.status(400).json({ error: 'User not found' });
+            }
+        }
+        
         // Check if game state exists
         const existingResult = await db.query(
             'SELECT id FROM game_states WHERE user_id = $1 AND game_name = $2',
-            [1, 'high-noon-hustle']
+            [userId, 'high-noon-hustle']
         );
         
         if (existingResult.rows.length > 0) {
             // Update existing game state
             await db.query(
                 'UPDATE game_states SET game_data = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND game_name = $3',
-                [JSON.stringify(gameData), 1, 'high-noon-hustle']
+                [JSON.stringify(gameData), userId, 'high-noon-hustle']
             );
         } else {
             // Insert new game state
             await db.query(
                 'INSERT INTO game_states (user_id, game_name, game_data, created_at, updated_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)',
-                [1, 'high-noon-hustle', JSON.stringify(gameData)]
+                [userId, 'high-noon-hustle', JSON.stringify(gameData)]
             );
         }
         
