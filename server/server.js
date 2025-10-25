@@ -151,8 +151,10 @@ io.on('connection', (socket) => {
           const roomUser = onlineUsers.get(socketId);
           if (roomUser) {
             const storedPlayerData = roomUser.characterData || {};
+            console.log('DEBUG: Checking player', roomUser.handle, 'current_location:', storedPlayerData.current_location);
             // Only include players who are actually in the saloon
             if (storedPlayerData.current_location === 'saloon') {
+              console.log('DEBUG: Adding player to saloon list:', roomUser.handle);
               roomPlayers.push({
                 id: roomUser.userId,
                 name: storedPlayerData.username || roomUser.handle,
@@ -161,6 +163,8 @@ io.on('connection', (socket) => {
                 current_town: storedPlayerData.current_town || 'tumbleweed_junction',
                 socketId: socketId
               });
+            } else {
+              console.log('DEBUG: Player not in saloon, skipping:', roomUser.handle, 'location:', storedPlayerData.current_location);
             }
           }
         });

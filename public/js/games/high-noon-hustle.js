@@ -6265,9 +6265,11 @@ class HighNoonHustle {
                 if (data.game === 'high-noon-hustle') {
                     console.log('DEBUG: Received current players list:', data.players);
                     console.log('DEBUG: First player in received data:', data.players[0]);
+                    console.log('DEBUG: Number of players received:', data.players.length);
                     this.onlinePlayers = data.players;
                     console.log('DEBUG: Set onlinePlayers to:', this.onlinePlayers);
                     console.log('DEBUG: onlinePlayers length after setting:', this.onlinePlayers.length);
+                    console.log('DEBUG: onlinePlayers array contents:', JSON.stringify(this.onlinePlayers, null, 2));
                 }
             });
 
