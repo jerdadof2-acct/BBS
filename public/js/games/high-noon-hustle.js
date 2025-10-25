@@ -3827,6 +3827,34 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-white') + '  ╚═══════════════════════════════════╝' + ANSIParser.reset());
         this.terminal.println('');
         
+        // Ensure adventureStats exists, initialize if missing
+        if (!this.gameState.adventureStats) {
+            this.gameState.adventureStats = {
+                totalAdventures: 0,
+                adventuresCompleted: 0,
+                currentStreak: 0,
+                bestStreak: 0,
+                totalGoldFound: 0,
+                totalExperienceGained: 0,
+                totalHealthLost: 0,
+                totalItemsFound: 0,
+                eventsEncountered: {},
+                achievements: [],
+                bestAdventure: {
+                    gold: 0,
+                    experience: 0,
+                    health: 100,
+                    events: 0
+                },
+                worstAdventure: {
+                    gold: 0,
+                    experience: 0,
+                    health: 100,
+                    events: 0
+                }
+            };
+        }
+        
         const stats = this.gameState.adventureStats;
         
         // Basic Statistics
@@ -5695,6 +5723,34 @@ class HighNoonHustle {
                         this.player = data.player;
                         this.gameState = data.gameState;
                         this.currentTown = data.currentTown;
+                        
+                        // Ensure adventureStats exists in loaded game state
+                        if (!this.gameState.adventureStats) {
+                            this.gameState.adventureStats = {
+                                totalAdventures: 0,
+                                adventuresCompleted: 0,
+                                currentStreak: 0,
+                                bestStreak: 0,
+                                totalGoldFound: 0,
+                                totalExperienceGained: 0,
+                                totalHealthLost: 0,
+                                totalItemsFound: 0,
+                                eventsEncountered: {},
+                                achievements: [],
+                                bestAdventure: {
+                                    gold: 0,
+                                    experience: 0,
+                                    health: 100,
+                                    events: 0
+                                },
+                                worstAdventure: {
+                                    gold: 0,
+                                    experience: 0,
+                                    health: 100,
+                                    events: 0
+                                }
+                            };
+                        }
                         this.terminal.println(ANSIParser.fg('bright-green') + '  ✅ Player data loaded from PostgreSQL frontier database!' + ANSIParser.reset());
                         await this.terminal.sleep(1000);
                     } else {
@@ -5714,6 +5770,34 @@ class HighNoonHustle {
                     this.player = data.player;
                     this.gameState = data.gameState;
                     this.currentTown = data.currentTown;
+                    
+                    // Ensure adventureStats exists in loaded game state
+                    if (!this.gameState.adventureStats) {
+                        this.gameState.adventureStats = {
+                            totalAdventures: 0,
+                            adventuresCompleted: 0,
+                            currentStreak: 0,
+                            bestStreak: 0,
+                            totalGoldFound: 0,
+                            totalExperienceGained: 0,
+                            totalHealthLost: 0,
+                            totalItemsFound: 0,
+                            eventsEncountered: {},
+                            achievements: [],
+                            bestAdventure: {
+                                gold: 0,
+                                experience: 0,
+                                health: 100,
+                                events: 0
+                            },
+                            worstAdventure: {
+                                gold: 0,
+                                experience: 0,
+                                health: 100,
+                                events: 0
+                            }
+                        };
+                    }
                     this.terminal.println(ANSIParser.fg('bright-green') + '  ✅ Player data loaded from local frontier records!' + ANSIParser.reset());
                     await this.terminal.sleep(1000);
                 } else {
