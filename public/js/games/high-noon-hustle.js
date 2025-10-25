@@ -1929,6 +1929,7 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-blue') + '  [2]' + ANSIParser.reset() + ' Bean Cooking Contest (Cooking)');
         this.terminal.println(ANSIParser.fg('bright-green') + '  [3]' + ANSIParser.reset() + ' Gold Panning Competition (Mining)');
         this.terminal.println(ANSIParser.fg('bright-magenta') + '  [4]' + ANSIParser.reset() + ' Practice Shooting Range (Skill)');
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  [5]' + ANSIParser.reset() + ' Adventure Ride (Interactive Story)');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [B]' + ANSIParser.reset() + ' Back to Main Menu');
         this.terminal.println('');
         
@@ -1964,6 +1965,13 @@ class HighNoonHustle {
                 await this.practiceShootingRange();
             } catch (error) {
                 console.error('Practice Shooting Range error:', error);
+            }
+        } else if (choice === '5') {
+            console.log('Calling Adventure Ride'); // Debug
+            try {
+                await this.adventureRide();
+            } catch (error) {
+                console.error('Adventure Ride error:', error);
             }
         } else if (choice.toLowerCase() === 'b') {
             console.log('Returning to main menu'); // Debug
@@ -2243,6 +2251,1097 @@ class HighNoonHustle {
         this.gameState.experience += experienceReward;
 
         await this.showHumorMessage('cooking');
+        await this.savePlayerData();
+        await this.terminal.sleep(3000);
+        return;
+    }
+
+    async adventureRide() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ╔════ ADVENTURE RIDE ════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ║ Interactive Story Adventure ║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  ╚═══════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        if (this.gameState.energy < 25) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  ❌ Not enough energy! Need 25 energy for an adventure.' + ANSIParser.reset());
+            await this.terminal.sleep(2000);
+            return;
+        }
+
+        this.terminal.println(ANSIParser.fg('bright-green') + `  💰 Your Gold: ${this.gameState.gold}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  ⚡ Energy Cost: 25` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏜️  You mount your horse and ride into the unknown...' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Every adventure is different - make wise choices!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press [ENTER] to begin your adventure!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [B] Back to Menu' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        
+        const choice = (await this.terminal.input()).toLowerCase().trim();
+        
+        if (choice === 'b' || choice === 'back') {
+            return;
+        }
+        
+        // Start the adventure
+        await this.startAdventureRide();
+    }
+
+    async startAdventureRide() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🏜️  Starting Adventure Ride...' + ANSIParser.reset());
+        this.terminal.println('');
+
+        // Deduct energy
+        this.gameState.energy -= 25;
+
+        // Adventure state
+        const adventure = {
+            goldFound: 0,
+            itemsFound: [],
+            experienceGained: 0,
+            currentLocation: 'desert',
+            health: 100,
+            storyPath: []
+        };
+
+        // Adventure events pool
+        const adventureEvents = [
+            'bandit_encounter',
+            'treasure_discovery',
+            'stranger_meeting',
+            'wild_animal',
+            'abandoned_mine',
+            'ghost_town',
+            'oasis_discovery',
+            'cave_exploration',
+            'trading_post',
+            'mysterious_ruins',
+            'sandstorm',
+            'quicksand',
+            'rattlesnake',
+            'outlaw_posse',
+            'desert_heat',
+            'broken_wagon',
+            'mysterious_merchant',
+            'haunted_saloon',
+            'gold_rush_claim',
+            'sheriff_encounter'
+        ];
+
+        // Start the adventure loop
+        let adventureStep = 0;
+        const maxSteps = 5 + Math.floor(Math.random() * 4); // 5-8 steps
+
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🌅 Your adventure begins at dawn...' + ANSIParser.reset());
+        await this.terminal.sleep(1500);
+
+        while (adventureStep < maxSteps && adventure.health > 0) {
+            adventureStep++;
+            
+            // Select random event
+            const eventType = adventureEvents[Math.floor(Math.random() * adventureEvents.length)];
+            
+            // Execute the event
+            const eventResult = await this.executeAdventureEvent(eventType, adventure);
+            
+            if (eventResult.ended) {
+                break;
+            }
+            
+            // Small delay between events
+            await this.terminal.sleep(1000);
+        }
+
+        // Adventure conclusion
+        await this.concludeAdventure(adventure);
+    }
+
+    async executeAdventureEvent(eventType, adventure) {
+        this.terminal.clear();
+        
+        switch (eventType) {
+            case 'bandit_encounter':
+                return await this.banditEncounter(adventure);
+            case 'treasure_discovery':
+                return await this.treasureDiscovery(adventure);
+            case 'stranger_meeting':
+                return await this.strangerMeeting(adventure);
+            case 'wild_animal':
+                return await this.wildAnimalEncounter(adventure);
+            case 'abandoned_mine':
+                return await this.abandonedMineExploration(adventure);
+            case 'ghost_town':
+                return await this.ghostTownVisit(adventure);
+            case 'oasis_discovery':
+                return await this.oasisDiscovery(adventure);
+            case 'cave_exploration':
+                return await this.caveExploration(adventure);
+            case 'trading_post':
+                return await this.tradingPostVisit(adventure);
+            case 'mysterious_ruins':
+                return await this.mysteriousRuins(adventure);
+            case 'sandstorm':
+                return await this.sandstormEncounter(adventure);
+            case 'quicksand':
+                return await this.quicksandTrap(adventure);
+            case 'rattlesnake':
+                return await this.rattlesnakeEncounter(adventure);
+            case 'outlaw_posse':
+                return await this.outlawPosseEncounter(adventure);
+            case 'desert_heat':
+                return await this.desertHeat(adventure);
+            case 'broken_wagon':
+                return await this.brokenWagon(adventure);
+            case 'mysterious_merchant':
+                return await this.mysteriousMerchant(adventure);
+            case 'haunted_saloon':
+                return await this.hauntedSaloon(adventure);
+            case 'gold_rush_claim':
+                return await this.goldRushClaim(adventure);
+            case 'sheriff_encounter':
+                return await this.sheriffEncounter(adventure);
+            default:
+                return { ended: false };
+        }
+    }
+
+    async banditEncounter(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-red') + '  ⚔️  BANDIT ENCOUNTER!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  A masked bandit blocks your path!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Draw your weapon and fight!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Try to talk your way out' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Offer gold to pass safely' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [4] Try to sneak around' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const fightChance = Math.random();
+        const playerSkill = this.gameState.honorScore + (Math.random() * 50);
+        
+        switch (choice) {
+            case '1':
+                if (playerSkill > 60) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 You defeat the bandit! Found 30 gold!' + ANSIParser.reset());
+                    adventure.goldFound += 30;
+                    adventure.experienceGained += 15;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The bandit wounds you! Lost 20 health.' + ANSIParser.reset());
+                    adventure.health -= 20;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                if (Math.random() > 0.5) {
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  🤝 You convince the bandit to let you pass!' + ANSIParser.reset());
+                    adventure.experienceGained += 10;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The bandit attacks! Lost 15 health.' + ANSIParser.reset());
+                    adventure.health -= 15;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                const goldCost = 20 + Math.floor(Math.random() * 30);
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `  💰 You pay ${goldCost} gold to pass safely.` + ANSIParser.reset());
+                adventure.goldFound -= goldCost;
+                adventure.experienceGained += 5;
+                break;
+            case '4':
+                if (Math.random() > 0.6) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🥷 You sneak past successfully!' + ANSIParser.reset());
+                    adventure.experienceGained += 12;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The bandit spots you! Lost 10 health.' + ANSIParser.reset());
+                    adventure.health -= 10;
+                    adventure.experienceGained += 5;
+                }
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async treasureDiscovery(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  💎 TREASURE DISCOVERY!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You spot something glinting in the sand...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        const treasureValue = 25 + Math.floor(Math.random() * 75);
+        const itemChance = Math.random();
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + `  🏆 You found ${treasureValue} gold!` + ANSIParser.reset());
+        adventure.goldFound += treasureValue;
+        adventure.experienceGained += 8;
+        
+        if (itemChance > 0.7) {
+            const items = ['Lucky Coin', 'Silver Spur', 'Desert Rose', 'Ancient Arrowhead', 'Gold Nugget'];
+            const foundItem = items[Math.floor(Math.random() * items.length)];
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎁 You also found a ${foundItem}!` + ANSIParser.reset());
+            adventure.itemsFound.push(foundItem);
+            adventure.experienceGained += 5;
+        }
+        
+        return { ended: false };
+    }
+
+    async strangerMeeting(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  👤 STRANGER ENCOUNTER!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  A mysterious stranger approaches you...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  How do you respond?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Greet them warmly' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Be cautious and guarded' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Ignore them and ride on' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const strangerType = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (strangerType > 0.3) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🤝 The stranger shares valuable information! +20 XP' + ANSIParser.reset());
+                    adventure.experienceGained += 20;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The stranger was a trickster! Lost 15 health.' + ANSIParser.reset());
+                    adventure.health -= 15;
+                }
+                break;
+            case '2':
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  🛡️  Your caution pays off. Safe passage.' + ANSIParser.reset());
+                adventure.experienceGained += 8;
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-white') + '  🐎 You ride on without incident.' + ANSIParser.reset());
+                adventure.experienceGained += 3;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async wildAnimalEncounter(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-red') + '  🐺 WILD ANIMAL ENCOUNTER!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  A wild animal blocks your path!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Try to scare it away' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Feed it some food' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Try to sneak around' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [4] Draw your weapon' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const successChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (successChance > 0.4) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🦁 The animal runs away! +10 XP' + ANSIParser.reset());
+                    adventure.experienceGained += 10;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The animal attacks! Lost 25 health.' + ANSIParser.reset());
+                    adventure.health -= 25;
+                }
+                break;
+            case '2':
+                this.terminal.println(ANSIParser.fg('bright-green') + '  🍖 The animal is friendly! +15 XP' + ANSIParser.reset());
+                adventure.experienceGained += 15;
+                break;
+            case '3':
+                if (successChance > 0.5) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🥷 You sneak past successfully! +12 XP' + ANSIParser.reset());
+                    adventure.experienceGained += 12;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The animal spots you! Lost 20 health.' + ANSIParser.reset());
+                    adventure.health -= 20;
+                }
+                break;
+            case '4':
+                if (successChance > 0.6) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  ⚔️  You defeat the animal! +20 XP' + ANSIParser.reset());
+                    adventure.experienceGained += 20;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The animal wounds you! Lost 30 health.' + ANSIParser.reset());
+                    adventure.health -= 30;
+                }
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async abandonedMineExploration(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ⛏️  ABANDONED MINE!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You discover an old mine entrance...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Explore the mine carefully' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Search for gold near the entrance' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Leave it alone and move on' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        switch (choice) {
+            case '1':
+                const mineGold = 15 + Math.floor(Math.random() * 35);
+                this.terminal.println(ANSIParser.fg('bright-green') + `  🏆 You found ${mineGold} gold in the mine!` + ANSIParser.reset());
+                adventure.goldFound += mineGold;
+                adventure.experienceGained += 12;
+                break;
+            case '2':
+                const surfaceGold = 5 + Math.floor(Math.random() * 15);
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `  💰 You found ${surfaceGold} gold near the entrance!` + ANSIParser.reset());
+                adventure.goldFound += surfaceGold;
+                adventure.experienceGained += 8;
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-white') + '  🐎 You decide to move on safely.' + ANSIParser.reset());
+                adventure.experienceGained += 3;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async ghostTownVisit(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  👻 GHOST TOWN!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You ride into an abandoned town...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Search the buildings for supplies' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Rest and recover health' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Leave quickly' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        switch (choice) {
+            case '1':
+                const suppliesGold = 10 + Math.floor(Math.random() * 25);
+                this.terminal.println(ANSIParser.fg('bright-green') + `  🏆 You found ${suppliesGold} gold in the buildings!` + ANSIParser.reset());
+                adventure.goldFound += suppliesGold;
+                adventure.experienceGained += 10;
+                break;
+            case '2':
+                const healthGain = 20 + Math.floor(Math.random() * 30);
+                this.terminal.println(ANSIParser.fg('bright-green') + `  ❤️  You rest and recover ${healthGain} health!` + ANSIParser.reset());
+                adventure.health = Math.min(100, adventure.health + healthGain);
+                adventure.experienceGained += 5;
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-white') + '  🐎 You leave the ghost town quickly.' + ANSIParser.reset());
+                adventure.experienceGained += 3;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async oasisDiscovery(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-green') + '  🌴 OASIS DISCOVERY!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You find a beautiful oasis in the desert...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Drink and rest at the oasis' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Search for hidden treasures' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Fill your canteen and move on' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        switch (choice) {
+            case '1':
+                const healthGain = 30 + Math.floor(Math.random() * 20);
+                this.terminal.println(ANSIParser.fg('bright-green') + `  ❤️  You rest and recover ${healthGain} health!` + ANSIParser.reset());
+                adventure.health = Math.min(100, adventure.health + healthGain);
+                adventure.experienceGained += 15;
+                break;
+            case '2':
+                const treasureGold = 20 + Math.floor(Math.random() * 40);
+                this.terminal.println(ANSIParser.fg('bright-green') + `  🏆 You found ${treasureGold} gold hidden in the oasis!` + ANSIParser.reset());
+                adventure.goldFound += treasureGold;
+                adventure.experienceGained += 12;
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  💧 You fill your canteen and feel refreshed!' + ANSIParser.reset());
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async caveExploration(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-magenta') + '  🕳️  CAVE EXPLORATION!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You discover a mysterious cave...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Explore the cave thoroughly' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Just peek inside' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Avoid the cave entirely' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const caveChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (caveChance > 0.3) {
+                    const caveGold = 25 + Math.floor(Math.random() * 50);
+                    this.terminal.println(ANSIParser.fg('bright-green') + `  🏆 You found ${caveGold} gold in the cave!` + ANSIParser.reset());
+                    adventure.goldFound += caveGold;
+                    adventure.experienceGained += 18;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The cave collapses! Lost 25 health.' + ANSIParser.reset());
+                    adventure.health -= 25;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                const peekGold = 5 + Math.floor(Math.random() * 15);
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `  💰 You found ${peekGold} gold near the entrance!` + ANSIParser.reset());
+                adventure.goldFound += peekGold;
+                adventure.experienceGained += 8;
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-white') + '  🐎 You avoid the cave and move on safely.' + ANSIParser.reset());
+                adventure.experienceGained += 3;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async tradingPostVisit(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏪 TRADING POST!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You find a friendly trading post...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Trade your items for gold' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Buy supplies and rest' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Just rest and move on' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        switch (choice) {
+            case '1':
+                const tradeGold = 15 + Math.floor(Math.random() * 25);
+                this.terminal.println(ANSIParser.fg('bright-green') + `  💰 You trade items for ${tradeGold} gold!` + ANSIParser.reset());
+                adventure.goldFound += tradeGold;
+                adventure.experienceGained += 10;
+                break;
+            case '2':
+                const supplyCost = 10 + Math.floor(Math.random() * 20);
+                const healthGain = 25 + Math.floor(Math.random() * 15);
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `  🛒 You buy supplies for ${supplyCost} gold and recover ${healthGain} health!` + ANSIParser.reset());
+                adventure.goldFound -= supplyCost;
+                adventure.health = Math.min(100, adventure.health + healthGain);
+                adventure.experienceGained += 12;
+                break;
+            case '3':
+                const restHealth = 15 + Math.floor(Math.random() * 10);
+                this.terminal.println(ANSIParser.fg('bright-green') + `  😴 You rest and recover ${restHealth} health!` + ANSIParser.reset());
+                adventure.health = Math.min(100, adventure.health + restHealth);
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async mysteriousRuins(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-magenta') + '  🏛️  MYSTERIOUS RUINS!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You discover ancient ruins in the desert...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Explore the ruins carefully' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Search for artifacts' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Leave the ruins alone' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const ruinChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (ruinChance > 0.4) {
+                    const ruinGold = 30 + Math.floor(Math.random() * 40);
+                    this.terminal.println(ANSIParser.fg('bright-green') + `  🏆 You found ${ruinGold} gold in the ruins!` + ANSIParser.reset());
+                    adventure.goldFound += ruinGold;
+                    adventure.experienceGained += 20;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The ruins are unstable! Lost 20 health.' + ANSIParser.reset());
+                    adventure.health -= 20;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                if (ruinChance > 0.5) {
+                    const artifacts = ['Ancient Coin', 'Mysterious Gem', 'Old Map', 'Sacred Relic', 'Lost Journal'];
+                    const foundArtifact = artifacts[Math.floor(Math.random() * artifacts.length)];
+                    this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎁 You found a ${foundArtifact}!` + ANSIParser.reset());
+                    adventure.itemsFound.push(foundArtifact);
+                    adventure.experienceGained += 15;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-white') + '  🔍 You search but find nothing of value.' + ANSIParser.reset());
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-white') + '  🐎 You leave the ruins undisturbed.' + ANSIParser.reset());
+                adventure.experienceGained += 3;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async sandstormEncounter(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🌪️  SANDSTORM!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  A massive sandstorm approaches...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Seek immediate shelter' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Try to ride through it' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Cover your face and wait it out' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const stormChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (stormChance > 0.3) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🏠 You find shelter! Safe and sound.' + ANSIParser.reset());
+                    adventure.experienceGained += 10;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The shelter collapses! Lost 15 health.' + ANSIParser.reset());
+                    adventure.health -= 15;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                if (stormChance > 0.6) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🐎 You make it through! Found 20 gold!' + ANSIParser.reset());
+                    adventure.goldFound += 20;
+                    adventure.experienceGained += 15;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 You get lost in the storm! Lost 25 health and 10 gold.' + ANSIParser.reset());
+                    adventure.health -= 25;
+                    adventure.goldFound -= 10;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  😷 You wait it out safely but lose some time.' + ANSIParser.reset());
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async quicksandTrap(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-red') + '  🏜️  QUICKSAND TRAP!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Your horse steps into quicksand!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Try to pull your horse out' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Jump off and save yourself' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Use your rope to escape' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const escapeChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (escapeChance > 0.4) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🐎 You save your horse! +15 XP' + ANSIParser.reset());
+                    adventure.experienceGained += 15;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 You both get stuck! Lost 30 health and 20 gold.' + ANSIParser.reset());
+                    adventure.health -= 30;
+                    adventure.goldFound -= 20;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏃 You escape but lose your horse and supplies! Lost 25 gold.' + ANSIParser.reset());
+                adventure.goldFound -= 25;
+                adventure.experienceGained += 10;
+                break;
+            case '3':
+                if (escapeChance > 0.5) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🪢 Your rope saves the day! +12 XP' + ANSIParser.reset());
+                    adventure.experienceGained += 12;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The rope breaks! Lost 20 health.' + ANSIParser.reset());
+                    adventure.health -= 20;
+                    adventure.experienceGained += 5;
+                }
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async rattlesnakeEncounter(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-red') + '  🐍 RATTLESNAKE!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  A rattlesnake blocks your path!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Try to scare it away' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Shoot it with your gun' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Back away slowly' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const snakeChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (snakeChance > 0.5) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🐍 The snake slithers away! +10 XP' + ANSIParser.reset());
+                    adventure.experienceGained += 10;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The snake strikes! Lost 35 health.' + ANSIParser.reset());
+                    adventure.health -= 35;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                if (snakeChance > 0.3) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🔫 You shoot the snake! Found 15 gold in its den!' + ANSIParser.reset());
+                    adventure.goldFound += 15;
+                    adventure.experienceGained += 12;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 You miss and it strikes! Lost 40 health.' + ANSIParser.reset());
+                    adventure.health -= 40;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  🚶 You back away safely but lose time.' + ANSIParser.reset());
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async outlawPosseEncounter(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-red') + '  🤠 OUTLAW POSSE!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  A gang of outlaws surrounds you!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Draw your weapon and fight' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Try to talk your way out' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Surrender and give them your gold' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const fightChance = Math.random();
+        const playerSkill = this.gameState.honorScore + (Math.random() * 40);
+        
+        switch (choice) {
+            case '1':
+                if (playerSkill > 70) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 You defeat the posse! Found 50 gold!' + ANSIParser.reset());
+                    adventure.goldFound += 50;
+                    adventure.experienceGained += 25;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 You\'re outnumbered! Lost 40 health and 30 gold.' + ANSIParser.reset());
+                    adventure.health -= 40;
+                    adventure.goldFound -= 30;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                if (fightChance > 0.6) {
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  🤝 You convince them to let you pass! +15 XP' + ANSIParser.reset());
+                    adventure.experienceGained += 15;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 They don\'t buy it! Lost 25 health and 20 gold.' + ANSIParser.reset());
+                    adventure.health -= 25;
+                    adventure.goldFound -= 20;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                const goldCost = 30 + Math.floor(Math.random() * 40);
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `  💰 You surrender ${goldCost} gold but stay safe.` + ANSIParser.reset());
+                adventure.goldFound -= goldCost;
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async desertHeat(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ☀️  DESERT HEAT!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  The sun is scorching hot...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Find shade and rest' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Keep riding to get through it' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Use your water sparingly' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const heatChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                this.terminal.println(ANSIParser.fg('bright-green') + '  🌳 You find shade and rest safely.' + ANSIParser.reset());
+                adventure.experienceGained += 10;
+                break;
+            case '2':
+                if (heatChance > 0.4) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🐎 You make it through! +12 XP' + ANSIParser.reset());
+                    adventure.experienceGained += 12;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 Heat exhaustion! Lost 20 health.' + ANSIParser.reset());
+                    adventure.health -= 20;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  💧 You conserve water and stay hydrated.' + ANSIParser.reset());
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async brokenWagon(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🚛 BROKEN WAGON!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You find a broken wagon on the trail...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Search for valuable items' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Help any survivors' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Take what you can and move on' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const wagonChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (wagonChance > 0.3) {
+                    const wagonGold = 20 + Math.floor(Math.random() * 30);
+                    this.terminal.println(ANSIParser.fg('bright-green') + `  🏆 You found ${wagonGold} gold in the wagon!` + ANSIParser.reset());
+                    adventure.goldFound += wagonGold;
+                    adventure.experienceGained += 12;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The wagon collapses on you! Lost 15 health.' + ANSIParser.reset());
+                    adventure.health -= 15;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                if (wagonChance > 0.5) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🤝 You help survivors! They reward you with 25 gold!' + ANSIParser.reset());
+                    adventure.goldFound += 25;
+                    adventure.experienceGained += 18;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 No survivors, but you waste time. Lost 10 health.' + ANSIParser.reset());
+                    adventure.health -= 10;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                const quickGold = 10 + Math.floor(Math.random() * 20);
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `  💰 You quickly grab ${quickGold} gold and move on.` + ANSIParser.reset());
+                adventure.goldFound += quickGold;
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async mysteriousMerchant(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🧙 MYSTERIOUS MERCHANT!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  A strange merchant offers you a deal...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Buy a mysterious potion (50 gold)' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Trade your items for gold' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Decline and move on' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const merchantChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (adventure.goldFound >= 50) {
+                    adventure.goldFound -= 50;
+                    if (merchantChance > 0.5) {
+                        this.terminal.println(ANSIParser.fg('bright-green') + '  🧪 The potion heals you! +30 health!' + ANSIParser.reset());
+                        adventure.health = Math.min(100, adventure.health + 30);
+                        adventure.experienceGained += 15;
+                    } else {
+                        this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The potion was poison! Lost 20 health.' + ANSIParser.reset());
+                        adventure.health -= 20;
+                        adventure.experienceGained += 5;
+                    }
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💰 You don\'t have enough gold!' + ANSIParser.reset());
+                }
+                break;
+            case '2':
+                const tradeGold = 15 + Math.floor(Math.random() * 25);
+                this.terminal.println(ANSIParser.fg('bright-green') + `  💰 You trade items for ${tradeGold} gold!` + ANSIParser.reset());
+                adventure.goldFound += tradeGold;
+                adventure.experienceGained += 10;
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-white') + '  🐎 You decline and move on safely.' + ANSIParser.reset());
+                adventure.experienceGained += 5;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async hauntedSaloon(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-magenta') + '  👻 HAUNTED SALOON!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You find an abandoned saloon...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Explore the saloon' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Rest in the saloon' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Avoid the spooky place' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const ghostChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (ghostChance > 0.6) {
+                    const saloonGold = 30 + Math.floor(Math.random() * 40);
+                    this.terminal.println(ANSIParser.fg('bright-green') + `  🏆 You found ${saloonGold} gold in the saloon!` + ANSIParser.reset());
+                    adventure.goldFound += saloonGold;
+                    adventure.experienceGained += 20;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  👻 The ghost scares you! Lost 25 health.' + ANSIParser.reset());
+                    adventure.health -= 25;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                if (ghostChance > 0.4) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  😴 You rest peacefully! +20 health.' + ANSIParser.reset());
+                    adventure.health = Math.min(100, adventure.health + 20);
+                    adventure.experienceGained += 12;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  👻 Ghostly nightmares! Lost 15 health.' + ANSIParser.reset());
+                    adventure.health -= 15;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-white') + '  🐎 You avoid the spooky saloon.' + ANSIParser.reset());
+                adventure.experienceGained += 5;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async goldRushClaim(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ⛏️  GOLD RUSH CLAIM!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You discover a gold claim site...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Stake your claim and mine' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Search for surface gold' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Leave it for others' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const goldChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (goldChance > 0.3) {
+                    const claimGold = 40 + Math.floor(Math.random() * 60);
+                    this.terminal.println(ANSIParser.fg('bright-green') + `  🏆 You strike gold! Found ${claimGold} gold!` + ANSIParser.reset());
+                    adventure.goldFound += claimGold;
+                    adventure.experienceGained += 25;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The claim collapses! Lost 30 health.' + ANSIParser.reset());
+                    adventure.health -= 30;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                const surfaceGold = 15 + Math.floor(Math.random() * 25);
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `  💰 You found ${surfaceGold} gold on the surface!` + ANSIParser.reset());
+                adventure.goldFound += surfaceGold;
+                adventure.experienceGained += 12;
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-white') + '  🐎 You leave the claim for others.' + ANSIParser.reset());
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async sheriffEncounter(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-blue') + '  👮 SHERIFF ENCOUNTER!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  The local sheriff approaches you...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Greet him respectfully' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Be cautious and guarded' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Try to avoid him' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const sheriffChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (sheriffChance > 0.3) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🤝 The sheriff likes you! +5 honor and 20 gold!' + ANSIParser.reset());
+                    this.gameState.honorScore += 5;
+                    adventure.goldFound += 20;
+                    adventure.experienceGained += 15;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The sheriff is suspicious! Lost 10 gold.' + ANSIParser.reset());
+                    adventure.goldFound -= 10;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  🛡️  Your caution pays off. Safe passage.' + ANSIParser.reset());
+                adventure.experienceGained += 10;
+                break;
+            case '3':
+                if (sheriffChance > 0.5) {
+                    this.terminal.println(ANSIParser.fg('bright-white') + '  🐎 You avoid the sheriff successfully.' + ANSIParser.reset());
+                    adventure.experienceGained += 8;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The sheriff stops you! Lost 15 gold.' + ANSIParser.reset());
+                    adventure.goldFound -= 15;
+                    adventure.experienceGained += 5;
+                }
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async concludeAdventure(adventure) {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏁 ADVENTURE COMPLETE!' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  📊 Adventure Summary:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + `  💰 Gold Found: ${adventure.goldFound}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + `  ⭐ Experience Gained: ${adventure.experienceGained}` + ANSIParser.reset());
+        
+        if (adventure.itemsFound.length > 0) {
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  🎁 Items Found: ${adventure.itemsFound.join(', ')}` + ANSIParser.reset());
+        }
+        
+        this.terminal.println(ANSIParser.fg('bright-white') + `  ❤️  Health Remaining: ${adventure.health}/100` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-blue') + `  ⚖️  Honor Score: ${this.gameState.honorScore}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Apply rewards
+        this.gameState.gold += adventure.goldFound;
+        this.gameState.experience += adventure.experienceGained;
+        
+        // Health penalty if low
+        if (adventure.health < 50) {
+            const healthPenalty = 50 - adventure.health;
+            this.terminal.println(ANSIParser.fg('bright-red') + `  ⚠️  You're wounded! -${healthPenalty} energy tomorrow.` + ANSIParser.reset());
+            // Could implement health system here
+        }
+        
+        // Honor-based ending message
+        if (this.gameState.honorScore >= 50) {
+            this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 Your honorable actions are remembered!' + ANSIParser.reset());
+        } else if (this.gameState.honorScore <= 20) {
+            this.terminal.println(ANSIParser.fg('bright-red') + '  ⚠️  Your reputation precedes you...' + ANSIParser.reset());
+        }
+        
+        await this.showHumorMessage('adventure');
         await this.savePlayerData();
         await this.terminal.sleep(3000);
         return;
