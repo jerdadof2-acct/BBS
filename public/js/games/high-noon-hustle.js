@@ -492,7 +492,9 @@ class HighNoonHustle {
                 await this.updatePlayerStatus();
                 console.log('DEBUG: updatePlayerStatus completed, breaking from saloon loop...');
                 console.log('DEBUG: About to break from saloon loop...');
+                console.log('DEBUG: BREAKING NOW!');
                 break; // Break out of the saloon loop
+                console.log('DEBUG: This should never print - after break');
             } else {
                 console.log('DEBUG: Invalid choice in saloon:', choice);
                 this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
@@ -502,6 +504,8 @@ class HighNoonHustle {
         }
         
         console.log('DEBUG: Exited saloon loop, returning to main menu...');
+        console.log('DEBUG: About to return from enterSaloon() function...');
+        return;
     }
 
     async showPlayerStats() {
