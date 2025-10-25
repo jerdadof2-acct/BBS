@@ -27,6 +27,31 @@ class HighNoonHustle {
                 boots: 'worn_leather',
                 clothes: 'dusty_duds',
                 accessory: 'lucky_coin'
+            },
+            // Adventure Ride Statistics
+            adventureStats: {
+                totalAdventures: 0,
+                adventuresCompleted: 0,
+                currentStreak: 0,
+                bestStreak: 0,
+                totalGoldFound: 0,
+                totalExperienceGained: 0,
+                totalHealthLost: 0,
+                totalItemsFound: 0,
+                eventsEncountered: {},
+                achievements: [],
+                bestAdventure: {
+                    gold: 0,
+                    experience: 0,
+                    health: 100,
+                    events: 0
+                },
+                worstAdventure: {
+                    gold: 0,
+                    experience: 0,
+                    health: 100,
+                    events: 0
+                }
             }
         };
         this.dbAdapter = null;
@@ -1930,6 +1955,7 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-green') + '  [3]' + ANSIParser.reset() + ' Gold Panning Competition (Mining)');
         this.terminal.println(ANSIParser.fg('bright-magenta') + '  [4]' + ANSIParser.reset() + ' Practice Shooting Range (Skill)');
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  [5]' + ANSIParser.reset() + ' Adventure Ride (Interactive Story)');
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  [6]' + ANSIParser.reset() + ' Adventure Statistics');
         this.terminal.println(ANSIParser.fg('bright-white') + '  [B]' + ANSIParser.reset() + ' Back to Main Menu');
         this.terminal.println('');
         
@@ -1972,6 +1998,13 @@ class HighNoonHustle {
                 await this.adventureRide();
             } catch (error) {
                 console.error('Adventure Ride error:', error);
+            }
+        } else if (choice === '6') {
+            console.log('Calling Adventure Statistics'); // Debug
+            try {
+                await this.showAdventureStatistics();
+            } catch (error) {
+                console.error('Adventure Statistics error:', error);
             }
         } else if (choice.toLowerCase() === 'b') {
             console.log('Returning to main menu'); // Debug
@@ -2311,28 +2344,45 @@ class HighNoonHustle {
             storyPath: []
         };
 
-        // Adventure events pool
+        // Adventure events pool with difficulty levels
         const adventureEvents = [
-            'bandit_encounter',
-            'treasure_discovery',
-            'stranger_meeting',
-            'wild_animal',
-            'abandoned_mine',
-            'ghost_town',
-            'oasis_discovery',
-            'cave_exploration',
-            'trading_post',
-            'mysterious_ruins',
-            'sandstorm',
-            'quicksand',
-            'rattlesnake',
-            'outlaw_posse',
-            'desert_heat',
-            'broken_wagon',
-            'mysterious_merchant',
-            'haunted_saloon',
-            'gold_rush_claim',
-            'sheriff_encounter'
+            // Easy events (always available)
+            { event: 'treasure_discovery', difficulty: 'easy' },
+            { event: 'stranger_meeting', difficulty: 'easy' },
+            { event: 'oasis_discovery', difficulty: 'easy' },
+            { event: 'trading_post', difficulty: 'easy' },
+            { event: 'desert_heat', difficulty: 'easy' },
+            
+            // Medium events (unlocked at level 3+)
+            { event: 'bandit_encounter', difficulty: 'medium' },
+            { event: 'wild_animal', difficulty: 'medium' },
+            { event: 'abandoned_mine', difficulty: 'medium' },
+            { event: 'ghost_town', difficulty: 'medium' },
+            { event: 'cave_exploration', difficulty: 'medium' },
+            { event: 'sandstorm', difficulty: 'medium' },
+            { event: 'quicksand', difficulty: 'medium' },
+            { event: 'rattlesnake', difficulty: 'medium' },
+            { event: 'broken_wagon', difficulty: 'medium' },
+            { event: 'mysterious_merchant', difficulty: 'medium' },
+            
+            // Hard events (unlocked at level 5+)
+            { event: 'outlaw_posse', difficulty: 'hard' },
+            { event: 'mysterious_ruins', difficulty: 'hard' },
+            { event: 'haunted_saloon', difficulty: 'hard' },
+            { event: 'gold_rush_claim', difficulty: 'hard' },
+            { event: 'sheriff_encounter', difficulty: 'hard' },
+            
+            // Weather events (unlocked at level 2+)
+            { event: 'thunderstorm', difficulty: 'medium' },
+            { event: 'fog_encounter', difficulty: 'easy' },
+            { event: 'blizzard', difficulty: 'hard' },
+            { event: 'heat_wave', difficulty: 'medium' },
+            
+            // Time-based events (unlocked at level 4+)
+            { event: 'midnight_encounter', difficulty: 'hard' },
+            { event: 'dawn_ritual', difficulty: 'medium' },
+            { event: 'dusk_trading', difficulty: 'easy' },
+            { event: 'noon_duel', difficulty: 'hard' }
         ];
 
         // Start the adventure loop
@@ -2345,11 +2395,12 @@ class HighNoonHustle {
         while (adventureStep < maxSteps && adventure.health > 0) {
             adventureStep++;
             
-            // Select random event
-            const eventType = adventureEvents[Math.floor(Math.random() * adventureEvents.length)];
+            // Select random event based on difficulty scaling
+            const availableEvents = this.getAvailableAdventureEvents(adventureEvents);
+            const selectedEvent = availableEvents[Math.floor(Math.random() * availableEvents.length)];
             
             // Execute the event
-            const eventResult = await this.executeAdventureEvent(eventType, adventure);
+            const eventResult = await this.executeAdventureEvent(selectedEvent.event, adventure);
             
             if (eventResult.ended) {
                 break;
@@ -2407,6 +2458,22 @@ class HighNoonHustle {
                 return await this.goldRushClaim(adventure);
             case 'sheriff_encounter':
                 return await this.sheriffEncounter(adventure);
+            case 'thunderstorm':
+                return await this.thunderstormEncounter(adventure);
+            case 'fog_encounter':
+                return await this.fogEncounter(adventure);
+            case 'blizzard':
+                return await this.blizzardEncounter(adventure);
+            case 'heat_wave':
+                return await this.heatWaveEncounter(adventure);
+            case 'midnight_encounter':
+                return await this.midnightEncounter(adventure);
+            case 'dawn_ritual':
+                return await this.dawnRitual(adventure);
+            case 'dusk_trading':
+                return await this.duskTrading(adventure);
+            case 'noon_duel':
+                return await this.noonDuel(adventure);
             default:
                 return { ended: false };
         }
@@ -3306,6 +3373,517 @@ class HighNoonHustle {
         return { ended: false };
     }
 
+    async thunderstormEncounter(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-blue') + '  ⛈️  THUNDERSTORM!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Lightning crashes overhead as rain pours down...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Seek immediate shelter' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Ride through the storm' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Wait for it to pass' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const stormChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (stormChance > 0.3) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🏠 You find shelter! Found 15 gold inside!' + ANSIParser.reset());
+                    adventure.goldFound += 15;
+                    adventure.experienceGained += 10;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The shelter collapses! Lost 20 health.' + ANSIParser.reset());
+                    adventure.health -= 20;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                if (stormChance > 0.6) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  ⚡ You brave the storm! Found 25 gold!' + ANSIParser.reset());
+                    adventure.goldFound += 25;
+                    adventure.experienceGained += 15;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 Lightning strikes nearby! Lost 30 health.' + ANSIParser.reset());
+                    adventure.health -= 30;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  ⏰ You wait safely for the storm to pass.' + ANSIParser.reset());
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async fogEncounter(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-white') + '  🌫️  FOG ENCOUNTER!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  Thick fog rolls in, reducing visibility...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Slow down and be cautious' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Keep your normal pace' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Stop and wait for it to clear' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const fogChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                this.terminal.println(ANSIParser.fg('bright-green') + '  🐌 You proceed safely through the fog.' + ANSIParser.reset());
+                adventure.experienceGained += 10;
+                break;
+            case '2':
+                if (fogChance > 0.5) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🏃 You make good time through the fog!' + ANSIParser.reset());
+                    adventure.experienceGained += 12;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 You get lost! Lost 15 health.' + ANSIParser.reset());
+                    adventure.health -= 15;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  ⏰ You wait patiently for the fog to clear.' + ANSIParser.reset());
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async blizzardEncounter(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ❄️  BLIZZARD!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  A fierce blizzard sweeps across the desert...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Find shelter immediately' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Try to ride through it' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Build a snow shelter' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const blizzardChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (blizzardChance > 0.4) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🏠 You find shelter! +20 health!' + ANSIParser.reset());
+                    adventure.health = Math.min(100, adventure.health + 20);
+                    adventure.experienceGained += 12;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 No shelter found! Lost 25 health.' + ANSIParser.reset());
+                    adventure.health -= 25;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                if (blizzardChance > 0.7) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🐎 You brave the blizzard! Found 30 gold!' + ANSIParser.reset());
+                    adventure.goldFound += 30;
+                    adventure.experienceGained += 18;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 You get lost in the blizzard! Lost 35 health.' + ANSIParser.reset());
+                    adventure.health -= 35;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏗️  You build a snow shelter and survive!' + ANSIParser.reset());
+                adventure.experienceGained += 15;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async heatWaveEncounter(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-red') + '  🔥 HEAT WAVE!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  An intense heat wave makes the desert unbearable...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Find shade and rest' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Use all your water' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Keep riding to escape it' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const heatChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                this.terminal.println(ANSIParser.fg('bright-green') + '  🌳 You find shade and rest safely.' + ANSIParser.reset());
+                adventure.experienceGained += 10;
+                break;
+            case '2':
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  💧 You use your water to stay hydrated!' + ANSIParser.reset());
+                adventure.experienceGained += 12;
+                break;
+            case '3':
+                if (heatChance > 0.6) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🐎 You escape the heat wave!' + ANSIParser.reset());
+                    adventure.experienceGained += 15;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 Heat exhaustion! Lost 25 health.' + ANSIParser.reset());
+                    adventure.health -= 25;
+                    adventure.experienceGained += 5;
+                }
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async midnightEncounter(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-magenta') + '  🌙 MIDNIGHT ENCOUNTER!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You find yourself riding under the full moon...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Make camp for the night' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Continue riding by moonlight' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Search for nocturnal treasures' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const midnightChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                this.terminal.println(ANSIParser.fg('bright-green') + '  🏕️  You make camp and rest peacefully! +25 health!' + ANSIParser.reset());
+                adventure.health = Math.min(100, adventure.health + 25);
+                adventure.experienceGained += 12;
+                break;
+            case '2':
+                if (midnightChance > 0.5) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🌙 You ride safely by moonlight! Found 20 gold!' + ANSIParser.reset());
+                    adventure.goldFound += 20;
+                    adventure.experienceGained += 15;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 You get lost in the dark! Lost 20 health.' + ANSIParser.reset());
+                    adventure.health -= 20;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                if (midnightChance > 0.6) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  💎 You find nocturnal treasures! +35 gold!' + ANSIParser.reset());
+                    adventure.goldFound += 35;
+                    adventure.experienceGained += 18;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 You encounter night predators! Lost 30 health.' + ANSIParser.reset());
+                    adventure.health -= 30;
+                    adventure.experienceGained += 5;
+                }
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async dawnRitual(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🌅 DAWN RITUAL!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You witness an ancient dawn ritual...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Participate in the ritual' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Watch from a distance' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Avoid the ritual entirely' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const ritualChance = Math.random();
+        
+        switch (choice) {
+            case '1':
+                if (ritualChance > 0.4) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🙏 You participate and gain wisdom! +30 XP!' + ANSIParser.reset());
+                    adventure.experienceGained += 30;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 The ritual backfires! Lost 20 health.' + ANSIParser.reset());
+                    adventure.health -= 20;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  👁️  You observe and learn something valuable.' + ANSIParser.reset());
+                adventure.experienceGained += 15;
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-white') + '  🐎 You avoid the ritual and move on.' + ANSIParser.reset());
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async duskTrading(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-orange') + '  🌆 DUSK TRADING!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  You find a dusk trading post...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Trade your items' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Buy supplies' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Just rest and move on' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        switch (choice) {
+            case '1':
+                const tradeGold = 20 + Math.floor(Math.random() * 30);
+                this.terminal.println(ANSIParser.fg('bright-green') + `  💰 You trade items for ${tradeGold} gold!` + ANSIParser.reset());
+                adventure.goldFound += tradeGold;
+                adventure.experienceGained += 12;
+                break;
+            case '2':
+                const supplyCost = 15 + Math.floor(Math.random() * 25);
+                const healthGain = 30 + Math.floor(Math.random() * 20);
+                this.terminal.println(ANSIParser.fg('bright-cyan') + `  🛒 You buy supplies for ${supplyCost} gold and recover ${healthGain} health!` + ANSIParser.reset());
+                adventure.goldFound -= supplyCost;
+                adventure.health = Math.min(100, adventure.health + healthGain);
+                adventure.experienceGained += 15;
+                break;
+            case '3':
+                const restHealth = 20 + Math.floor(Math.random() * 15);
+                this.terminal.println(ANSIParser.fg('bright-green') + `  😴 You rest and recover ${restHealth} health!` + ANSIParser.reset());
+                adventure.health = Math.min(100, adventure.health + restHealth);
+                adventure.experienceGained += 10;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    async noonDuel(adventure) {
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ☀️  NOON DUEL!' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  A gunslinger challenges you to a high noon duel...' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  What do you do?' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [1] Accept the duel' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [2] Try to talk your way out' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  [3] Refuse and ride away' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+        const choice = await this.terminal.input();
+        
+        const duelChance = Math.random();
+        const playerSkill = this.gameState.honorScore + (Math.random() * 30);
+        
+        switch (choice) {
+            case '1':
+                if (playerSkill > 60) {
+                    this.terminal.println(ANSIParser.fg('bright-green') + '  🏆 You win the duel! Found 50 gold!' + ANSIParser.reset());
+                    adventure.goldFound += 50;
+                    adventure.experienceGained += 25;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 You lose the duel! Lost 40 health.' + ANSIParser.reset());
+                    adventure.health -= 40;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '2':
+                if (duelChance > 0.5) {
+                    this.terminal.println(ANSIParser.fg('bright-yellow') + '  🤝 You convince them to back down!' + ANSIParser.reset());
+                    adventure.experienceGained += 15;
+                } else {
+                    this.terminal.println(ANSIParser.fg('bright-red') + '  💥 They don\'t buy it! Lost 25 health.' + ANSIParser.reset());
+                    adventure.health -= 25;
+                    adventure.experienceGained += 5;
+                }
+                break;
+            case '3':
+                this.terminal.println(ANSIParser.fg('bright-white') + '  🐎 You refuse and ride away safely.' + ANSIParser.reset());
+                adventure.experienceGained += 8;
+                break;
+        }
+        
+        return { ended: false };
+    }
+
+    getAvailableAdventureEvents(adventureEvents) {
+        const playerLevel = this.gameState.level;
+        return adventureEvents.filter(eventData => {
+            switch (eventData.difficulty) {
+                case 'easy':
+                    return true;
+                case 'medium':
+                    return playerLevel >= 2;
+                case 'hard':
+                    return playerLevel >= 4;
+                default:
+                    return true;
+            }
+        });
+    }
+
+    updateAdventureStats(adventure) {
+        const stats = this.gameState.adventureStats;
+        
+        // Update basic stats
+        stats.totalAdventures++;
+        stats.adventuresCompleted++;
+        stats.currentStreak++;
+        stats.totalGoldFound += adventure.goldFound;
+        stats.totalExperienceGained += adventure.experienceGained;
+        stats.totalHealthLost += (100 - adventure.health);
+        stats.totalItemsFound += adventure.itemsFound.length;
+        
+        // Update best streak
+        if (stats.currentStreak > stats.bestStreak) {
+            stats.bestStreak = stats.currentStreak;
+        }
+        
+        // Update best/worst adventure records
+        const adventureScore = adventure.goldFound + adventure.experienceGained + adventure.health;
+        const bestScore = stats.bestAdventure.gold + stats.bestAdventure.experience + stats.bestAdventure.health;
+        const worstScore = stats.worstAdventure.gold + stats.worstAdventure.experience + stats.worstAdventure.health;
+        
+        if (adventureScore > bestScore) {
+            stats.bestAdventure = {
+                gold: adventure.goldFound,
+                experience: adventure.experienceGained,
+                health: adventure.health,
+                events: adventure.storyPath.length
+            };
+        }
+        
+        if (adventureScore < worstScore || stats.worstAdventure.gold === 0) {
+            stats.worstAdventure = {
+                gold: adventure.goldFound,
+                experience: adventure.experienceGained,
+                health: adventure.health,
+                events: adventure.storyPath.length
+            };
+        }
+        
+        // Check for achievements
+        this.checkAdventureAchievements(stats);
+    }
+
+    checkAdventureAchievements(stats) {
+        const achievements = stats.achievements;
+        
+        // Desert Survivor - Complete 10 adventures
+        if (stats.adventuresCompleted >= 10 && !achievements.includes('desert_survivor')) {
+            achievements.push('desert_survivor');
+        }
+        
+        // Gold Hunter - Find 500+ gold total
+        if (stats.totalGoldFound >= 500 && !achievements.includes('gold_hunter')) {
+            achievements.push('gold_hunter');
+        }
+        
+        // Streak Master - Get 5+ adventure streak
+        if (stats.bestStreak >= 5 && !achievements.includes('streak_master')) {
+            achievements.push('streak_master');
+        }
+        
+        // Honor Bound - Reach 50+ honor score
+        if (this.gameState.honorScore >= 50 && !achievements.includes('honor_bound')) {
+            achievements.push('honor_bound');
+        }
+        
+        // Risk Taker - Complete adventure with <20 health
+        if (stats.worstAdventure.health < 20 && !achievements.includes('risk_taker')) {
+            achievements.push('risk_taker');
+        }
+        
+        // Treasure Seeker - Find 20+ items total
+        if (stats.totalItemsFound >= 20 && !achievements.includes('treasure_seeker')) {
+            achievements.push('treasure_seeker');
+        }
+    }
+
+    async showAdventureStatistics() {
+        this.terminal.clear();
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  ╔════ ADVENTURE STATISTICS ════╗' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + '  ║ Your Adventure Ride Records ║' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + '  ╚═══════════════════════════════════╝' + ANSIParser.reset());
+        this.terminal.println('');
+        
+        const stats = this.gameState.adventureStats;
+        
+        // Basic Statistics
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  📊 Adventure Records:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Total Adventures Started: ${stats.totalAdventures}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + `  Adventures Completed: ${stats.adventuresCompleted}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + `  Current Streak: ${stats.currentStreak}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-magenta') + `  Best Streak: ${stats.bestStreak}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Rewards Statistics
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  💰 Rewards Earned:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + `  Total Gold Found: ${stats.totalGoldFound}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + `  Total Experience: ${stats.totalExperienceGained}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-cyan') + `  Total Items Found: ${stats.totalItemsFound}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-red') + `  Total Health Lost: ${stats.totalHealthLost}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Best/Worst Adventures
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏆 Adventure Records:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + `  Best Adventure: ${stats.bestAdventure.gold} gold, ${stats.bestAdventure.experience} XP, ${stats.bestAdventure.health} health` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-red') + `  Worst Adventure: ${stats.worstAdventure.gold} gold, ${stats.worstAdventure.experience} XP, ${stats.worstAdventure.health} health` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        // Achievements
+        if (stats.achievements.length > 0) {
+            this.terminal.println(ANSIParser.fg('bright-cyan') + '  🏅 Achievements Unlocked:' + ANSIParser.reset());
+            stats.achievements.forEach(achievement => {
+                const achievementNames = {
+                    'desert_survivor': '🏜️ Desert Survivor - Complete 10 adventures',
+                    'gold_hunter': '💰 Gold Hunter - Find 500+ gold total',
+                    'streak_master': '🔥 Streak Master - Get 5+ adventure streak',
+                    'honor_bound': '⚖️ Honor Bound - Reach 50+ honor score',
+                    'risk_taker': '⚡ Risk Taker - Complete adventure with <20 health',
+                    'treasure_seeker': '🎁 Treasure Seeker - Find 20+ items total'
+                };
+                this.terminal.println(ANSIParser.fg('bright-yellow') + `  ${achievementNames[achievement] || achievement}` + ANSIParser.reset());
+            });
+            this.terminal.println('');
+        } else {
+            this.terminal.println(ANSIParser.fg('bright-white') + '  🏅 No achievements yet. Keep adventuring!' + ANSIParser.reset());
+            this.terminal.println('');
+        }
+        
+        // Current Character Stats
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  👤 Current Character:' + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-white') + `  Level: ${this.gameState.level}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-blue') + `  Honor Score: ${this.gameState.honorScore}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-green') + `  Total Gold: ${this.gameState.gold}` + ANSIParser.reset());
+        this.terminal.println(ANSIParser.fg('bright-yellow') + `  Total Experience: ${this.gameState.experience}` + ANSIParser.reset());
+        this.terminal.println('');
+        
+        this.terminal.println(ANSIParser.fg('bright-cyan') + '  Press [ENTER] to continue...' + ANSIParser.reset());
+        await this.terminal.input();
+        return;
+    }
+
     async concludeAdventure(adventure) {
         this.terminal.clear();
         this.terminal.println(ANSIParser.fg('bright-yellow') + '  🏁 ADVENTURE COMPLETE!' + ANSIParser.reset());
@@ -3322,6 +3900,9 @@ class HighNoonHustle {
         this.terminal.println(ANSIParser.fg('bright-white') + `  ❤️  Health Remaining: ${adventure.health}/100` + ANSIParser.reset());
         this.terminal.println(ANSIParser.fg('bright-blue') + `  ⚖️  Honor Score: ${this.gameState.honorScore} (affects all High Noon Hustle games)` + ANSIParser.reset());
         this.terminal.println('');
+        
+        // Update adventure statistics
+        this.updateAdventureStats(adventure);
         
         // Apply rewards
         this.gameState.gold += adventure.goldFound;
