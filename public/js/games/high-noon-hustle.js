@@ -478,7 +478,7 @@ class HighNoonHustle {
             this.gameState.currentLocation = 'main_menu';
             this.currentLocation = 'main_menu';
             await this.updatePlayerStatus();
-            await this.mainMenu();
+            await this.main_menu();
             return;
         } else {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
