@@ -6339,10 +6339,17 @@ class HighNoonHustle {
         // Join the high-noon-hustle room with player data
         console.log('DEBUG: Emitting join-game-room for high-noon-hustle');
         if (this.player) {
-            // Reset currentLocation to main_menu when joining game room
-            // Players should only appear in saloon when they actually enter it
+            // ALWAYS reset currentLocation to main_menu when joining game room
+            // This overrides any saved saloon state to prevent rapid location changes
             this.gameState.currentLocation = 'main_menu';
             this.currentLocation = 'main_menu';
+            
+            // Also update the saved game state to prevent server confusion
+            if (this.gameState) {
+                this.gameState.currentLocation = 'main_menu';
+                // Save the updated location to prevent server confusion
+                this.savePlayerData();
+            }
             
             const playerData = {
                 game: 'high-noon-hustle',
