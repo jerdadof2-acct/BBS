@@ -382,128 +382,106 @@ class HighNoonHustle {
     }
 
     async enterSaloon() {
-        console.log('DEBUG: enterSaloon() called');
-        console.log('DEBUG: enterSaloon() - onlinePlayers length:', this.onlinePlayers.length);
-        console.log('DEBUG: enterSaloon() - onlinePlayers:', this.onlinePlayers);
+        // Set location and update status
         this.gameState.currentLocation = 'saloon';
-        this.currentLocation = 'saloon'; // Make sure both are set
+        this.currentLocation = 'saloon';
         await this.updatePlayerStatus();
         
-        // Show saloon welcome
-        this.terminal.clear();
-        this.terminal.println(ANSIParser.fg('bright-yellow') + `  ╔════ ${this.towns[this.currentTown].saloon} (Telegraph Line) ════╗` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-cyan') + `  ║ Users: ${this.onlinePlayers.length} | Energy: ${this.gameState.energy}/${this.gameState.maxEnergy} ║` + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  ╚══════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
-        this.terminal.println('');
-        
-        this.terminal.println(ANSIParser.fg('bright-cyan') + '  🍺 Welcome to the Saloon! 🍺' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  The multiplayer hub of the Wild West - where all the social action happens!' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  Chat, duel, trade, and compete with other players!' + ANSIParser.reset());
-        this.terminal.println('');
-        
-        // Show who's here
-        console.log('DEBUG: Saloon - onlinePlayers length:', this.onlinePlayers.length);
-        console.log('DEBUG: Saloon - onlinePlayers:', this.onlinePlayers);
-        this.onlinePlayers.forEach((player, index) => {
-            console.log(`DEBUG: Player ${index}:`, {
-                display_name: player.display_name,
-                character_class: player.character_class,
-                current_town: player.current_town,
-                name: player.name
-            });
-        });
-        if (this.onlinePlayers.length > 0) {
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  🤠 Folks in the Saloon:' + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-cyan') + '  (DG=Dusty Gulch, RM=Red Mesa, TJ=Tumbleweed Junction, DH=Dead Horse Canyon)' + ANSIParser.reset());
-            this.onlinePlayers.forEach(player => {
-                const displayName = player.display_name || player.name || 'Unknown';
-                const characterClass = player.character_class || 'gunslinger';
-                const currentTown = player.current_town || 'dusty_gulch';
-                const townTag = this.getTownTag(currentTown);
-                this.terminal.println(ANSIParser.fg('bright-white') + `    ${townTag} ${displayName} (${characterClass})` + ANSIParser.reset());
-            });
+        // Main saloon loop - simple and clean
+        while (true) {
+            // Display saloon
+            this.terminal.clear();
+            this.terminal.println(ANSIParser.fg('bright-yellow') + `  ╔════ ${this.towns[this.currentTown].saloon} (Telegraph Line) ════╗` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-cyan') + `  ║ Users: ${this.onlinePlayers.length} | Energy: ${this.gameState.energy}/${this.gameState.maxEnergy} ║` + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  ╚══════════════════════════════════════════════════════════════════════════╝' + ANSIParser.reset());
             this.terminal.println('');
-        } else {
-            this.terminal.println(ANSIParser.fg('bright-red') + '  🏜️  The saloon is empty! You\'re the only one here.' + ANSIParser.reset());
-            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Invite friends or wait for others to join!' + ANSIParser.reset());
+            
+            this.terminal.println(ANSIParser.fg('bright-cyan') + '  🍺 Welcome to the Saloon! 🍺' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  The multiplayer hub of the Wild West - where all the social action happens!' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  Chat, duel, trade, and compete with other players!' + ANSIParser.reset());
             this.terminal.println('');
+            
+            // Show who's here
+            if (this.onlinePlayers.length > 0) {
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  🤠 Folks in the Saloon:' + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-cyan') + '  (DG=Dusty Gulch, RM=Red Mesa, TJ=Tumbleweed Junction, DH=Dead Horse Canyon)' + ANSIParser.reset());
+                this.onlinePlayers.forEach(player => {
+                    const displayName = player.display_name || player.name || 'Unknown';
+                    const characterClass = player.character_class || 'gunslinger';
+                    const currentTown = player.current_town || 'dusty_gulch';
+                    const townTag = this.getTownTag(currentTown);
+                    this.terminal.println(ANSIParser.fg('bright-white') + `    ${townTag} ${displayName} (${characterClass})` + ANSIParser.reset());
+                });
+                this.terminal.println('');
+            } else {
+                this.terminal.println(ANSIParser.fg('bright-red') + '  🏜️  The saloon is empty! You\'re the only one here.' + ANSIParser.reset());
+                this.terminal.println(ANSIParser.fg('bright-yellow') + '  Invite friends or wait for others to join!' + ANSIParser.reset());
+                this.terminal.println('');
+            }
+            
+            // Show recent telegraph messages
+            this.showSaloonMessages();
+            this.terminal.println('');
+            
+            // Saloon activities
+            this.terminal.println(ANSIParser.fg('bright-yellow') + '  🍺 Saloon Activities (Multiplayer & Social Only!):' + ANSIParser.reset());
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [1]' + ANSIParser.reset() + ' 💬 Send Telegraph Message');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [2]' + ANSIParser.reset() + ' 🎮 Join Multiplayer Games');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [3]' + ANSIParser.reset() + ' ⚔️  Challenge Someone to Duel');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [4]' + ANSIParser.reset() + ' 💰 Trade with Other Players');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [5]' + ANSIParser.reset() + ' 🎵 Social Activities');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [6]' + ANSIParser.reset() + ' 🏆 Join Competitions');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [7]' + ANSIParser.reset() + ' 📢 View Events & Announcements');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [8]' + ANSIParser.reset() + ' 👥 Form a Posse');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [9]' + ANSIParser.reset() + ' 🏆 Tournaments (TRUE Multiplayer!)');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [S]' + ANSIParser.reset() + ' 📊 View Your Stats & Equipment');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [R]' + ANSIParser.reset() + ' 🔄 Refresh Saloon (Update Player List)');
+            this.terminal.println(ANSIParser.fg('bright-white') + '  [B]' + ANSIParser.reset() + ' Back to Main Menu (Solo Adventures)');
+            this.terminal.println('');
+            
+            this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
+            
+            const choice = (await this.terminal.input()).toLowerCase().trim();
+            
+            if (choice === '1') {
+                await this.sendTelegraphMessage();
+            } else if (choice === '2') {
+                await this.joinMultiplayerGames();
+            } else if (choice === '3') {
+                await this.challengeToDuel();
+            } else if (choice === '4') {
+                await this.tradeWithPlayers();
+            } else if (choice === '5') {
+                await this.socialActivities();
+            } else if (choice === '6') {
+                await this.joinCompetitions();
+            } else if (choice === '7') {
+                await this.viewEventsAndAnnouncements();
+            } else if (choice === '8') {
+                await this.formPosse();
+            } else if (choice === '9') {
+                await this.tournamentMode();
+            } else if (choice === 'tournament' || choice === 't') {
+                await this.tournamentMode();
+            } else if (choice === 's' || choice === 'stats') {
+                await this.showPlayerStats();
+            } else if (choice === 'r' || choice === 'refresh') {
+                // Just continue the loop to refresh
+                continue;
+            } else if (choice === 'b' || choice === 'B' || choice === 'back' || choice === 'Back') {
+                // Exit saloon - update status and break out of loop
+                this.gameState.currentLocation = 'main_menu';
+                this.currentLocation = 'main_menu';
+                await this.updatePlayerStatus();
+                break; // Exit the while loop
+            } else {
+                this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
+                await this.terminal.sleep(1000);
+            }
         }
         
-        // Show recent telegraph messages
-        this.showSaloonMessages();
-        this.terminal.println('');
-        
-        // Saloon activities - PURE MULTIPLAYER & SOCIAL
-        this.terminal.println(ANSIParser.fg('bright-yellow') + '  🍺 Saloon Activities (Multiplayer & Social Only!):' + ANSIParser.reset());
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [1]' + ANSIParser.reset() + ' 💬 Send Telegraph Message');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [2]' + ANSIParser.reset() + ' 🎮 Join Multiplayer Games');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [3]' + ANSIParser.reset() + ' ⚔️  Challenge Someone to Duel');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [4]' + ANSIParser.reset() + ' 💰 Trade with Other Players');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [5]' + ANSIParser.reset() + ' 🎵 Social Activities');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [6]' + ANSIParser.reset() + ' 🏆 Join Competitions');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [7]' + ANSIParser.reset() + ' 📢 View Events & Announcements');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [8]' + ANSIParser.reset() + ' 👥 Form a Posse');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [9]' + ANSIParser.reset() + ' 🏆 Tournaments (TRUE Multiplayer!)');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [S]' + ANSIParser.reset() + ' 📊 View Your Stats & Equipment');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [R]' + ANSIParser.reset() + ' 🔄 Refresh Saloon (Update Player List)');
-        this.terminal.println(ANSIParser.fg('bright-white') + '  [B]' + ANSIParser.reset() + ' Back to Main Menu (Solo Adventures)');
-        this.terminal.println('');
-        
-        this.terminal.println(ANSIParser.fg('bright-green') + '  Your choice: ' + ANSIParser.reset());
-        
-        const choice = (await this.terminal.input()).toLowerCase().trim();
-        console.log('DEBUG: Saloon choice received:', choice, 'type:', typeof choice);
-        
-        if (choice === '1') {
-            await this.sendTelegraphMessage();
-            // After sending message, return to saloon
-            return await this.enterSaloon();
-        } else if (choice === '2') {
-            await this.joinMultiplayerGames();
-            return await this.enterSaloon();
-        } else if (choice === '3') {
-            await this.challengeToDuel();
-            return await this.enterSaloon();
-        } else if (choice === '4') {
-            await this.tradeWithPlayers();
-            return await this.enterSaloon();
-        } else if (choice === '5') {
-            await this.socialActivities();
-            return await this.enterSaloon();
-        } else if (choice === '6') {
-            await this.joinCompetitions();
-            return await this.enterSaloon();
-        } else if (choice === '7') {
-            await this.viewEventsAndAnnouncements();
-            return await this.enterSaloon();
-        } else if (choice === '8') {
-            await this.formPosse();
-            return await this.enterSaloon();
-        } else if (choice === '9') {
-            await this.tournamentMode();
-            return await this.enterSaloon();
-        } else if (choice === 'tournament' || choice === 't') {
-            await this.tournamentMode();
-            return await this.enterSaloon();
-        } else if (choice === 's' || choice === 'stats') {
-            await this.showPlayerStats();
-            return await this.enterSaloon();
-        } else if (choice === 'r' || choice === 'refresh') {
-            // Refresh the saloon display by calling enterSaloon again
-            console.log('DEBUG: Refreshing saloon display...');
-            return await this.enterSaloon();
-        } else if (choice === 'b' || choice === 'B' || choice === 'back' || choice === 'Back') {
-            // Simple exit - just update status and return
-            this.gameState.currentLocation = 'main_menu';
-            this.currentLocation = 'main_menu';
-            await this.updatePlayerStatus();
-            return;
-        } else {
-            console.log('DEBUG: Invalid choice in saloon:', choice);
-            this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
-            await this.terminal.sleep(1000);
-            return await this.enterSaloon(); // Return to saloon instead of exiting
-        }
+        // When we exit the while loop, we're back to main menu
+        return;
     }
 
     async showPlayerStats() {
