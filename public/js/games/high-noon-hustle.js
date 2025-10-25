@@ -12,7 +12,6 @@ class HighNoonHustle {
         this.currentTown = 'dusty_gulch';
         this.recentMessages = [];
         this.socketListenersSetup = false;
-        this.saloonRefreshTimeout = null; // Track pending saloon refresh timeout
         this.gameState = {
             energy: 100,
             maxEnergy: 100,
@@ -6220,28 +6219,10 @@ class HighNoonHustle {
                         console.log('DEBUG: Updated onlinePlayers:', this.onlinePlayers);
                     }
                     
-                    // Automatically refresh the saloon display if we're currently in the saloon
+                    // Don't auto-refresh saloon - let user manually refresh if needed
                     console.log('DEBUG: Player joined - currentLocation:', this.currentLocation);
                     if (this.currentLocation === 'saloon') {
-                        console.log('DEBUG: Player in saloon, scheduling refresh...');
-                        // Cancel any existing timeout
-                        if (this.saloonRefreshTimeout) {
-                            clearTimeout(this.saloonRefreshTimeout);
-                            console.log('DEBUG: Cancelled existing saloon refresh timeout');
-                        }
-                        // Use a more reliable refresh approach
-                        this.saloonRefreshTimeout = setTimeout(async () => {
-                            console.log('DEBUG: Timeout fired - currentLocation:', this.currentLocation);
-                            // Double-check we're still in saloon before refreshing
-                            if (this.currentLocation === 'saloon' && this.gameState.currentLocation === 'saloon') {
-                                console.log('DEBUG: Refreshing saloon display...');
-                                this.terminal.clear();
-                                await this.enterSaloon();
-                            } else {
-                                console.log('DEBUG: No longer in saloon, skipping refresh');
-                            }
-                            this.saloonRefreshTimeout = null; // Clear the timeout reference
-                        }, 1000);
+                        console.log('DEBUG: Player in saloon, but not auto-refreshing');
                     } else {
                         console.log('DEBUG: Player not in saloon, no refresh needed');
                     }
