@@ -12,6 +12,7 @@ class HighNoonHustle {
         this.currentTown = 'dusty_gulch';
         this.recentMessages = [];
         this.socketListenersSetup = false;
+        this.saloonRefreshTimeout = null; // Track pending saloon refresh timeout
         this.gameState = {
             energy: 100,
             maxEnergy: 100,
@@ -498,6 +499,14 @@ class HighNoonHustle {
             console.log('DEBUG: User pressed b/B/back, leaving saloon...');
             this.gameState.currentLocation = 'main_menu';
             this.currentLocation = 'main_menu';
+            
+            // Cancel any pending saloon refresh timeout
+            if (this.saloonRefreshTimeout) {
+                clearTimeout(this.saloonRefreshTimeout);
+                this.saloonRefreshTimeout = null;
+                console.log('DEBUG: Cancelled pending saloon refresh timeout');
+            }
+            
             console.log('DEBUG: Updated locations, calling updatePlayerStatus...');
             await this.updatePlayerStatus();
             console.log('DEBUG: updatePlayerStatus completed, returning from saloon...');
@@ -6228,8 +6237,13 @@ class HighNoonHustle {
                     console.log('DEBUG: Player joined - currentLocation:', this.currentLocation);
                     if (this.currentLocation === 'saloon') {
                         console.log('DEBUG: Player in saloon, scheduling refresh...');
+                        // Cancel any existing timeout
+                        if (this.saloonRefreshTimeout) {
+                            clearTimeout(this.saloonRefreshTimeout);
+                            console.log('DEBUG: Cancelled existing saloon refresh timeout');
+                        }
                         // Use a more reliable refresh approach
-                        setTimeout(async () => {
+                        this.saloonRefreshTimeout = setTimeout(async () => {
                             console.log('DEBUG: Timeout fired - currentLocation:', this.currentLocation);
                             // Double-check we're still in saloon before refreshing
                             if (this.currentLocation === 'saloon' && this.gameState.currentLocation === 'saloon') {
@@ -6239,6 +6253,7 @@ class HighNoonHustle {
                             } else {
                                 console.log('DEBUG: No longer in saloon, skipping refresh');
                             }
+                            this.saloonRefreshTimeout = null; // Clear the timeout reference
                         }, 1000);
                     } else {
                         console.log('DEBUG: Player not in saloon, no refresh needed');
