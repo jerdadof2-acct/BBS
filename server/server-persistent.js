@@ -1791,7 +1791,8 @@ io.on('connection', (socket) => {
           username: playerData.username || user.handle, // Store game username
           display_name: playerData.display_name || user.handle, // Store game display name
           character_class: playerData.character_class || 'gunslinger',
-          current_town: playerData.current_town || 'tumbleweed_junction'
+          current_town: playerData.current_town || 'tumbleweed_junction',
+          current_location: playerData.current_location || 'main_menu'
         };
         console.log('DEBUG: Stored character data for', user.handle, ':', user.characterData);
       } else {

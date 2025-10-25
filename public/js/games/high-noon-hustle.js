@@ -6347,7 +6347,8 @@ class HighNoonHustle {
                     name: this.player.display_name,
                     display_name: this.player.display_name,
                     character_class: this.player.character_class,
-                    current_town: this.currentTown
+                    current_town: this.currentTown,
+                    current_location: this.gameState.currentLocation || 'main_menu'
                 }
             };
             console.log('DEBUG: Sending player data:', playerData);

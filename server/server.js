@@ -127,6 +127,20 @@ io.on('connection', (socket) => {
       // High Noon Hustle specific player join notification
       console.log('DEBUG: Emitting player-joined for high-noon-hustle:', user.handle);
       
+      // Store character data for this user
+      if (playerData) {
+        user.characterData = {
+          username: playerData.username,
+          display_name: playerData.display_name,
+          character_class: playerData.character_class,
+          current_town: playerData.current_town,
+          current_location: playerData.current_location || 'main_menu'
+        };
+        console.log('DEBUG: Stored character data for', user.handle, ':', user.characterData);
+      } else {
+        console.log('DEBUG: No playerData provided for', user.handle);
+      }
+      
       // Send current player list to the new player
       // Get only users who are actually in the high-noon-hustle room
       const roomSockets = io.sockets.adapter.rooms.get('high-noon-hustle');
