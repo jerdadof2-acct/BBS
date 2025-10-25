@@ -1809,14 +1809,17 @@ io.on('connection', (socket) => {
           const roomUser = onlineUsers.get(socketId);
           if (roomUser) {
             const storedPlayerData = roomUser.characterData || {};
-            roomPlayers.push({
-              id: roomUser.userId,
-              name: storedPlayerData.username || roomUser.handle,
-              display_name: storedPlayerData.display_name || roomUser.handle,
-              character_class: storedPlayerData.character_class || 'gunslinger',
-              current_town: storedPlayerData.current_town || 'tumbleweed_junction',
-              socketId: socketId
-            });
+            // Only include players who are actually in the saloon
+            if (storedPlayerData.current_location === 'saloon') {
+              roomPlayers.push({
+                id: roomUser.userId,
+                name: storedPlayerData.username || roomUser.handle,
+                display_name: storedPlayerData.display_name || roomUser.handle,
+                character_class: storedPlayerData.character_class || 'gunslinger',
+                current_town: storedPlayerData.current_town || 'tumbleweed_junction',
+                socketId: socketId
+              });
+            }
           }
         });
       }
@@ -2077,6 +2080,28 @@ io.on('connection', (socket) => {
       console.log('DEBUG: Saloon message from', data.player.name, ':', data.message);
       // Broadcast to all players in the high-noon-hustle room
       io.to('high-noon-hustle').emit('saloon-message', data);
+    }
+  });
+
+  // High Noon Hustle Player Status Update
+  socket.on('player-status-update', (data) => {
+    if (data.game === 'high-noon-hustle') {
+      const user = onlineUsers.get(socket.id);
+      if (user) {
+        // Update user's character data with current location
+        if (!user.characterData) {
+          user.characterData = {};
+        }
+        user.characterData.current_location = data.player.currentLocation;
+        user.characterData.current_town = data.player.currentTown;
+        user.characterData.character_class = data.player.characterClass;
+        user.characterData.username = data.player.username;
+        
+        console.log('DEBUG: Updated player status for', user.handle, ':', {
+          currentLocation: data.player.currentLocation,
+          currentTown: data.player.currentTown
+        });
+      }
     }
   });
 

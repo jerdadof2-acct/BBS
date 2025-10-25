@@ -205,12 +205,24 @@ class HighNoonHustle {
             const choice = (await this.terminal.input()).toLowerCase().trim();
             
             if (choice === '1') {
+                this.gameState.currentLocation = 'solo_adventures';
+                this.currentLocation = 'solo_adventures';
+                await this.updatePlayerStatus();
                 await this.soloAdventures();
             } else if (choice === '2') {
+                this.gameState.currentLocation = 'general_store';
+                this.currentLocation = 'general_store';
+                await this.updatePlayerStatus();
                 await this.generalStore();
             } else if (choice === '3') {
+                this.gameState.currentLocation = 'solo_mini_games';
+                this.currentLocation = 'solo_mini_games';
+                await this.updatePlayerStatus();
                 await this.soloMiniGames();
             } else if (choice === '4') {
+                this.gameState.currentLocation = 'energy_recovery';
+                this.currentLocation = 'energy_recovery';
+                await this.updatePlayerStatus();
                 await this.energyRecovery();
             } else if (choice === '5') {
                 await this.leaderboardsAndRankings();
@@ -462,6 +474,10 @@ class HighNoonHustle {
         } else if (choice === 'r' || choice === 'refresh') {
             await this.enterSaloon(); // Refresh the saloon display
         } else if (choice === 'b' || choice === 'back') {
+            // Update status when leaving saloon
+            this.gameState.currentLocation = 'main_menu';
+            this.currentLocation = 'main_menu';
+            await this.updatePlayerStatus();
             return;
         } else {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
@@ -1379,6 +1395,10 @@ class HighNoonHustle {
         } else if (choice === '5') {
             await this.goatWrangling();
         } else if (choice === 'b' || choice === 'back') {
+            // Update status when returning to main menu
+            this.gameState.currentLocation = 'main_menu';
+            this.currentLocation = 'main_menu';
+            await this.updatePlayerStatus();
             return;
         } else {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
@@ -1557,6 +1577,10 @@ class HighNoonHustle {
         } else if (choice === '6') {
             await this.viewCurrentEquipment();
         } else if (choice.toLowerCase() === 'b') {
+            // Update status when returning to main menu
+            this.gameState.currentLocation = 'main_menu';
+            this.currentLocation = 'main_menu';
+            await this.updatePlayerStatus();
             return;
         } else {
             this.terminal.println(ANSIParser.fg('bright-red') + '  Invalid choice!' + ANSIParser.reset());
@@ -2010,6 +2034,10 @@ class HighNoonHustle {
             }
         } else if (choice.toLowerCase() === 'b') {
             console.log('Returning to main menu'); // Debug
+            // Update status when returning to main menu
+            this.gameState.currentLocation = 'main_menu';
+            this.currentLocation = 'main_menu';
+            await this.updatePlayerStatus();
             return;
         } else {
             console.log('Invalid choice:', choice); // Debug
@@ -5945,6 +5973,22 @@ class HighNoonHustle {
 
     async updatePlayerStatus() {
         // Update player status on server
+        if (this.socketClient && this.socketClient.socket) {
+            this.socketClient.socket.emit('player-status-update', {
+                game: 'high-noon-hustle',
+                player: {
+                    id: this.player?.id,
+                    username: this.player?.username,
+                    currentLocation: this.gameState.currentLocation,
+                    currentTown: this.currentTown,
+                    characterClass: this.player?.character_class
+                }
+            });
+            console.log('DEBUG: Sent player status update:', {
+                currentLocation: this.gameState.currentLocation,
+                currentTown: this.currentTown
+            });
+        }
     }
 
     async showSaloonMessages() {
