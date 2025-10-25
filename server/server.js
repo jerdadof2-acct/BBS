@@ -128,19 +128,30 @@ io.on('connection', (socket) => {
       console.log('DEBUG: Emitting player-joined for high-noon-hustle:', user.handle);
       
       // Send current player list to the new player
-      const currentPlayers = Array.from(onlineUsers.values()).map(u => ({
-        id: u.userId,
-        name: u.handle,
-        display_name: u.handle,
-        character_class: 'gunslinger', // Default class for now
-        current_town: 'tumbleweed_junction', // Default town for now
-        socketId: socket.id
-      }));
+      // Get only users who are actually in the high-noon-hustle room
+      const roomSockets = io.sockets.adapter.rooms.get('high-noon-hustle');
+      const roomPlayers = [];
+      
+      if (roomSockets) {
+        roomSockets.forEach(socketId => {
+          const roomUser = onlineUsers.get(socketId);
+          if (roomUser) {
+            roomPlayers.push({
+              id: roomUser.userId,
+              name: roomUser.handle,
+              display_name: roomUser.handle,
+              character_class: 'gunslinger', // Default class for now
+              current_town: 'tumbleweed_junction', // Default town for now
+              socketId: socketId
+            });
+          }
+        });
+      }
       
       // Send current players to the new joiner
       socket.emit('current-players', {
         game: 'high-noon-hustle',
-        players: currentPlayers
+        players: roomPlayers
       });
       
       // Send to all players in the room (including the one who just joined)

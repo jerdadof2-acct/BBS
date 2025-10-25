@@ -1798,26 +1798,34 @@ io.on('connection', (socket) => {
         console.log('DEBUG: No playerData provided for', user.handle);
       }
       
-      // Send current player list to the new player (after storing the new player's data)
-      const currentPlayers = Array.from(onlineUsers.values()).map(u => {
-        // Get the actual character data for each player from their stored data
-        const storedPlayerData = u.characterData || {};
-        console.log('DEBUG: Building current players list for', u.handle, 'stored data:', storedPlayerData);
-        return {
-          id: u.userId,
-          name: storedPlayerData.username || u.handle,
-          display_name: storedPlayerData.display_name || u.handle,
-          character_class: storedPlayerData.character_class || 'gunslinger',
-          current_town: storedPlayerData.current_town || 'tumbleweed_junction',
-          socketId: u.socketId
-        };
-      });
+      // Note: currentPlayers array is now built from room members only (see below)
+      
+      // Get only users who are actually in the high-noon-hustle room
+      const roomSockets = io.sockets.adapter.rooms.get('high-noon-hustle');
+      const roomPlayers = [];
+      
+      if (roomSockets) {
+        roomSockets.forEach(socketId => {
+          const roomUser = onlineUsers.get(socketId);
+          if (roomUser) {
+            const storedPlayerData = roomUser.characterData || {};
+            roomPlayers.push({
+              id: roomUser.userId,
+              name: storedPlayerData.username || roomUser.handle,
+              display_name: storedPlayerData.display_name || roomUser.handle,
+              character_class: storedPlayerData.character_class || 'gunslinger',
+              current_town: storedPlayerData.current_town || 'tumbleweed_junction',
+              socketId: socketId
+            });
+          }
+        });
+      }
       
       // Send current players to the new joiner
-      console.log('DEBUG: Sending current-players to', user.handle, ':', currentPlayers);
+      console.log('DEBUG: Sending current-players to', user.handle, ':', roomPlayers);
       socket.emit('current-players', {
         game: 'high-noon-hustle',
-        players: currentPlayers
+        players: roomPlayers
       });
       
       // Send to all players in the room (including the one who just joined)
