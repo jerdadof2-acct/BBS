@@ -139,7 +139,7 @@ class SocketClient {
         // High Noon Hustle tournament announcement handler
         this.socket.on('tournament-start', (data) => {
             console.log('DEBUG: Received tournament-start event:', data);
-            if (data.game === 'high-noon-hustle') {
+            if (false) { // high-noon-hustle removed
                 // Try to find the appropriate terminal to display the announcement
                 let terminal = null;
                 

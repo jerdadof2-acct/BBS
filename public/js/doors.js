@@ -5,7 +5,6 @@ class DoorGames {
         this.socketClient = socketClient;
         this.authManager = authManager;
         this.games = [
-            { id: 'high-noon-hustle', name: '🤠 High Noon Hustle 🤠', description: 'Western multiplayer hub - MULTIPLAYER FOCUSED (Saloon social + PvP + co-op)' },
             { id: 'word-race', name: '🏃 Word Race 🏃', description: 'Typing competition - SOLO/MP (Practice + Multiplayer)' },
             { id: 'trivia-battle', name: '🧠 Trivia Battle 🧠', description: 'Trivia competition - MULTIPLAYER ONLY' },
             { id: 'high-noon-duel', name: '🤠 High Noon Duel 🤠', description: 'Western shootout - MULTIPLAYER ONLY' },
@@ -94,13 +93,7 @@ class DoorGames {
         await this.terminal.sleep(1000);
         
         // Launch the appropriate game
-        if (game.id === 'high-noon-hustle') {
-            const highNoonHustle = new HighNoonHustle(this.terminal, this.socketClient, this.authManager);
-            window.currentGame = highNoonHustle; // Set for tournament announcements
-            const result = await highNoonHustle.play();
-            window.currentGame = null; // Clear when game ends
-            return result === 'menu' ? 'menu' : 'doors';
-        } else if (game.id === 'word-race') {
+        if (game.id === 'word-race') {
             const wordRace = new WordRace(this.terminal, this.socketClient, this.authManager);
             const result = await wordRace.play();
             return result === 'menu' ? 'menu' : 'doors';
