@@ -158,22 +158,27 @@ io.on('connection', (socket) => {
         players: roomPlayers
       });
       
-      // Send to all players in the room (including the one who just joined)
-      // Use actual player data if available, otherwise use defaults
-      const playerTown = playerData?.current_town || 'tumbleweed_junction';
-      const characterClass = playerData?.character_class || 'gunslinger';
-      
-      io.to(room).emit('player-joined', { 
-        game: 'high-noon-hustle',
-        player: {
-          id: user.userId,
-          name: user.handle,
-          display_name: user.handle,
-          character_class: characterClass,
-          current_town: playerTown,
-          socketId: socket.id
-        }
-      });
+      // Only send player-joined event if the player is actually in the saloon
+      const storedData = user.characterData || {};
+      if (storedData.current_location === 'saloon') {
+        const playerTown = storedData.current_town || 'tumbleweed_junction';
+        const characterClass = storedData.character_class || 'gunslinger';
+        
+        io.to(room).emit('player-joined', { 
+          game: 'high-noon-hustle',
+          player: {
+            id: user.userId,
+            name: storedData.username || user.handle,
+            display_name: storedData.display_name || user.handle,
+            character_class: characterClass,
+            current_town: playerTown,
+            socketId: socket.id
+          }
+        });
+        console.log('DEBUG: Broadcasting player-joined to all players (player in saloon)');
+      } else {
+        console.log('DEBUG: Player joined game but not in saloon, not broadcasting player-joined event');
+      }
     } else {
       // Generic player join notification
       socket.to(room).emit('player-joined', { socketId: socket.id });
@@ -196,6 +201,8 @@ io.on('connection', (socket) => {
     if (data.game === 'high-noon-hustle') {
       const user = onlineUsers.get(socket.id);
       if (user) {
+        const previousLocation = user.characterData?.current_location;
+        
         // Update user's character data with current location
         if (!user.characterData) {
           user.characterData = {};
@@ -207,8 +214,40 @@ io.on('connection', (socket) => {
         
         console.log('DEBUG: Updated player status for', user.handle, ':', {
           currentLocation: data.player.currentLocation,
-          currentTown: data.player.currentTown
+          currentTown: data.player.currentTown,
+          previousLocation: previousLocation
         });
+        
+        // If player entered saloon, broadcast to all players
+        if (data.player.currentLocation === 'saloon' && previousLocation !== 'saloon') {
+          const playerJoinedData = { 
+            game: 'high-noon-hustle',
+            player: {
+              id: user.userId,
+              name: user.characterData.username || user.handle,
+              display_name: user.characterData.display_name || user.handle,
+              character_class: user.characterData.character_class || 'gunslinger',
+              current_town: user.characterData.current_town || 'tumbleweed_junction',
+              socketId: socket.id
+            }
+          };
+          console.log('DEBUG: Player entered saloon, broadcasting player-joined:', playerJoinedData);
+          io.to('high-noon-hustle').emit('player-joined', playerJoinedData);
+        }
+        
+        // If player left saloon, broadcast to all players
+        if (previousLocation === 'saloon' && data.player.currentLocation !== 'saloon') {
+          const playerLeftData = {
+            game: 'high-noon-hustle',
+            player: {
+              id: user.userId,
+              name: user.characterData.username || user.handle,
+              socketId: socket.id
+            }
+          };
+          console.log('DEBUG: Player left saloon, broadcasting player-left:', playerLeftData);
+          io.to('high-noon-hustle').emit('player-left', playerLeftData);
+        }
       }
     }
   });
