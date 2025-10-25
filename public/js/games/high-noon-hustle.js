@@ -239,6 +239,8 @@ class HighNoonHustle {
                 await this.enterSaloon();
                 console.log('DEBUG: Returned from enterSaloon(), continuing main loop...');
                 console.log('DEBUG: About to start new main loop iteration...');
+                // Don't wait for input - just continue the loop to show main menu again
+                continue;
             } else if (choice === 'q' || choice === 'quit') {
                 await this.savePlayerData();
                 return 'doors';
