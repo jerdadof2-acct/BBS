@@ -5696,7 +5696,7 @@ class HighNoonHustle {
     }
 
     // Real-time chat methods
-    displaySaloonMessage(data) {
+    async displaySaloonMessage(data) {
         console.log('Saloon message:', data);
         
         // Add message to recent messages array
@@ -5722,7 +5722,7 @@ class HighNoonHustle {
             
             // If we're currently in the saloon, refresh the display
             if (this.gameState.currentLocation === 'saloon') {
-                this.enterSaloon();
+                await this.enterSaloon();
             }
         }
     }
@@ -6215,12 +6215,12 @@ class HighNoonHustle {
                     if (this.currentLocation === 'saloon') {
                         console.log('DEBUG: Player in saloon, scheduling refresh...');
                         // Use a more reliable refresh approach
-                        setTimeout(() => {
+                        setTimeout(async () => {
                             console.log('DEBUG: Timeout fired - currentLocation:', this.currentLocation);
                             if (this.currentLocation === 'saloon') {
-                                console.log('DEBUG: Refreshing saloon display...');
-                                this.terminal.clear();
-                                this.enterSaloon();
+                            console.log('DEBUG: Refreshing saloon display...');
+                            this.terminal.clear();
+                            await this.enterSaloon();
                             }
                         }, 1000);
                     } else {
